@@ -15,6 +15,9 @@ de todo el proceso que se realizo.
 - calcularDescuento():Usa when para decidir cuánto descuento aplicar: 10% si el total supera 5000, 5% si supera 3000, y 0 en cualquier otro caso
 
 ## Captura de consola
+<img width="940" height="739" alt="image" src="https://github.com/user-attachments/assets/3a1c6abb-31ae-49d0-b633-3749970c962f" />
+<img width="770" height="456" alt="image" src="https://github.com/user-attachments/assets/b1549663-5da9-4f22-823b-ad577acfae5b" />
+
 
 
 ## val vs var
