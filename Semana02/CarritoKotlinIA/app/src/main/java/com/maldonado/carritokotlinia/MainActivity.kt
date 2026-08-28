@@ -22,4 +22,14 @@ fun main() {
     println("Subtotal: S/ ${"%.2f".format(subtotal)}")
     println("Impuesto: S/ ${"%.2f".format(impuesto)}")
     println("Total:    S/ ${"%.2f".format(total)}")
+
+    val masCaro = carrito.productoMasCaro()
+    if (masCaro != null) {
+        println("Producto mas caro: ${masCaro.nombre} " + String.format("(S/ %.2f)", masCaro.precio))
+    }
+
+    val descuento = carrito.calcularDescuento()
+    val totalConDescuento = total - descuento
+    println("Descuento aplicado: S/ ${"%.2f".format(descuento)}")
+    println("TOTAL CON DESCUENTO: S/ ${"%.2f".format(totalConDescuento)}")
 }

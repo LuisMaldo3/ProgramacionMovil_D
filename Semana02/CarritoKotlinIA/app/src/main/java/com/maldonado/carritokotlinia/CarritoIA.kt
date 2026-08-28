@@ -66,9 +66,20 @@ class Carrito {
 
     fun calcularTotal(): Double =
         calcularSubtotalGeneral() + calcularImpuestoGeneral()
+    fun productoMasCaro(): Producto? = productos.maxByOrNull { it.precio }
+
+    fun calcularDescuento(): Double {
+        val total = calcularTotal()
+        return when {
+            total > 5000 -> total * 0.10
+            total > 3000 -> total * 0.05
+            else -> 0.0
+        }
+    }
 
     fun mostrarDetalle() {
         println("--------- DETALLE DEL CARRITO ---------")
+
         var i = 1
         for (p in productos) {
             val importe = p.calcularSubtotal()
