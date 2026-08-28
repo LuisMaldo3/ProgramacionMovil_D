@@ -24,4 +24,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Lab02CarritoKotlin"
 include(":app")
+include(":carrito-consola")
  

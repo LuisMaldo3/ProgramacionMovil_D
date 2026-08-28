@@ -1,0 +1,15 @@
+*.iml
+.gradle
+/local.properties
+/CarritoKotlin/.idea/caches
+/CarritoKotlin/.idea/libraries
+/CarritoKotlin/.idea/modules.xml
+/CarritoKotlin/.idea/workspace.xml
+/CarritoKotlin/.idea/navEditor.xml
+/CarritoKotlin/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
