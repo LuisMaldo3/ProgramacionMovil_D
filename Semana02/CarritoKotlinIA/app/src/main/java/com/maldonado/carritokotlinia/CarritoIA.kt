@@ -33,3 +33,16 @@ class CarritoIA {
         println("=========================================")
     }
 }
+class Carrito {
+    private val productos = mutableListOf<Producto>()
+
+    fun agregarProducto(producto: Producto) {
+        productos.add(producto)
+        println("Producto agregado: ${producto.nombre}")
+    }
+
+    fun obtenerProductos(): List<Producto> = productos.toList()
+
+    val size: Int
+        get() = productos.size
+}
