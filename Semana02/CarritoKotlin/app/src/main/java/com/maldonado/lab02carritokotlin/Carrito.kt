@@ -1,6 +1,6 @@
 package com.maldonado.lab02carritokotlin
 
-class Carrito {
+
 
     data class Producto(
         val nombre: String,
@@ -49,16 +49,18 @@ class Carrito {
             else -> 0.0
         }
     }
-
+fun buscarProducto(productos: List<Producto>, nombre: String): Producto? {
+    return productos.find { it.nombre == nombre }
 }
+
     fun main(){
-        val miCarrito = Carrito()
         println("=========================================")
         println("  CARRITO DE COMPRAS - TIENDA TECSUP")
         println("=========================================")
 
         val nombreCliente="Luis Maldonado"
         val carrito = mutableListOf<Producto>()
+
 
         println("cliente:$nombreCliente")
         println()
@@ -96,7 +98,27 @@ class Carrito {
             String.format(
                 "TOTAL CON DESCUENTO: S/%.2f", totalDescuento
             )
+
         )
+        val buscado = buscarProducto(carrito, "Mouse Logitech")
+        if (buscado != null) {
+            println("Encontrado: ${buscado.nombre}")
+        } else {
+            println("Producto no encontrado")
+        }
+        carrito.removeIf { it.nombre == "Mouse Logitech" }
+
+        println()
+        println("Carrito actualizado despues de eliminar:")
+        mostrarDetalle(carrito)
+        val subtotalNuevo = calcularSubtotal(carrito)
+        val igvNuevo = calcularIGV(subtotalNuevo)
+        val totalNuevo = calcularTotal(subtotalNuevo, igvNuevo)
+        println(String.format("Nuevo subtotal: S/ %8.2f", subtotalNuevo))
+        println(String.format("Nuevo IGV: S/ %8.2f", igvNuevo))
+        println(String.format("Nuevo total: S/ %8.2f", totalNuevo))
+
+
 
         println()
         println(String.format("Subtotal: S/$ %8.2f", subtotal))
