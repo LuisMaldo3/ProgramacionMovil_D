@@ -66,6 +66,18 @@ class Carrito {
 
     fun calcularTotal(): Double =
         calcularSubtotalGeneral() + calcularImpuestoGeneral()
+
+    fun mostrarDetalle() {
+        println("--------- DETALLE DEL CARRITO ---------")
+        var i = 1
+        for (p in productos) {
+            val importe = p.calcularSubtotal()
+            println(String.format("%d. %-20s x%d S/ %8.2f", i, p.nombre, p.cantidad, importe))
+            i++
+        }
+        println("---------------------------------------")
+        println("Cantidad de productos: $size")
+    }
 }
 
 fun main() {
