@@ -12,4 +12,13 @@ fun main() {
     carrito.agregarProducto(ProductoElectronico("Mouse Logitech", 45.5, 2))
     carrito.agregarProducto(ProductoAlimento("Cafe Premium", 35.0, 3))
     carrito.agregarProducto(ProductoRopa("Polo Deportivo", 60.0, 2))
+
+    println()
+    val subtotal = carrito.calcularSubtotalGeneral()
+    val impuesto = carrito.calcularImpuestoGeneral()
+    val total = carrito.calcularTotal()
+
+    println("Subtotal: S/ ${"%.2f".format(subtotal)}")
+    println("Impuesto: S/ ${"%.2f".format(impuesto)}")
+    println("Total:    S/ ${"%.2f".format(total)}")
 }
