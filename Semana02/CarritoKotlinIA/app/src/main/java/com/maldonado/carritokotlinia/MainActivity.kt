@@ -32,4 +32,12 @@ fun main() {
     val totalConDescuento = total - descuento
     println("Descuento aplicado: S/ ${"%.2f".format(descuento)}")
     println("TOTAL CON DESCUENTO: S/ ${"%.2f".format(totalConDescuento)}")
+
+    println()
+    val buscado = carrito.buscarProducto("Cafe Premium")
+    println(if (buscado != null) "Encontrado: $buscado" else "Producto no encontrado")
+
+    carrito.eliminarProducto("Mouse Logitech")
+    println("Despues de eliminar Mouse Logitech:")
+    carrito.mostrarDetalle()
 }

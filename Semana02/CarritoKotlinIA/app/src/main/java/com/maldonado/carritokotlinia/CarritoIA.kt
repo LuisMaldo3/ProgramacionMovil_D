@@ -51,6 +51,8 @@ class Carrito {
         productos.add(producto)
         println("Producto agregado: ${producto.nombre}")
     }
+    fun buscarProducto(nombre: String): Producto? = productos.find { it.nombre == nombre }
+    fun eliminarProducto(nombre: String): Boolean = productos.removeIf { it.nombre == nombre }
 
     fun obtenerProductos(): List<Producto> =
         productos.toList()
