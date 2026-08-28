@@ -14,6 +14,7 @@ fun main() {
     carrito.agregarProducto(ProductoRopa("Polo Deportivo", 60.0, 2))
 
     println()
+    carrito.mostrarDetalle()
     val subtotal = carrito.calcularSubtotalGeneral()
     val impuesto = carrito.calcularImpuestoGeneral()
     val total = carrito.calcularTotal()
