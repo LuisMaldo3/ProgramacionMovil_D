@@ -1,4 +1,5 @@
 package com.maldonado.estacionamiento
+
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -24,44 +25,43 @@ fun consola(texto: String) {
 }
 
 /**
- * COMMIT 1 — Ingreso de datos.
- * Registra los vehículos (placa, tipo, horas, cliente), valida las reglas de
- * ingreso y muestra lo registrado en la consola (Logcat) y en pantalla.
+ * COMMIT 2 — Cálculos.
+ * Usa CalculadoraTarifa para obtener tarifa básica, subtotal, descuento
+ * y total de cada vehículo registrado, y lo muestra en consola y pantalla.
  */
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val salida = ingresarDatos()
+        ingresarDatos()
+        val salida = calcular()
         consola(salida)
         mostrarEnPantalla(salida)
     }
 
-    private fun ingresarDatos(): String {
+    private fun ingresarDatos() {
+        // Misma placa ABC-123 cuatro veces para demostrar el cliente frecuente
+        RegistroVehiculos.ingresar("abc-123", "Auto", 3, "Juan Pérez")
+        RegistroVehiculos.ingresar("XYZ-789", "Moto", 1, "María Salas")
+        RegistroVehiculos.ingresar("DEF-456", "Camioneta", 6, "Pedro Gonzales")
+        RegistroVehiculos.ingresar("ABC-123", "Auto", 2, "Juan Pérez")
+        RegistroVehiculos.ingresar("ABC-123", "Auto", 4, "Juan Pérez")
+        RegistroVehiculos.ingresar("ABC-123", "Auto", 6, "Juan Pérez")
+    }
+
+    private fun calcular(): String {
         val sb = StringBuilder()
-        sb.appendLine("🅿 CONTROL DE ESTACIONAMIENTO — INGRESO DE DATOS")
-        sb.appendLine("Tipos permitidos: ${RegistroVehiculos.tiposPermitidos}")
+        sb.appendLine("🅿 CONTROL DE ESTACIONAMIENTO — CÁLCULOS")
         sb.appendLine("--------------------------------------")
-
-        // Datos de ingreso: placa, tipo, horas, cliente
-        val ingresos = listOf(
-            arrayOf("abc-123", "Auto", 3, "Juan Pérez"),
-            arrayOf("XYZ-789", "Moto", 1, "María Salas"),
-            arrayOf("DEF-456", "Camioneta", 6, "Pedro Gonzales"),
-            arrayOf("GHI-000", "Auto", 0, "Cliente Error"),      // ← menos de 1 hora: debe rechazarse
-            arrayOf("JKL-111", "Bicicleta", 2, "Ana Castro")    // ← tipo inválido: debe rechazarse
-        )
-
-        for (d in ingresos) {
-            val error = RegistroVehiculos.ingresar(d[0] as String, d[1] as String, d[2] as Int, d[3] as String)
-            if (error != null) sb.appendLine("✖ $error")
-            else sb.appendLine("✔ Registrado: ${(d[0] as String).uppercase()} · ${d[1]} · ${d[2]} h · ${d[3]}")
-        }
-
-        sb.appendLine("--------------------------------------")
-        sb.appendLine("VEHÍCULOS REGISTRADOS: ${RegistroVehiculos.listar().size}")
         for (v in RegistroVehiculos.listar()) {
-            sb.appendLine("Placa: ${v.placa} | Tipo: ${v.tipo} | Horas: ${v.horas} | Cliente: ${v.cliente}")
+            val r = CalculadoraTarifa.calcular(v)
+            sb.appendLine("Placa ${v.placa} · ${v.tipo} · ${v.horas} h · ${v.cliente}")
+            sb.appendLine("  Tarifa básica: S/ ${"%.2f".format(r.tarifaBasica)}")
+            sb.appendLine("  Subtotal:      S/ ${"%.2f".format(r.subtotal)}")
+            sb.appendLine("  Frecuente:     ${if (r.esFrecuente) "SÍ" else "NO"} (${r.visitas} visitas)")
+            sb.appendLine("  Descuento 10%: S/ ${"%.2f".format(r.descuento)}")
+            sb.appendLine("  TOTAL:         S/ ${"%.2f".format(r.total)}")
+            sb.appendLine("--------------------------------------")
         }
         return sb.toString()
     }
