@@ -2,11 +2,18 @@ package com.maldonado.consola
 
 /*
  * CONTROL DE ESTACIONAMIENTO - programa de consola en Kotlin
- * Commit 2: Calculos
- *  - Tarifa basica por tipo: Moto S/ 2, Auto S/ 4, Camioneta S/ 10
- *  - Hasta 2 horas tarifa normal; horas 3 a 5 recargo 20 %; desde la hora 6 recargo 50 %
+ *
+ * Commit 1: Ingreso de datos     -> registro de placa, tipo, horas y cliente con validaciones
+ * Commit 2: Calculos             -> tarifa basica, recargos por hora, cliente frecuente y descuento
+ * Commit 3: Mostrar resultados   -> boleta con tabla Hora/Tarifa/Recargo/Importe, historial y boleta por placa
+ *
+ * Reglas:
+ *  - Tarifa por hora: Moto S/ 2, Auto S/ 4, Camioneta S/ 10
+ *  - Hasta 2 horas: tarifa normal
+ *  - Mas de 2 y hasta 5 horas: recargo del 20 % en esas horas
+ *  - Mas de 5 horas: recargo del 50 % en las horas posteriores a la quinta
  *  - Cliente frecuente (mas de 3 visitas con la misma placa): 10 % de descuento sobre el total
- *  - Muestra tarifa basica, subtotal, descuento y total
+ *  - Ningun vehiculo puede registrarse con menos de 1 hora
  */
 
 // =============================== 1. INGRESO DE DATOS ===============================
@@ -59,7 +66,6 @@ data class Boleta(
 
 object CalculadoraTarifa {
 
-    /** Tarifa basica por hora segun el tipo de vehiculo. */
     fun tarifaBasica(tipo: String): Double = when (tipo) {
         "Moto" -> 2.0
         "Auto" -> 4.0
@@ -79,7 +85,6 @@ object CalculadoraTarifa {
     fun calcular(v: Vehiculo): Boleta {
         require(v.horas >= 1) { "Ningun vehiculo puede registrarse con menos de 1 hora" }
 
-        // Cliente frecuente: se decide por el historial de la placa ANTES de registrar la visita actual
         val esFrecuente = RegistroClientes.esFrecuente(v.placa)
         val visitas = RegistroClientes.registrarVisita(v.placa)
 
@@ -109,7 +114,14 @@ object RegistroClientes {
     }
 }
 
-// =============================== PANTALLA ===============================
+// =============================== 3. MOSTRAR RESULTADOS ===============================
+
+object Historial {
+    private val boletas = mutableListOf<Boleta>()
+    fun agregar(b: Boleta) = boletas.add(b)
+    fun todas(): List<Boleta> = boletas
+    fun porPlaca(placa: String): List<Boleta> = boletas.filter { it.vehiculo.placa == placa }
+}
 
 object Pantalla {
     private const val ANCHO = 46
@@ -128,20 +140,31 @@ object Pantalla {
         titulo("CONTROL DE ESTACIONAMIENTO")
         println("  Tarifas por hora: Moto S/ 2 | Auto S/ 4 | Camioneta S/ 10")
         println(linea())
-        println("  1) Registrar vehiculo y calcular")
-        println("  2) Ver vehiculos registrados")
-        println("  3) Salir")
+        println("  1) Registrar vehiculo")
+        println("  2) Ver historial del dia")
+        println("  3) Buscar boleta por placa")
+        println("  4) Salir")
         println(linea())
     }
 
-    fun resultado(b: Boleta) {
+    fun boleta(b: Boleta) {
         val v = b.vehiculo
         println()
-        println(linea())
-        println("  Placa   : ${v.placa}    Tipo: ${v.tipo}    Horas: ${v.horas}")
+        println(linea('='))
+        println(centrado("BOLETA No. ${"%03d".format(b.numero)}"))
+        println(linea('='))
+        println("  Placa   : ${v.placa}")
+        println("  Tipo    : ${v.tipo}")
+        println("  Horas   : ${v.horas}")
         println("  Cliente : ${v.cliente}")
+        println("  Tarifa basica: S/ ${s(b.tarifaBasica)}")
         println(linea())
-        println(String.format("  %-28s S/ %8s", "Tarifa basica (por hora)", s(b.tarifaBasica)))
+        println(String.format("  %-6s %-10s %-10s %s", "Hora", "Tarifa", "Recargo", "Importe"))
+        println(linea())
+        for (d in b.detalle) {
+            println(String.format("  %-6d %-10s %-10s %s", d.hora, s(d.tarifa), "${d.recargoPct} %", s(d.importe)))
+        }
+        println(linea())
         println(String.format("  %-28s S/ %8s", "Subtotal", s(b.subtotal)))
         if (b.esFrecuente) {
             println(String.format("  %-28s %s", "Cliente frecuente", "SI (${b.visitas} visitas)"))
@@ -154,27 +177,36 @@ object Pantalla {
         println(linea('='))
     }
 
-    fun registrados(lista: List<Boleta>) {
-        titulo("VEHICULOS REGISTRADOS")
-        if (lista.isEmpty()) {
+    fun historial(boletas: List<Boleta>) {
+        titulo("HISTORIAL DEL DIA")
+        if (boletas.isEmpty()) {
             println("  Aun no hay vehiculos registrados.")
             return
         }
         println(String.format("  %-4s %-9s %-10s %-5s %-16s %s", "No.", "Placa", "Tipo", "Hrs", "Cliente", "Total"))
         println(linea())
-        for (b in lista) {
+        for (b in boletas) {
             val cliente = if (b.vehiculo.cliente.length > 15) b.vehiculo.cliente.substring(0, 15) else b.vehiculo.cliente
             println(String.format("  %-4s %-9s %-10s %-5d %-16s S/ %s",
                 "%03d".format(b.numero), b.vehiculo.placa, b.vehiculo.tipo, b.vehiculo.horas, cliente, s(b.total)))
         }
         println(linea())
-        println("  Recaudado: S/ ${s(lista.sumOf { it.total })}")
+        println(String.format("  Vehiculos: %-3d  Descuentos: S/ %-8s  Recaudado: S/ %s",
+            boletas.size, s(boletas.sumOf { it.descuento }), s(boletas.sumOf { it.total })))
+    }
+
+    fun resumenFinal(boletas: List<Boleta>) {
+        titulo("RESUMEN DEL DIA")
+        println("  Vehiculos atendidos : ${boletas.size}")
+        println("  Total sin descuento : S/ ${s(boletas.sumOf { it.subtotal })}")
+        println("  Total descuentos    : S/ ${s(boletas.sumOf { it.descuento })}")
+        println("  TOTAL RECAUDADO     : S/ ${s(boletas.sumOf { it.total })}")
+        println(linea('='))
+        println("  Gracias. Programa finalizado.")
     }
 }
 
 // =============================== PROGRAMA PRINCIPAL ===============================
-
-val boletas = mutableListOf<Boleta>()
 
 fun leer(mensaje: String): String {
     print(mensaje)
@@ -201,8 +233,24 @@ fun registrarVehiculo() {
         return
     }
     val boleta = CalculadoraTarifa.calcular(RegistroVehiculos.ultimo())
-    boletas.add(boleta)
-    Pantalla.resultado(boleta)
+    Historial.agregar(boleta)
+    Pantalla.boleta(boleta)
+}
+
+fun buscarPorPlaca() {
+    Pantalla.titulo("BOLETA POR PLACA")
+    val placa = Validador.normalizarPlaca(leer("  Placa a buscar: "))
+    if (placa == null) {
+        println("  [X] Placa invalida. Use el formato ABC-123")
+        return
+    }
+    val encontradas = Historial.porPlaca(placa)
+    if (encontradas.isEmpty()) {
+        println("  No hay boletas registradas para la placa $placa")
+        return
+    }
+    println("  Placa $placa - ${encontradas.size} boleta(s) - cliente frecuente: ${if (RegistroClientes.esFrecuente(placa)) "SI" else "NO"}")
+    for (b in encontradas) Pantalla.boleta(b)
 }
 
 fun main() {
@@ -210,12 +258,13 @@ fun main() {
         Pantalla.menu()
         when (leer("  Opcion: ")) {
             "1" -> registrarVehiculo()
-            "2" -> Pantalla.registrados(boletas)
-            "3" -> {
-                println("  Programa finalizado. Recaudado: S/ ${"%.2f".format(boletas.sumOf { it.total })}")
+            "2" -> Pantalla.historial(Historial.todas())
+            "3" -> buscarPorPlaca()
+            "4" -> {
+                Pantalla.resumenFinal(Historial.todas())
                 return
             }
-            else -> println("  [X] Opcion no valida. Elige 1, 2 o 3.")
+            else -> println("  [X] Opcion no valida. Elige 1, 2, 3 o 4.")
         }
     }
 }
