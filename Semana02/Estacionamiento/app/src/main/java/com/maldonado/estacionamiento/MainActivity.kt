@@ -25,45 +25,30 @@ fun consola(texto: String) {
 }
 
 /**
- * COMMIT 2 — Cálculos.
- * Usa CalculadoraTarifa para obtener tarifa básica, subtotal, descuento
- * y total de cada vehículo registrado, y lo muestra en consola y pantalla.
+ * COMMIT 3 — Mostrar resultados.
+ * Genera el reporte completo (tarifa básica, tabla Hora · Tarifa · Recargo · Importe,
+ * cliente frecuente, descuento y total) y lo muestra en consola y pantalla.
  */
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ingresarDatos()
-        val salida = calcular()
+        val resultados = RegistroVehiculos.listar().map { CalculadoraTarifa.calcular(it) }
+        val salida = Reporte.completo(resultados)
         consola(salida)
         mostrarEnPantalla(salida)
     }
 
     private fun ingresarDatos() {
-        // Misma placa ABC-123 cuatro veces para demostrar el cliente frecuente
-        RegistroVehiculos.ingresar("abc-123", "Auto", 3, "Juan Pérez")
+        RegistroVehiculos.ingresar("abc-123", "Auto", 3, "Juan Pérez")        // ejemplo de la pizarra → 12.80
         RegistroVehiculos.ingresar("XYZ-789", "Moto", 1, "María Salas")
         RegistroVehiculos.ingresar("DEF-456", "Camioneta", 6, "Pedro Gonzales")
         RegistroVehiculos.ingresar("ABC-123", "Auto", 2, "Juan Pérez")
         RegistroVehiculos.ingresar("ABC-123", "Auto", 4, "Juan Pérez")
-        RegistroVehiculos.ingresar("ABC-123", "Auto", 6, "Juan Pérez")
-    }
-
-    private fun calcular(): String {
-        val sb = StringBuilder()
-        sb.appendLine("🅿 CONTROL DE ESTACIONAMIENTO — CÁLCULOS")
-        sb.appendLine("--------------------------------------")
-        for (v in RegistroVehiculos.listar()) {
-            val r = CalculadoraTarifa.calcular(v)
-            sb.appendLine("Placa ${v.placa} · ${v.tipo} · ${v.horas} h · ${v.cliente}")
-            sb.appendLine("  Tarifa básica: S/ ${"%.2f".format(r.tarifaBasica)}")
-            sb.appendLine("  Subtotal:      S/ ${"%.2f".format(r.subtotal)}")
-            sb.appendLine("  Frecuente:     ${if (r.esFrecuente) "SÍ" else "NO"} (${r.visitas} visitas)")
-            sb.appendLine("  Descuento 10%: S/ ${"%.2f".format(r.descuento)}")
-            sb.appendLine("  TOTAL:         S/ ${"%.2f".format(r.total)}")
-            sb.appendLine("--------------------------------------")
-        }
-        return sb.toString()
+        RegistroVehiculos.ingresar("ABC-123", "Auto", 6, "Juan Pérez")        // 4.ª visita → frecuente, 10 %
+        val error = RegistroVehiculos.ingresar("GHI-000", "Auto", 0, "Cliente Error")
+        if (error != null) consola(error)                                       // se rechaza: menos de 1 hora
     }
 
     /** Muestra el mismo texto en la pantalla del celular/emulador. */
