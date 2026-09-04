@@ -6,14 +6,21 @@ package com.maldonado.consola
  * Commit 1: Ingreso de datos     -> registro de placa, tipo, horas y cliente con validaciones
  * Commit 2: Calculos             -> tarifa basica, recargos por hora, cliente frecuente y descuento
  * Commit 3: Mostrar resultados   -> boleta con tabla Hora/Tarifa/Recargo/Importe, historial y boleta por placa
+ * Commit 4: Nuevo vehiculo Trailer -> se agrega el tipo "Trailer" con tarifa basica de S/ 20
+ * Commit 5: Recargos del Trailer y aforo -> tabla de recargo propia para Trailer (1-2h: 0%, 3-5h: 20%, 6-10h: 40%, +10h: 50%);
+ *                                            se pregunta el aforo maximo al iniciar y no se registran vehiculos si ya esta lleno
+ * Commit 6: IGV y descuento extra  -> si el total supera S/ 500 se aplica 20% de descuento adicional,
+ *                                     y al final se agrega el IGV (18%) sobre el total
  *
  * Reglas:
- *  - Tarifa por hora: Moto S/ 2, Auto S/ 4, Camioneta S/ 10
- *  - Hasta 2 horas: tarifa normal
- *  - Mas de 2 y hasta 5 horas: recargo del 20 % en esas horas
- *  - Mas de 5 horas: recargo del 50 % en las horas posteriores a la quinta
+ *  - Tarifa por hora: Moto S/ 2, Auto S/ 4, Camioneta S/ 10, Trailer S/ 20
+ *  - Moto / Auto / Camioneta -> hasta 2 horas: tarifa normal; 3 a 5 horas: recargo 20%; mas de 5 horas: recargo 50%
+ *  - Trailer -> hasta 2 horas: tarifa normal; 3 a 5 horas: recargo 20%; 6 a 10 horas: recargo 40%; mas de 10 horas: recargo 50%
  *  - Cliente frecuente (mas de 3 visitas con la misma placa): 10 % de descuento sobre el total
+ *  - Si el total (despues del descuento de cliente frecuente) supera S/ 500: 20 % de descuento adicional
+ *  - Al final se agrega el IGV del 18 % sobre el total
  *  - Ningun vehiculo puede registrarse con menos de 1 hora
+ *  - No se registran vehiculos si ya se llego al aforo maximo del estacionamiento
  */
 
 // =============================== 1. INGRESO DE DATOS ===============================
@@ -31,8 +38,11 @@ object Validador {
 }
 
 object RegistroVehiculos {
+    // --- COMMIT 4: Nuevo vehiculo Trailer (se agrega a la lista de tipos permitidos) ---
     val tiposPermitidos = listOf("Moto", "Auto", "Camioneta", "Trailer")
     private val vehiculos = mutableListOf<Vehiculo>()
+
+    // --- COMMIT 5: Aforo maximo del estacionamiento (se define al iniciar el programa) ---
     var aforoMaximo: Int = Int.MAX_VALUE
 
     fun ingresar(placa: String, tipo: String, horas: Int, cliente: String): String? {
@@ -41,6 +51,7 @@ object RegistroVehiculos {
         if (tipo !in tiposPermitidos) return "Tipo invalido. Use Moto, Auto, Camioneta o Trailer"
         if (horas < 1) return "Ningun vehiculo puede registrarse con menos de 1 hora"
         if (cliente.isBlank()) return "El nombre del cliente es obligatorio"
+        // --- COMMIT 5: no se registra si ya se llego al aforo maximo ---
         if (vehiculos.size >= aforoMaximo) return "Estacionamiento lleno. No se pueden registrar mas vehiculos (aforo maximo: $aforoMaximo)"
         vehiculos.add(Vehiculo(placaOk, tipo, horas, cliente.trim()))
         return null
@@ -63,11 +74,18 @@ data class Boleta(
     val esFrecuente: Boolean,
     val visitas: Int,
     val descuento: Double,
+    // --- COMMIT 6: nuevos campos para descuento extra e IGV ---
+    val totalConDescuento: Double,
+    val aplicaDescuentoExtra: Boolean,
+    val descuentoExtra: Double,
+    val totalAntesIgv: Double,
+    val igv: Double,
     val total: Double
 )
 
 object CalculadoraTarifa {
 
+    // --- COMMIT 4: Nuevo vehiculo Trailer (tarifa basica S/ 20) ---
     fun tarifaBasica(tipo: String): Double = when (tipo) {
         "Moto" -> 2.0
         "Auto" -> 4.0
@@ -76,7 +94,12 @@ object CalculadoraTarifa {
         else -> 0.0
     }
 
-    /** Recargo de cada hora: 0 % (horas 1-2), 20 % (horas 3-5), 50 % (hora 6 en adelante). */
+    /**
+     * --- COMMIT 5: Recargos del Trailer ---
+     * Recargo de cada hora segun el tipo de vehiculo:
+     *  - Moto / Auto / Camioneta: 0 % (horas 1-2), 20 % (horas 3-5), 50 % (hora 6 en adelante)
+     *  - Trailer: 0 % (horas 1-2), 20 % (horas 3-5), 40 % (horas 6 a 10), 50 % (hora 11 en adelante)
+     */
     fun recargoPorHora(tipo: String, hora: Int): Int = when (tipo) {
         "Trailer" -> when {
             hora <= 2 -> 0
@@ -90,6 +113,11 @@ object CalculadoraTarifa {
             else -> 50
         }
     }
+
+    // --- COMMIT 6: IGV y descuento extra ---
+    const val UMBRAL_DESCUENTO_EXTRA = 500.0
+    const val PORCENTAJE_DESCUENTO_EXTRA = 0.20
+    const val PORCENTAJE_IGV = 0.18
 
     private var contadorBoletas = 0
 
@@ -106,8 +134,23 @@ object CalculadoraTarifa {
         }
         val subtotal = detalle.sumOf { it.importe }
         val descuento = if (esFrecuente) subtotal * 0.10 else 0.0
+        val totalConDescuento = subtotal - descuento
+
+        // --- COMMIT 6: si el total supera S/ 500, se aplica 20% de descuento adicional ---
+        val aplicaDescuentoExtra = totalConDescuento > UMBRAL_DESCUENTO_EXTRA
+        val descuentoExtra = if (aplicaDescuentoExtra) totalConDescuento * PORCENTAJE_DESCUENTO_EXTRA else 0.0
+        val totalAntesIgv = totalConDescuento - descuentoExtra
+
+        // --- COMMIT 6: se agrega el IGV (18%) sobre el total ---
+        val igv = totalAntesIgv * PORCENTAJE_IGV
+        val totalFinal = totalAntesIgv + igv
+
         contadorBoletas++
-        return Boleta(contadorBoletas, v, tarifa, detalle, subtotal, esFrecuente, visitas, descuento, subtotal - descuento)
+        return Boleta(
+            contadorBoletas, v, tarifa, detalle, subtotal, esFrecuente, visitas,
+            descuento, totalConDescuento, aplicaDescuentoExtra, descuentoExtra,
+            totalAntesIgv, igv, totalFinal
+        )
     }
 }
 
@@ -183,6 +226,12 @@ object Pantalla {
         } else {
             println(String.format("  %-28s %s", "Cliente frecuente", "NO (${b.visitas} de ${RegistroClientes.VISITAS_PARA_FRECUENTE + 1} visitas)"))
         }
+        // --- COMMIT 6: se muestra el descuento extra (si supera S/ 500) y el IGV ---
+        if (b.aplicaDescuentoExtra) {
+            println(String.format("  %-28s S/ %8s", "Descuento extra 20 % (>S/500)", "-" + s(b.descuentoExtra)))
+        }
+        println(String.format("  %-28s S/ %8s", "Subtotal antes de IGV", s(b.totalAntesIgv)))
+        println(String.format("  %-28s S/ %8s", "IGV 18 %", "+" + s(b.igv)))
         println(linea('='))
         println(String.format("  %-28s S/ %8s", "TOTAL A PAGAR", s(b.total)))
         println(linea('='))
@@ -203,14 +252,15 @@ object Pantalla {
         }
         println(linea())
         println(String.format("  Vehiculos: %-3d  Descuentos: S/ %-8s  Recaudado: S/ %s",
-            boletas.size, s(boletas.sumOf { it.descuento }), s(boletas.sumOf { it.total })))
+            boletas.size, s(boletas.sumOf { it.descuento + it.descuentoExtra }), s(boletas.sumOf { it.total })))
     }
 
     fun resumenFinal(boletas: List<Boleta>) {
         titulo("RESUMEN DEL DIA")
         println("  Vehiculos atendidos : ${boletas.size}")
         println("  Total sin descuento : S/ ${s(boletas.sumOf { it.subtotal })}")
-        println("  Total descuentos    : S/ ${s(boletas.sumOf { it.descuento })}")
+        println("  Total descuentos    : S/ ${s(boletas.sumOf { it.descuento + it.descuentoExtra })}")
+        println("  Total IGV           : S/ ${s(boletas.sumOf { it.igv })}")
         println("  TOTAL RECAUDADO     : S/ ${s(boletas.sumOf { it.total })}")
         println(linea('='))
         println("  Gracias. Programa finalizado.")
