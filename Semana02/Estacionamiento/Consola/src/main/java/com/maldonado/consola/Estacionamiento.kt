@@ -33,12 +33,15 @@ object Validador {
 object RegistroVehiculos {
     val tiposPermitidos = listOf("Moto", "Auto", "Camioneta", "Trailer")
     private val vehiculos = mutableListOf<Vehiculo>()
+    var aforoMaximo: Int = Int.MAX_VALUE
 
     fun ingresar(placa: String, tipo: String, horas: Int, cliente: String): String? {
         val placaOk = Validador.normalizarPlaca(placa)
             ?: return "Placa invalida. Use el formato ABC-123 (3 caracteres, guion, 3 caracteres)"
-        if (tipo !in tiposPermitidos) return "Tipo invalido. Use Moto, Auto, Camioneta o Trailer"        if (horas < 1) return "Ningun vehiculo puede registrarse con menos de 1 hora"
+        if (tipo !in tiposPermitidos) return "Tipo invalido. Use Moto, Auto, Camioneta o Trailer"
+        if (horas < 1) return "Ningun vehiculo puede registrarse con menos de 1 hora"
         if (cliente.isBlank()) return "El nombre del cliente es obligatorio"
+        if (vehiculos.size >= aforoMaximo) return "Estacionamiento lleno. No se pueden registrar mas vehiculos (aforo maximo: $aforoMaximo)"
         vehiculos.add(Vehiculo(placaOk, tipo, horas, cliente.trim()))
         return null
     }
@@ -86,7 +89,7 @@ object CalculadoraTarifa {
             hora <= 5 -> 20
             else -> 50
         }
-    }S
+    }
 
     private var contadorBoletas = 0
 
@@ -97,8 +100,8 @@ object CalculadoraTarifa {
         val visitas = RegistroClientes.registrarVisita(v.placa)
 
         val tarifa = tarifaBasica(v.tipo)
-        val val detalle = (1..v.horas).map { h ->
-            val pct = recargoPorHora(v.tipo, h)   // <-- antes era recargoPorHora
+        val detalle = (1..v.horas).map { h ->
+            val pct = recargoPorHora(v.tipo, h)
             DetalleHora(h, tarifa, pct, tarifa * (1 + pct / 100.0))
         }
         val subtotal = detalle.sumOf { it.importe }
@@ -146,7 +149,8 @@ object Pantalla {
 
     fun menu() {
         titulo("CONTROL DE ESTACIONAMIENTO")
-        println("  Tarifas por hora: Moto S/ 2 | Auto S/ 4 | Camioneta S/ 10 | Trailer S/ 20")        println(linea())
+        println("  Tarifas por hora: Moto S/ 2 | Auto S/ 4 | Camioneta S/ 10 | Trailer S/ 20")
+        println(linea())
         println("  1) Registrar vehiculo")
         println("  2) Ver historial del dia")
         println("  3) Buscar boleta por placa")
@@ -223,8 +227,8 @@ fun leer(mensaje: String): String {
 fun registrarVehiculo() {
     Pantalla.titulo("REGISTRO DE VEHICULO")
     val placa = leer("  Placa (ej. ABC-123): ")
-    println("  Tipo: 1) Moto   2) Auto   3) Camioneta")
-    val tipo = when (leer("  Elige (1-3): ")) {
+    println("  Tipo: 1) Moto   2) Auto   3) Camioneta   4) Trailer")
+    val tipo = when (leer("  Elige (1-4): ")) {
         "1" -> "Moto"
         "2" -> "Auto"
         "3" -> "Camioneta"
@@ -262,6 +266,15 @@ fun buscarPorPlaca() {
 }
 
 fun main() {
+    // --- COMMIT 5: se pregunta el aforo maximo antes de iniciar el menu ---
+    Pantalla.titulo("CONFIGURACION INICIAL")
+    var aforo: Int?
+    do {
+        aforo = leer("  Cuantos vehiculos caben en el estacionamiento (aforo maximo): ").toIntOrNull()
+        if (aforo == null || aforo <= 0) println("  [X] Ingresa un numero valido mayor a 0")
+    } while (aforo == null || aforo <= 0)
+    RegistroVehiculos.aforoMaximo = aforo
+
     while (true) {
         Pantalla.menu()
         when (leer("  Opcion: ")) {
