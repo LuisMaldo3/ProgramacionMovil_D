@@ -11,6 +11,7 @@ package com.maldonado.consola
  *                                            se pregunta el aforo maximo al iniciar y no se registran vehiculos si ya esta lleno
  * Commit 6: IGV y descuento extra  -> si el total supera S/ 500 se aplica 20% de descuento adicional,
  *                                     y al final se agrega el IGV (18%) sobre el total
+ * Commit 7: Limite maximo de horas -> no se permite registrar un vehiculo por mas de 48 horas
  *
  * Reglas:
  *  - Tarifa por hora: Moto S/ 2, Auto S/ 4, Camioneta S/ 10, Trailer S/ 20
@@ -19,7 +20,7 @@ package com.maldonado.consola
  *  - Cliente frecuente (mas de 3 visitas con la misma placa): 10 % de descuento sobre el total
  *  - Si el total (despues del descuento de cliente frecuente) supera S/ 500: 20 % de descuento adicional
  *  - Al final se agrega el IGV del 18 % sobre el total
- *  - Ningun vehiculo puede registrarse con menos de 1 hora
+ *  - Ningun vehiculo puede registrarse con menos de 1 hora ni con mas de 48 horas
  *  - No se registran vehiculos si ya se llego al aforo maximo del estacionamiento
  */
 
@@ -45,11 +46,16 @@ object RegistroVehiculos {
     // --- COMMIT 5: Aforo maximo del estacionamiento (se define al iniciar el programa) ---
     var aforoMaximo: Int = Int.MAX_VALUE
 
+    // --- COMMIT 7: limite maximo de horas por vehiculo (evita que el programa se cuelgue) ---
+    const val HORAS_MAXIMAS = 48
+
     fun ingresar(placa: String, tipo: String, horas: Int, cliente: String): String? {
         val placaOk = Validador.normalizarPlaca(placa)
             ?: return "Placa invalida. Use el formato ABC-123 (3 caracteres, guion, 3 caracteres)"
         if (tipo !in tiposPermitidos) return "Tipo invalido. Use Moto, Auto, Camioneta o Trailer"
         if (horas < 1) return "Ningun vehiculo puede registrarse con menos de 1 hora"
+        // --- COMMIT 7: no se registra si supera el limite maximo de horas ---
+        if (horas > HORAS_MAXIMAS) return "No se puede registrar por mas de $HORAS_MAXIMAS horas"
         if (cliente.isBlank()) return "El nombre del cliente es obligatorio"
         // --- COMMIT 5: no se registra si ya se llego al aforo maximo ---
         if (vehiculos.size >= aforoMaximo) return "Estacionamiento lleno. No se pueden registrar mas vehiculos (aforo maximo: $aforoMaximo)"
