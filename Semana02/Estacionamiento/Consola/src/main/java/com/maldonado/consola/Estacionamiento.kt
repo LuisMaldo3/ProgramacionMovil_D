@@ -31,14 +31,13 @@ object Validador {
 }
 
 object RegistroVehiculos {
-    val tiposPermitidos = listOf("Moto", "Auto", "Camioneta")
+    val tiposPermitidos = listOf("Moto", "Auto", "Camioneta", "Trailer")
     private val vehiculos = mutableListOf<Vehiculo>()
 
     fun ingresar(placa: String, tipo: String, horas: Int, cliente: String): String? {
         val placaOk = Validador.normalizarPlaca(placa)
             ?: return "Placa invalida. Use el formato ABC-123 (3 caracteres, guion, 3 caracteres)"
-        if (tipo !in tiposPermitidos) return "Tipo invalido. Use Moto, Auto o Camioneta"
-        if (horas < 1) return "Ningun vehiculo puede registrarse con menos de 1 hora"
+        if (tipo !in tiposPermitidos) return "Tipo invalido. Use Moto, Auto, Camioneta o Trailer"        if (horas < 1) return "Ningun vehiculo puede registrarse con menos de 1 hora"
         if (cliente.isBlank()) return "El nombre del cliente es obligatorio"
         vehiculos.add(Vehiculo(placaOk, tipo, horas, cliente.trim()))
         return null
@@ -70,15 +69,24 @@ object CalculadoraTarifa {
         "Moto" -> 2.0
         "Auto" -> 4.0
         "Camioneta" -> 10.0
+        "Trailer" -> 20.0
         else -> 0.0
     }
 
     /** Recargo de cada hora: 0 % (horas 1-2), 20 % (horas 3-5), 50 % (hora 6 en adelante). */
-    fun recargoPorHora(hora: Int): Int = when {
-        hora <= 2 -> 0
-        hora <= 5 -> 20
-        else -> 50
-    }
+    fun recargoPorHora(tipo: String, hora: Int): Int = when (tipo) {
+        "Trailer" -> when {
+            hora <= 2 -> 0
+            hora <= 5 -> 20
+            hora <= 10 -> 40
+            else -> 50
+        }
+        else -> when {
+            hora <= 2 -> 0
+            hora <= 5 -> 20
+            else -> 50
+        }
+    }S
 
     private var contadorBoletas = 0
 
@@ -89,8 +97,8 @@ object CalculadoraTarifa {
         val visitas = RegistroClientes.registrarVisita(v.placa)
 
         val tarifa = tarifaBasica(v.tipo)
-        val detalle = (1..v.horas).map { h ->
-            val pct = recargoPorHora(h)
+        val val detalle = (1..v.horas).map { h ->
+            val pct = recargoPorHora(v.tipo, h)   // <-- antes era recargoPorHora
             DetalleHora(h, tarifa, pct, tarifa * (1 + pct / 100.0))
         }
         val subtotal = detalle.sumOf { it.importe }
@@ -138,8 +146,7 @@ object Pantalla {
 
     fun menu() {
         titulo("CONTROL DE ESTACIONAMIENTO")
-        println("  Tarifas por hora: Moto S/ 2 | Auto S/ 4 | Camioneta S/ 10")
-        println(linea())
+        println("  Tarifas por hora: Moto S/ 2 | Auto S/ 4 | Camioneta S/ 10 | Trailer S/ 20")        println(linea())
         println("  1) Registrar vehiculo")
         println("  2) Ver historial del dia")
         println("  3) Buscar boleta por placa")
@@ -221,6 +228,7 @@ fun registrarVehiculo() {
         "1" -> "Moto"
         "2" -> "Auto"
         "3" -> "Camioneta"
+        "4" -> "Trailer"
         else -> ""
     }
     val horas = leer("  Horas de permanencia: ").toIntOrNull() ?: 0
