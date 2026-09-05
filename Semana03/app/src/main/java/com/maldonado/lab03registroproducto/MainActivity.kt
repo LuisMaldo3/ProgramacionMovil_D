@@ -60,12 +60,17 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
 
     var mostrarResumen by remember { mutableStateOf(false) }
 
+    // MEJORA 1: estados de error por campo
+    var errorNombre by remember { mutableStateOf(false) }
+    var errorPrecio by remember { mutableStateOf(false) }
+    var errorCantidad by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
 
-    ) {
+        ) {
 
         Text(
             text = "Nuevo producto",
@@ -78,44 +83,108 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.outline
         )
         Spacer(modifier = Modifier.height(24.dp))
-        // Campo Nonbre
+
+        // Campo Nombre
         OutlinedTextField(
             value = nombre,
-            onValueChange = { nombre = it },
+            onValueChange = {
+                nombre = it
+                errorNombre = false   // limpia error al escribir
+            },
             label = { Text("Nombre del Producto") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = errorNombre
         )
+        // MEJORA 1: mensaje de error nombre
+        if (errorNombre) {
+            Text(
+                text = "El nombre es obligatorio",
+                color = Color.Red,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
         // Precio y Cantidad
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
-        )
-        {
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                OutlinedTextField(
+                    value = precio,
+                    onValueChange = {
+                        precio = it
+                        errorPrecio = false   // limpia error al escribir
+                    },
+                    label = { Text("Precio S/") },
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = errorPrecio
+                )
+                // MEJORA 1: mensaje de error precio
+                if (errorPrecio) {
+                    Text(
+                        text = "El precio es obligatorio",
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
 
-            OutlinedTextField(
-                value = precio,
-                onValueChange = { precio = it },
-                label = { Text("Precio S/") },
-                modifier = Modifier.weight(1f)
-            )
-
-            OutlinedTextField(
-                value = cantidad,
-                onValueChange = { cantidad = it },
-                label = { Text("Cantidad") },
-                modifier = Modifier.weight(1f)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                OutlinedTextField(
+                    value = cantidad,
+                    onValueChange = {
+                        cantidad = it
+                        errorCantidad = false   // limpia error al escribir
+                    },
+                    label = { Text("Cantidad") },
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = errorCantidad
+                )
+                // MEJORA 1: mensaje de error cantidad
+                if (errorCantidad) {
+                    Text(
+                        text = "La cantidad es obligatoria",
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
         }
 
         Button(
             onClick = {
-                mostrarResumen = true
+                // MEJORA 1: validar campos vacíos antes de mostrar
+                errorNombre = nombre.isBlank()
+                errorPrecio = precio.isBlank()
+                errorCantidad = cantidad.isBlank()
+
+                if (!errorNombre && !errorPrecio && !errorCantidad) {
+                    mostrarResumen = true
+                } else {
+                    mostrarResumen = false
+                }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("AGREGAR PRODUCTO")
         }
 
+        // MEJORA 2: botón LIMPIAR
+        Button(
+            onClick = {
+                nombre = ""
+                precio = ""
+                cantidad = ""
+                mostrarResumen = false
+                errorNombre = false
+                errorPrecio = false
+                errorCantidad = false
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("LIMPIAR")
+        }
 
         if (mostrarResumen) {
 
@@ -123,47 +192,37 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
             val cantidadNumero = cantidad.toIntOrNull() ?: 0
             val importe = precioNumero * cantidadNumero
 
-
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer)
-
             ) {
-
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-
                     Text(
                         text = "Resumen del producto",
                         style = MaterialTheme.typography.titleMedium
                     )
-
                     Text("Nombre: $nombre")
-
                     Text("Precio: S/ " + String.format("%.2f", precioNumero))
-
                     Text("Cantidad: $cantidadNumero")
-
-                    Text(
-                        "Importe: S/ %.2f".format(importe)
-
-
-                    )
+                    Text("Importe: S/ %.2f".format(importe))
                 }
             }
 
-                      Text(
-                          "Producto registrado correctamente",
-                        color = Color (0xFF2E7D32)
+            Text(
+                "Producto registrado correctamente",
+                color = Color(0xFF2E7D32)
             )
-
         }
+
         Spacer(modifier = Modifier.weight(1f))
-        Text("Desarrollado por Luis Maldonado",
+        Text(
+            "Desarrollado por Luis Maldonado",
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center)
+            textAlign = TextAlign.Center
+        )
     }
 }
