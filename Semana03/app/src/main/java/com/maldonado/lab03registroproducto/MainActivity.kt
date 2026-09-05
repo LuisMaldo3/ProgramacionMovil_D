@@ -181,8 +181,9 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
                 errorPrecio = false
                 errorCantidad = false
             },
-            modifier = Modifier.fillMaxWidth()
-        ) {
+            modifier = Modifier.fillMaxWidth(),
+        )
+        {
             Text("LIMPIAR")
         }
 
@@ -191,6 +192,8 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
             val precioNumero = precio.toDoubleOrNull() ?: 0.0
             val cantidadNumero = cantidad.toIntOrNull() ?: 0
             val importe = precioNumero * cantidadNumero
+            val igv = importe * 0.18
+            val total = importe + igv
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -209,6 +212,8 @@ fun PantallaRegistro(modifier: Modifier = Modifier) {
                     Text("Precio: S/ " + String.format("%.2f", precioNumero))
                     Text("Cantidad: $cantidadNumero")
                     Text("Importe: S/ %.2f".format(importe))
+                    Text("IGV 18%: S/ " + String.format("%.2f", igv))
+                    Text("Total: S/ " + String.format("%.2f", total))
                 }
             }
 
