@@ -83,8 +83,8 @@ fun PantallaNotas(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        FilaCurso("Fundamentos de Programación", "20%", notaFundamentos) { notaFundamentos = it }
-        FilaCurso("Programación Orientada a Objetos", "25%", notaPOO) { notaPOO = it }
+        FilaCurso("Fundamentos de Programaciónn", "20%", notaFundamentos) { notaFundamentos = it }
+        FilaCurso("Programación Orintada a Objetos", "25%", notaPOO) { notaPOO = it }
         FilaCurso("Programación en Móviles", "30%", notaMoviles) { notaMoviles = it }
         FilaCurso("Base de Datos", "25%", notaBD) { notaBD = it }
 
@@ -224,8 +224,6 @@ fun FilaCurso(nombre: String, peso: String, nota: Float, onNotaChange: (Float) -
                 Text(nota.toInt().toString(), color = MoradoOscuro, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             }
         }
-
-        // Slider redondo (thumb circular y barra fina)
         Slider(
             value = nota,
             onValueChange = { onNotaChange(it.toInt().toFloat()) },
