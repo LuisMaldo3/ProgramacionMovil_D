@@ -22,15 +22,15 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClinicaApp() {
-
-    // El controlador administra las pantallas y permite regresar a la anterior.
+    // Administramos la navegación y el menú lateral.
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    // Compartimos las citas entre las pantallas.
-// La atención completada es un dato de ejemplo para el historial.
+
+    // Las pantallas comparten esta lista observable.
     val citas = remember {
         mutableStateListOf(
             Cita(
@@ -45,7 +45,6 @@ fun ClinicaApp() {
 
     var siguienteId by remember { mutableStateOf(2) }
 
-    // Observamos la ruta para resaltar la opción correcta del menú.
     val entradaActual by navController.currentBackStackEntryAsState()
     val rutaActual = entradaActual?.destination?.route ?: "inicio"
 
@@ -68,7 +67,7 @@ fun ClinicaApp() {
         else -> "Clínica Salud+"
     }
 
-    // El menú envuelve al Scaffold para desplegarse sobre la pantalla.
+    // El menú envuelve al Scaffold para aparecer sobre la pantalla.
     ModalNavigationDrawer(
         drawerState = drawerState,
         gesturesEnabled = esPrincipal,
@@ -90,8 +89,6 @@ fun ClinicaApp() {
                         .verticalScroll(rememberScrollState())
                         .padding(18.dp)
                 ) {
-
-                    // Encabezado del paciente siguiendo el avatar y nombre del modelo.
                     Row(
                         modifier = Modifier.padding(
                             horizontal = 6.dp,
@@ -125,6 +122,7 @@ fun ClinicaApp() {
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF292929)
                             )
+
                             Text(
                                 text = "Paciente",
                                 fontSize = 12.sp,
@@ -134,14 +132,9 @@ fun ClinicaApp() {
                     }
 
                     Spacer(Modifier.height(10.dp))
-
-                    HorizontalDivider(
-                        color = Color(0xFFE4E0E7)
-                    )
-
+                    HorizontalDivider(color = Color(0xFFE4E0E7))
                     Spacer(Modifier.height(12.dp))
 
-                    // Cada fila muestra un círculo y se resalta cuando está activa.
                     destinos.forEach { (ruta, nombre) ->
                         OpcionMenu(
                             texto = nombre,
@@ -151,7 +144,7 @@ fun ClinicaApp() {
                                     drawerState.close()
                                 }
 
-                                // Conservamos Inicio como base y evitamos duplicados.
+                                // Evitamos acumular copias de las secciones.
                                 navController.navigate(ruta) {
                                     popUpTo("inicio") {
                                         inclusive = false
@@ -170,9 +163,6 @@ fun ClinicaApp() {
         Scaffold(
             containerColor = Color.White,
             topBar = {
-
-                // Solo Inicio tiene encabezado morado; las otras pantallas son blancas.
-                // La confirmación muestra únicamente el contenido central.
                 if (rutaActual == "confirmacion/{citaId}") {
                     Spacer(
                         modifier = Modifier
@@ -210,7 +200,6 @@ fun ClinicaApp() {
                             )
                         }
 
-                        // La guía exige un botón de menú en la barra de Inicio.
                         IconButton(
                             onClick = {
                                 scope.launch {
@@ -235,8 +224,7 @@ fun ClinicaApp() {
                             .heightIn(min = 56.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-
-                        // Las secciones abren el menú; el perfil del médico permite volver.
+                        // Las secciones abren el menú y los pasos internos permiten volver.
                         IconButton(
                             onClick = {
                                 if (esPrincipal) {
@@ -265,9 +253,7 @@ fun ClinicaApp() {
                 }
             }
         ) { padding ->
-
-            // Registramos todas las rutas en un solo NavHost.
-            // El padding mantiene el contenido fuera de las barras.
+            // Aplicamos el espacio del Scaffold a todas las pantallas.
             NavHost(
                 navController = navController,
                 startDestination = "inicio",
@@ -283,7 +269,6 @@ fun ClinicaApp() {
                     )
                 }
 
-                // Pasamos el identificador y recuperamos al médico seleccionado.
                 composable(
                     route = "medico/{medicoId}",
                     arguments = listOf(
@@ -297,9 +282,7 @@ fun ClinicaApp() {
                         it.id == medicoId
                     }
 
-                    // En el siguiente avance construiremos el perfil completo.
                     if (medico != null) {
-                        // Mostramos el perfil y conservamos el médico al continuar.
                         MedicoScreen(
                             medico = medico,
                             alAgendar = {
@@ -314,8 +297,6 @@ fun ClinicaApp() {
                     }
                 }
 
-                // Dejamos conectadas las secciones que completaremos después.
-                // Preparamos el destino del formulario que construiremos en el siguiente avance.
                 composable(
                     route = "agendar/{medicoId}",
                     arguments = listOf(
@@ -332,8 +313,7 @@ fun ClinicaApp() {
                     if (medico != null) {
                         AgendarScreen(
                             alConfirmar = { fecha, hora ->
-
-                                // El médico viene de la ruta; la fecha y la hora vienen del formulario.
+                                // Unimos el médico elegido con los datos del formulario.
                                 val nuevaCita = Cita(
                                     id = siguienteId,
                                     medico = medico,
@@ -344,8 +324,7 @@ fun ClinicaApp() {
                                 citas.add(nuevaCita)
                                 siguienteId++
 
-                                // Pasamos el identificador de la cita al resumen.
-                                // Retiramos el formulario para no volver a enviarlo al retroceder.
+                                // Retiramos el formulario para evitar enviarlo otra vez al volver.
                                 navController.navigate("confirmacion/${nuevaCita.id}") {
                                     popUpTo("inicio") {
                                         inclusive = false
@@ -361,7 +340,7 @@ fun ClinicaApp() {
                         )
                     }
                 }
-                // Resumen provisional: el diseño de confirmación se completa en el commit 7.
+
                 composable(
                     route = "confirmacion/{citaId}",
                     arguments = listOf(
@@ -379,8 +358,6 @@ fun ClinicaApp() {
                         ConfirmacionScreen(
                             cita = cita,
                             alVerCitas = {
-
-                                // Quitamos la confirmación del historial y abrimos Mis citas.
                                 navController.navigate("citas") {
                                     popUpTo("inicio") {
                                         inclusive = false
@@ -389,8 +366,6 @@ fun ClinicaApp() {
                                 }
                             },
                             alInicio = {
-
-                                // Regresamos a Inicio sin crear otra copia de esa pantalla.
                                 navController.navigate("inicio") {
                                     popUpTo("inicio") {
                                         inclusive = false
@@ -407,16 +382,35 @@ fun ClinicaApp() {
                     }
                 }
 
-
-
-                // Mostramos las citas guardadas en el estado compartido de la aplicación.
                 composable("citas") {
                     CitasScreen(
-                        citas = citas
+                        citas = citas,
+                        alCambiarEstado = { citaId, nuevoEstado ->
+                            val indice = citas.indexOfFirst {
+                                it.id == citaId
+                            }
+
+                            if (indice != -1) {
+                                val estadoActual = citas[indice].estado
+
+                                // Las citas completadas nunca cambian mediante estas acciones.
+                                val cambioPermitido =
+                                    (estadoActual == "Confirmada" &&
+                                            nuevoEstado == "Cancelada") ||
+                                            (estadoActual == "Cancelada" &&
+                                                    nuevoEstado == "Confirmada")
+
+                                if (cambioPermitido) {
+                                    // Reemplazamos el elemento para que Compose actualice la pantalla.
+                                    citas[indice] = citas[indice].copy(
+                                        estado = nuevoEstado
+                                    )
+                                }
+                            }
+                        }
                     )
                 }
 
-                // El historial muestra únicamente las atenciones completadas.
                 composable("historial") {
                     CitasScreen(
                         citas = citas.filter {
@@ -437,7 +431,6 @@ fun ClinicaApp() {
     }
 }
 
-// Reutilizamos el diseño de cada opción para mantener iguales los espacios.
 @Composable
 private fun OpcionMenu(
     texto: String,
@@ -480,7 +473,7 @@ private fun OpcionMenu(
     }
 }
 
-// Mensaje temporal para comprobar que cada destino abre correctamente.
+// Reutilizamos este contenido para mostrar estados vacíos y errores.
 @Composable
 fun MensajeSeccion(
     titulo: String,
