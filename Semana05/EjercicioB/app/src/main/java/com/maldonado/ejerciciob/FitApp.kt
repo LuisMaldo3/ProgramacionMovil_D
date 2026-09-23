@@ -19,10 +19,23 @@ import androidx.navigation.navArgument
 
 @Composable
 fun FitApp() {
-    // El controlador administra las pantallas y el regreso al destino anterior.
     val navController = rememberNavController()
 
-    // Consultamos la ruta actual para resaltar su pestaña.
+    // Compartimos las reservas entre las pantallas y observamos sus cambios.
+    val reservas = remember {
+        mutableStateListOf<Reserva>().apply {
+            addAll(reservasIniciales)
+        }
+    }
+
+    // Continuamos la numeración después de las reservas iniciales.
+    var siguienteId by remember {
+        mutableStateOf(
+            (reservasIniciales.maxOfOrNull { it.id } ?: 0) + 1
+        )
+    }
+
+    // Consultamos la ruta para actualizar el título y la pestaña activa.
     val entradaActual by navController.currentBackStackEntryAsState()
     val rutaActual = entradaActual?.destination?.route ?: "inicio"
 
@@ -37,83 +50,96 @@ fun FitApp() {
         it.first == rutaActual
     }
 
+    val esConfirmacion = rutaActual == "confirmacion/{reservaId}"
+
     val titulo = when (rutaActual) {
         "reservas" -> "Mis reservas"
         "rutinas" -> "Mis rutinas"
         "perfil" -> "Mi perfil"
         "detalle/{claseId}" -> "Detalle de clase"
-        "seleccion/{claseId}/{horarioId}" -> "Horario seleccionado"
         else -> "TECSUP Fit"
     }
 
     Scaffold(
         containerColor = Color.White,
         topBar = {
-            if (rutaActual == "inicio") {
-                // El encabezado verde se utiliza únicamente en Inicio.
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(VerdeFit)
-                        .windowInsetsPadding(WindowInsets.statusBars)
-                        .padding(
-                            horizontal = 18.dp,
-                            vertical = 12.dp
-                        )
-                ) {
-                    Text(
-                        text = "TECSUP Fit",
-                        fontSize = 21.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-
-                    Spacer(Modifier.height(3.dp))
-
-                    Text(
-                        text = "Hola, Diego",
-                        fontSize = 12.sp,
-                        color = Color(0xFFD8EEE7)
+            when {
+                esConfirmacion -> {
+                    // La confirmación respeta la barra del sistema sin mostrar título.
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .windowInsetsTopHeight(WindowInsets.statusBars)
                     )
                 }
-            } else {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .windowInsetsPadding(WindowInsets.statusBars)
-                        .heightIn(min = 56.dp)
-                        .padding(end = 24.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Las pantallas internas permiten regresar con la flecha.
-                    if (!esPrincipal) {
-                        IconButton(
-                            onClick = {
-                                navController.popBackStack()
-                            }
-                        ) {
-                            Text(
-                                text = "←",
-                                fontSize = 24.sp,
-                                color = TextoFit
-                            )
-                        }
-                    } else {
-                        Spacer(Modifier.width(24.dp))
-                    }
 
-                    Text(
-                        text = titulo,
-                        fontSize = if (esPrincipal) 22.sp else 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextoFit
-                    )
+                rutaActual == "inicio" -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(VerdeFit)
+                            .windowInsetsPadding(WindowInsets.statusBars)
+                            .padding(
+                                horizontal = 18.dp,
+                                vertical = 12.dp
+                            )
+                    ) {
+                        Text(
+                            text = "TECSUP Fit",
+                            fontSize = 21.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+
+                        Spacer(Modifier.height(3.dp))
+
+                        Text(
+                            text = "Hola, Diego",
+                            fontSize = 12.sp,
+                            color = Color(0xFFD8EEE7)
+                        )
+                    }
+                }
+
+                else -> {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White)
+                            .windowInsetsPadding(WindowInsets.statusBars)
+                            .heightIn(min = 56.dp)
+                            .padding(end = 24.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Las pantallas internas incluyen una flecha para regresar.
+                        if (!esPrincipal) {
+                            IconButton(
+                                onClick = {
+                                    navController.popBackStack()
+                                }
+                            ) {
+                                Text(
+                                    text = "←",
+                                    fontSize = 24.sp,
+                                    color = TextoFit
+                                )
+                            }
+                        } else {
+                            Spacer(Modifier.width(24.dp))
+                        }
+
+                        Text(
+                            text = titulo,
+                            fontSize = if (esPrincipal) 22.sp else 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextoFit
+                        )
+                    }
                 }
             }
         },
         bottomBar = {
-            // El detalle tiene su botón inferior; las secciones muestran pestañas.
+            // Las pestañas aparecen en las cuatro secciones principales.
             if (esPrincipal) {
                 Column {
                     HorizontalDivider(
@@ -131,7 +157,7 @@ fun FitApp() {
                             NavigationBarItem(
                                 selected = seleccionada,
                                 onClick = {
-                                    // Evitamos duplicar pantallas al pulsar una pestaña.
+                                    // Conservamos Inicio como base y evitamos duplicar destinos.
                                     navController.navigate(ruta) {
                                         popUpTo("inicio") {
                                             inclusive = false
@@ -142,7 +168,6 @@ fun FitApp() {
                                     }
                                 },
                                 icon = {
-                                    // El círculo cambia a verde cuando la pestaña está activa.
                                     Box(
                                         modifier = Modifier
                                             .size(20.dp)
@@ -183,7 +208,7 @@ fun FitApp() {
             }
         }
     ) { padding ->
-        // Respetamos el espacio del encabezado y de las pestañas.
+        // El contenido respeta el espacio del encabezado y de las pestañas.
         NavHost(
             navController = navController,
             startDestination = "inicio",
@@ -194,7 +219,6 @@ fun FitApp() {
             composable("inicio") {
                 InicioScreen(
                     alElegirClase = { clase ->
-                        // La tarjeta envía el identificador de la clase elegida.
                         navController.navigate("detalle/${clase.id}")
                     }
                 )
@@ -208,21 +232,87 @@ fun FitApp() {
                     }
                 )
             ) { entrada ->
+                // Recuperamos la clase mediante el identificador recibido.
                 val claseId = entrada.arguments?.getInt("claseId")
 
-                // Recuperamos los datos de la clase recibida por navegación.
-                val clase = clasesEjemplo.firstOrNull {
+                val claseBase = clasesEjemplo.firstOrNull {
                     it.id == claseId
                 }
 
-                if (clase != null) {
+                if (claseBase != null) {
+                    // Calculamos los cupos restantes sin modificar los datos originales.
+                    val claseActualizada = claseBase.copy(
+                        horarios = claseBase.horarios.map { horario ->
+                            val ocupados = reservas.count {
+                                it.clase.id == claseBase.id &&
+                                        it.horario.id == horario.id &&
+                                        it.estado == "Confirmada"
+                            }
+
+                            horario.copy(
+                                cuposDisponibles =
+                                    (horario.cuposDisponibles - ocupados)
+                                        .coerceAtLeast(0)
+                            )
+                        }
+                    )
+
                     DetalleClaseScreen(
-                        clase = clase,
-                        alReservar = { horario ->
-                            navController.navigate(
-                                "seleccion/${clase.id}/${horario.id}"
-                            ) {
-                                launchSingleTop = true
+                        clase = claseActualizada,
+                        alReservar = { horarioElegido ->
+                            // Comprobamos si ya existe una reserva del mismo horario.
+                            val existente = reservas.firstOrNull {
+                                it.clase.id == claseBase.id &&
+                                        it.horario.id == horarioElegido.id &&
+                                        it.estado == "Confirmada"
+                            }
+
+                            // Usamos el horario original para no descontar cupos dos veces.
+                            val horarioBase = claseBase.horarios.firstOrNull {
+                                it.id == horarioElegido.id
+                            }
+
+                            // Revisamos la disponibilidad antes de guardar el registro.
+                            val ocupados = reservas.count {
+                                it.clase.id == claseBase.id &&
+                                        it.horario.id == horarioElegido.id &&
+                                        it.estado == "Confirmada"
+                            }
+
+                            val disponibles =
+                                (horarioBase?.cuposDisponibles ?: 0) - ocupados
+
+                            val reservaConfirmada = when {
+                                existente != null -> existente
+
+                                horarioBase != null && disponibles > 0 -> {
+                                    val nuevaReserva = Reserva(
+                                        id = siguienteId,
+                                        clase = claseBase,
+                                        horario = horarioBase
+                                    )
+
+                                    // Guardamos la reserva y preparamos el siguiente ID.
+                                    reservas.add(nuevaReserva)
+                                    siguienteId++
+
+                                    nuevaReserva
+                                }
+
+                                else -> null
+                            }
+
+                            if (reservaConfirmada != null) {
+                                // La confirmación recibe el identificador del registro.
+                                navController.navigate(
+                                    "confirmacion/${reservaConfirmada.id}"
+                                ) {
+                                    // Retiramos el detalle al completar la reserva.
+                                    popUpTo("inicio") {
+                                        inclusive = false
+                                    }
+                                    launchSingleTop = true
+                                }
                             }
                         }
                     )
@@ -234,71 +324,63 @@ fun FitApp() {
                 }
             }
 
-            // Este destino comprueba el envío de la clase y del horario.
-            // El registro y la confirmación se incorporan en el siguiente commit.
             composable(
-                route = "seleccion/{claseId}/{horarioId}",
+                route = "confirmacion/{reservaId}",
                 arguments = listOf(
-                    navArgument("claseId") {
-                        type = NavType.IntType
-                    },
-                    navArgument("horarioId") {
+                    navArgument("reservaId") {
                         type = NavType.IntType
                     }
                 )
             ) { entrada ->
-                val claseId = entrada.arguments?.getInt("claseId")
-                val horarioId = entrada.arguments?.getInt("horarioId")
+                // Buscamos la reserva guardada para mostrar sus datos.
+                val reservaId = entrada.arguments?.getInt("reservaId")
 
-                val clase = clasesEjemplo.firstOrNull {
-                    it.id == claseId
+                val reserva = reservas.firstOrNull {
+                    it.id == reservaId
                 }
 
-                val horario = clase?.horarios?.firstOrNull {
-                    it.id == horarioId
-                }
-
-                if (clase != null && horario != null) {
-                    MensajeFit(
-                        titulo = clase.nombre,
-                        descripcion = "${horario.dia}, ${horario.hora}" +
-                                " · ${horario.sala}\n\n" +
-                                "Horario seleccionado. La reserva todavía no se ha registrado."
+                if (reserva != null) {
+                    ConfirmacionScreen(
+                        reserva = reserva,
+                        alVerReservas = {
+                            // Abrimos el listado sin registrar nuevamente la clase.
+                            navController.navigate("reservas") {
+                                popUpTo("inicio") {
+                                    inclusive = false
+                                }
+                                launchSingleTop = true
+                            }
+                        }
                     )
                 } else {
                     MensajeFit(
-                        titulo = "Horario no encontrado",
-                        descripcion = "Regresa al detalle y selecciona un horario."
+                        titulo = "Reserva no encontrada",
+                        descripcion = "Regresa al inicio para continuar."
                     )
                 }
             }
 
-            // Las rutas quedan disponibles para conectar sus pantallas completas.
             composable("reservas") {
-                MensajeFit(
-                    titulo = "Reservas",
-                    descripcion = "El listado se incorporará en el avance de reservas."
+                ReservasScreen(
+                    reservas = reservas
                 )
             }
 
+            // Conectamos las pantallas completas con sus pestañas.
             composable("rutinas") {
-                MensajeFit(
-                    titulo = "Rutinas",
-                    descripcion = "El contenido se incorporará en el avance de secciones."
-                )
+                RutinasScreen()
             }
 
             composable("perfil") {
-                MensajeFit(
-                    titulo = usuarioEjemplo.nombre,
-                    descripcion = usuarioEjemplo.plan
+                PerfilScreen(
+                    usuario = usuarioEjemplo
                 )
             }
         }
     }
 }
 
-// Compartimos este mensaje entre destinos provisionales y errores.
+// Mostramos un mensaje cuando faltan datos o una sección está vacía.
 @Composable
 fun MensajeFit(
     titulo: String,
