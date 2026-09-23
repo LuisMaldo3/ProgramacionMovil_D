@@ -29,6 +29,21 @@ fun ClinicaApp() {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    // Compartimos las citas entre las pantallas.
+// La atención completada es un dato de ejemplo para el historial.
+    val citas = remember {
+        mutableStateListOf(
+            Cita(
+                id = 1,
+                medico = medicosEjemplo[1],
+                fecha = "Miércoles 15",
+                hora = "3:00 pm",
+                estado = "Completada"
+            )
+        )
+    }
+
+    var siguienteId by remember { mutableStateOf(2) }
 
     // Observamos la ruta para resaltar la opción correcta del menú.
     val entradaActual by navController.currentBackStackEntryAsState()
@@ -49,6 +64,7 @@ fun ClinicaApp() {
         "perfil" -> "Perfil"
         "medico/{medicoId}" -> "Perfil del médico"
         "agendar/{medicoId}" -> "Agendar cita"
+        "confirmacion/{citaId}" -> "Confirmación"
         else -> "Clínica Salud+"
     }
 
@@ -156,7 +172,14 @@ fun ClinicaApp() {
             topBar = {
 
                 // Solo Inicio tiene encabezado morado; las otras pantallas son blancas.
-                if (rutaActual == "inicio") {
+                // La confirmación muestra únicamente el contenido central.
+                if (rutaActual == "confirmacion/{citaId}") {
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .windowInsetsTopHeight(WindowInsets.statusBars)
+                    )
+                } else if (rutaActual == "inicio") {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -307,9 +330,29 @@ fun ClinicaApp() {
                     }
 
                     if (medico != null) {
-                        MensajeSeccion(
-                            titulo = "Agendar con ${medico.nombre}",
-                            descripcion = "Aquí seleccionaremos la fecha y la hora."
+                        AgendarScreen(
+                            alConfirmar = { fecha, hora ->
+
+                                // El médico viene de la ruta; la fecha y la hora vienen del formulario.
+                                val nuevaCita = Cita(
+                                    id = siguienteId,
+                                    medico = medico,
+                                    fecha = fecha,
+                                    hora = hora
+                                )
+
+                                citas.add(nuevaCita)
+                                siguienteId++
+
+                                // Pasamos el identificador de la cita al resumen.
+                                // Retiramos el formulario para no volver a enviarlo al retroceder.
+                                navController.navigate("confirmacion/${nuevaCita.id}") {
+                                    popUpTo("inicio") {
+                                        inclusive = false
+                                    }
+                                    launchSingleTop = true
+                                }
+                            }
                         )
                     } else {
                         MensajeSeccion(
@@ -318,19 +361,68 @@ fun ClinicaApp() {
                         )
                     }
                 }
+                // Resumen provisional: el diseño de confirmación se completa en el commit 7.
+                composable(
+                    route = "confirmacion/{citaId}",
+                    arguments = listOf(
+                        navArgument("citaId") {
+                            type = NavType.IntType
+                        }
+                    )
+                ) { entrada ->
+                    val citaId = entrada.arguments?.getInt("citaId")
+                    val cita = citas.firstOrNull {
+                        it.id == citaId
+                    }
 
-                // Dejamos disponible la sección donde mostraremos las citas registradas.
+                    if (cita != null) {
+                        ConfirmacionScreen(
+                            cita = cita,
+                            alVerCitas = {
+
+                                // Quitamos la confirmación del historial y abrimos Mis citas.
+                                navController.navigate("citas") {
+                                    popUpTo("inicio") {
+                                        inclusive = false
+                                    }
+                                    launchSingleTop = true
+                                }
+                            },
+                            alInicio = {
+
+                                // Regresamos a Inicio sin crear otra copia de esa pantalla.
+                                navController.navigate("inicio") {
+                                    popUpTo("inicio") {
+                                        inclusive = false
+                                    }
+                                    launchSingleTop = true
+                                }
+                            }
+                        )
+                    } else {
+                        MensajeSeccion(
+                            titulo = "Cita no encontrada",
+                            descripcion = "Regresa al inicio para continuar."
+                        )
+                    }
+                }
+
+
+
+                // Mostramos las citas guardadas en el estado compartido de la aplicación.
                 composable("citas") {
-                    MensajeSeccion(
-                        titulo = "Todavía no hay citas para mostrar",
-                        descripcion = "Aquí aparecerán tus reservas."
+                    CitasScreen(
+                        citas = citas
                     )
                 }
 
+                // El historial muestra únicamente las atenciones completadas.
                 composable("historial") {
-                    MensajeSeccion(
-                        titulo = "Historial médico",
-                        descripcion = "Aquí aparecerán las atenciones completadas."
+                    CitasScreen(
+                        citas = citas.filter {
+                            it.estado == "Completada"
+                        },
+                        esHistorial = true
                     )
                 }
 
