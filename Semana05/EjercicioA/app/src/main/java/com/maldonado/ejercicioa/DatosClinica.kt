@@ -34,10 +34,9 @@ val medicosEjemplo = listOf(
         nombre = "Dra. Ana Torres",
         especialidad = "Cardiología",
         calificacion = "4.9",
-        experiencia = "12 años de experiencia",
-        descripcion = "Especialista en el cuidado del corazón. " +
-                "Realiza controles preventivos y orienta a sus pacientes " +
-                "sobre hábitos saludables."
+        experiencia = "12 años exp.",
+        descripcion = "Especialista en arritmias e hipertensión, " +
+                "formación en la Clínica Mayo."
     ),
     Medico(
         id = 2,
