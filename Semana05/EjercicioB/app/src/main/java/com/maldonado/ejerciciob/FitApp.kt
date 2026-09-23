@@ -21,21 +21,32 @@ import androidx.navigation.navArgument
 fun FitApp() {
     val navController = rememberNavController()
 
-    // Compartimos las reservas entre las pantallas y observamos sus cambios.
+    // Todas las pantallas consultan la misma lista observable.
     val reservas = remember {
         mutableStateListOf<Reserva>().apply {
             addAll(reservasIniciales)
         }
     }
 
-    // Continuamos la numeración después de las reservas iniciales.
     var siguienteId by remember {
         mutableStateOf(
             (reservasIniciales.maxOfOrNull { it.id } ?: 0) + 1
         )
     }
 
-    // Consultamos la ruta para actualizar el título y la pestaña activa.
+    // Reemplazamos el registro para que Compose actualice la interfaz.
+    val cancelarReserva: (Int) -> Unit = { reservaId ->
+        val indice = reservas.indexOfFirst {
+            it.id == reservaId && it.estado == "Confirmada"
+        }
+
+        if (indice >= 0) {
+            reservas[indice] = reservas[indice].copy(
+                estado = "Cancelada"
+            )
+        }
+    }
+
     val entradaActual by navController.currentBackStackEntryAsState()
     val rutaActual = entradaActual?.destination?.route ?: "inicio"
 
@@ -46,10 +57,7 @@ fun FitApp() {
         "perfil" to "Perfil"
     )
 
-    val esPrincipal = destinos.any {
-        it.first == rutaActual
-    }
-
+    val esPrincipal = destinos.any { it.first == rutaActual }
     val esConfirmacion = rutaActual == "confirmacion/{reservaId}"
 
     val titulo = when (rutaActual) {
@@ -65,7 +73,6 @@ fun FitApp() {
         topBar = {
             when {
                 esConfirmacion -> {
-                    // La confirmación respeta la barra del sistema sin mostrar título.
                     Spacer(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -79,10 +86,7 @@ fun FitApp() {
                             .fillMaxWidth()
                             .background(VerdeFit)
                             .windowInsetsPadding(WindowInsets.statusBars)
-                            .padding(
-                                horizontal = 18.dp,
-                                vertical = 12.dp
-                            )
+                            .padding(horizontal = 18.dp, vertical = 12.dp)
                     ) {
                         Text(
                             text = "TECSUP Fit",
@@ -111,7 +115,7 @@ fun FitApp() {
                             .padding(end = 24.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Las pantallas internas incluyen una flecha para regresar.
+                        // La flecha regresa desde el detalle de la clase.
                         if (!esPrincipal) {
                             IconButton(
                                 onClick = {
@@ -139,7 +143,6 @@ fun FitApp() {
             }
         },
         bottomBar = {
-            // Las pestañas aparecen en las cuatro secciones principales.
             if (esPrincipal) {
                 Column {
                     HorizontalDivider(
@@ -157,7 +160,7 @@ fun FitApp() {
                             NavigationBarItem(
                                 selected = seleccionada,
                                 onClick = {
-                                    // Abrimos la pestaña sin recuperar pantallas anteriores del detalle.
+                                    // Cambiamos de sección sin recuperar detalles anteriores.
                                     navController.navigate(ruta) {
                                         popUpTo("inicio") {
                                             inclusive = false
@@ -206,7 +209,7 @@ fun FitApp() {
             }
         }
     ) { padding ->
-        // El contenido respeta el espacio del encabezado y de las pestañas.
+        // Respetamos el espacio ocupado por el encabezado y la barra inferior.
         NavHost(
             navController = navController,
             startDestination = "inicio",
@@ -230,15 +233,13 @@ fun FitApp() {
                     }
                 )
             ) { entrada ->
-                // Recuperamos la clase mediante el identificador recibido.
                 val claseId = entrada.arguments?.getInt("claseId")
-
                 val claseBase = clasesEjemplo.firstOrNull {
                     it.id == claseId
                 }
 
                 if (claseBase != null) {
-                    // Calculamos los cupos restantes sin modificar los datos originales.
+                    // Las reservas canceladas dejan de ocupar un cupo.
                     val claseActualizada = claseBase.copy(
                         horarios = claseBase.horarios.map { horario ->
                             val ocupados = reservas.count {
@@ -258,25 +259,24 @@ fun FitApp() {
                     DetalleClaseScreen(
                         clase = claseActualizada,
                         alReservar = { horarioElegido ->
-                            // Comprobamos si ya existe una reserva del mismo horario.
+                            // Evitamos registrar dos reservas activas del mismo horario.
                             val existente = reservas.firstOrNull {
                                 it.clase.id == claseBase.id &&
                                         it.horario.id == horarioElegido.id &&
                                         it.estado == "Confirmada"
                             }
 
-                            // Usamos el horario original para no descontar cupos dos veces.
                             val horarioBase = claseBase.horarios.firstOrNull {
                                 it.id == horarioElegido.id
                             }
 
-                            // Revisamos la disponibilidad antes de guardar el registro.
                             val ocupados = reservas.count {
                                 it.clase.id == claseBase.id &&
                                         it.horario.id == horarioElegido.id &&
                                         it.estado == "Confirmada"
                             }
 
+                            // Partimos del dato original para descontar una sola vez.
                             val disponibles =
                                 (horarioBase?.cuposDisponibles ?: 0) - ocupados
 
@@ -290,10 +290,8 @@ fun FitApp() {
                                         horario = horarioBase
                                     )
 
-                                    // Guardamos la reserva y preparamos el siguiente ID.
                                     reservas.add(nuevaReserva)
                                     siguienteId++
-
                                     nuevaReserva
                                 }
 
@@ -301,11 +299,10 @@ fun FitApp() {
                             }
 
                             if (reservaConfirmada != null) {
-                                // La confirmación recibe el identificador del registro.
                                 navController.navigate(
                                     "confirmacion/${reservaConfirmada.id}"
                                 ) {
-                                    // Retiramos el detalle al completar la reserva.
+                                    // Quitamos el detalle después de completar la reserva.
                                     popUpTo("inicio") {
                                         inclusive = false
                                     }
@@ -330,9 +327,7 @@ fun FitApp() {
                     }
                 )
             ) { entrada ->
-                // Buscamos la reserva guardada para mostrar sus datos.
                 val reservaId = entrada.arguments?.getInt("reservaId")
-
                 val reserva = reservas.firstOrNull {
                     it.id == reservaId
                 }
@@ -341,7 +336,7 @@ fun FitApp() {
                     ConfirmacionScreen(
                         reserva = reserva,
                         alVerReservas = {
-                            // Abrimos el listado sin registrar nuevamente la clase.
+                            // Abrimos el listado sin volver a registrar la reserva.
                             navController.navigate("reservas") {
                                 popUpTo("inicio") {
                                     inclusive = false
@@ -360,25 +355,22 @@ fun FitApp() {
 
             composable("reservas") {
                 ReservasScreen(
-                    reservas = reservas
+                    reservas = reservas,
+                    alCancelar = cancelarReserva
                 )
             }
 
-            // Abrimos las pantallas correspondientes a las pestañas.
             composable("rutinas") {
                 RutinasScreen()
             }
 
             composable("perfil") {
-                PerfilScreen(
-                    usuario = usuarioEjemplo
-                )
+                PerfilScreen(usuario = usuarioEjemplo)
             }
         }
     }
 }
 
-// Mostramos un mensaje cuando faltan datos o una sección está vacía.
 @Composable
 fun MensajeFit(
     titulo: String,
