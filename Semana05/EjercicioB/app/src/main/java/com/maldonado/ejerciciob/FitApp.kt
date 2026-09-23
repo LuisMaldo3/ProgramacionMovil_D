@@ -157,14 +157,12 @@ fun FitApp() {
                             NavigationBarItem(
                                 selected = seleccionada,
                                 onClick = {
-                                    // Conservamos Inicio como base y evitamos duplicar destinos.
+                                    // Abrimos la pestaña sin recuperar pantallas anteriores del detalle.
                                     navController.navigate(ruta) {
                                         popUpTo("inicio") {
                                             inclusive = false
-                                            saveState = true
                                         }
                                         launchSingleTop = true
-                                        restoreState = true
                                     }
                                 },
                                 icon = {
