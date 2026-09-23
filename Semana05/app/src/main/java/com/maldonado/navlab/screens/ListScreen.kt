@@ -1,54 +1,53 @@
 package com.maldonado.navlab.screens
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.maldonado.navlab.components.AcademicTopBar
+import com.maldonado.navlab.components.StudentCard
+import com.maldonado.navlab.model.AlumnoRepository
 import com.maldonado.navlab.navigation.Screen
+import com.maldonado.navlab.ui.theme.FondoPrincipal
+import com.maldonado.navlab.ui.theme.LilaClaro
+import com.maldonado.navlab.ui.theme.MoradoOscuro
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListScreen(navController: NavController) {
-    val items = (1..8).map { "Elemento número $it" }
-
     Scaffold(
+        containerColor = FondoPrincipal,
         topBar = {
-            TopAppBar(
-                title = { Text("Lista") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
-                        )
-                    }
-                }
+            AcademicTopBar(
+                title = "Directorio de Alumnos",
+                onBackClick = { navController.popBackStack() },
+                containerColor = LilaClaro,
+                contentColor = MoradoOscuro,
+                contentHeight = 64.dp
             )
         }
-    ) { padding ->
-        LazyColumn(contentPadding = padding) {
-            items(items.size) { index ->
-                ListItem(
-                    headlineContent = { Text(items[index]) },
-                    supportingContent = { Text("Toca para ver el detalle") },
-                    modifier = Modifier.clickable {
-                        navController.navigate(
-                            Screen.Detail.createRoute(index + 1)
-                        )
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 12.dp),
+            contentPadding = PaddingValues(top = 12.dp, bottom = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(
+                items = AlumnoRepository.alumnos,
+                key = { it.id }
+            ) { alumno ->
+                StudentCard(
+                    alumno = alumno,
+                    onClick = {
+                        navController.navigate(Screen.Detail.createRoute(alumno.id))
                     }
                 )
-                HorizontalDivider()
             }
         }
     }
