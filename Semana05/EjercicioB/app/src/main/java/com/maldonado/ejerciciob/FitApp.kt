@@ -354,7 +354,7 @@ fun FitApp() {
             }
 
             composable("reservas") {
-                ReservasScreen(
+                FiltrosReservasScreen(
                     reservas = reservas,
                     alCancelar = cancelarReserva
                 )
