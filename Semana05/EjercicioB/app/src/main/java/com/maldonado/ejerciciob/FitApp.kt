@@ -366,7 +366,7 @@ fun FitApp() {
                 )
             }
 
-            // Conectamos las pantallas completas con sus pestañas.
+            // Abrimos las pantallas correspondientes a las pestañas.
             composable("rutinas") {
                 RutinasScreen()
             }
