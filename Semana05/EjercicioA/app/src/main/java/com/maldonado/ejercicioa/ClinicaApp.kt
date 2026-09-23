@@ -48,6 +48,7 @@ fun ClinicaApp() {
         "historial" -> "Historial médico"
         "perfil" -> "Perfil"
         "medico/{medicoId}" -> "Perfil del médico"
+        "agendar/{medicoId}" -> "Agendar cita"
         else -> "Clínica Salud+"
     }
 
@@ -275,9 +276,12 @@ fun ClinicaApp() {
 
                     // En el siguiente avance construiremos el perfil completo.
                     if (medico != null) {
-                        MensajeSeccion(
-                            titulo = medico.nombre,
-                            descripcion = medico.especialidad
+                        // Mostramos el perfil y conservamos el médico al continuar.
+                        MedicoScreen(
+                            medico = medico,
+                            alAgendar = {
+                                navController.navigate("agendar/${medico.id}")
+                            }
                         )
                     } else {
                         MensajeSeccion(
@@ -288,6 +292,34 @@ fun ClinicaApp() {
                 }
 
                 // Dejamos conectadas las secciones que completaremos después.
+                // Preparamos el destino del formulario que construiremos en el siguiente avance.
+                composable(
+                    route = "agendar/{medicoId}",
+                    arguments = listOf(
+                        navArgument("medicoId") {
+                            type = NavType.IntType
+                        }
+                    )
+                ) { entrada ->
+                    val medicoId = entrada.arguments?.getInt("medicoId")
+                    val medico = medicosEjemplo.firstOrNull {
+                        it.id == medicoId
+                    }
+
+                    if (medico != null) {
+                        MensajeSeccion(
+                            titulo = "Agendar con ${medico.nombre}",
+                            descripcion = "Aquí seleccionaremos la fecha y la hora."
+                        )
+                    } else {
+                        MensajeSeccion(
+                            titulo = "Médico no encontrado",
+                            descripcion = "Regresa al inicio y selecciona un médico."
+                        )
+                    }
+                }
+
+                // Dejamos disponible la sección donde mostraremos las citas registradas.
                 composable("citas") {
                     MensajeSeccion(
                         titulo = "Todavía no hay citas para mostrar",
