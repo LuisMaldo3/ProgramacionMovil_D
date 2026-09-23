@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -14,14 +13,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            // Aplicamos los colores principales de TECSUP Fit.
+            // Utilizamos los colores compartidos de DatosFit.
             MaterialTheme(
                 colorScheme = lightColorScheme(
-                    primary = Color(0xFF10745E),
+                    primary = VerdeFit,
                     onPrimary = Color.White,
                     background = Color.White,
                     surface = Color.White
@@ -30,11 +30,10 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     containerColor = Color.White,
                     topBar = {
-                        // El encabezado reúne el nombre de la aplicación y el saludo.
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFF10745E))
+                                .background(VerdeFit)
                                 .windowInsetsPadding(WindowInsets.statusBars)
                                 .padding(
                                     horizontal = 18.dp,
@@ -58,18 +57,15 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) { padding ->
-                    // Respetamos el espacio ocupado por el encabezado.
+                    // La lista comienza después del encabezado.
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(padding),
-                        contentAlignment = Alignment.Center
+                            .padding(padding)
                     ) {
-                        Text(
-                            text = "Clases disponibles",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF292929)
+                        InicioScreen(
+                            // Conectaremos la tarjeta con el detalle en otro avance.
+                            alElegirClase = {}
                         )
                     }
                 }
