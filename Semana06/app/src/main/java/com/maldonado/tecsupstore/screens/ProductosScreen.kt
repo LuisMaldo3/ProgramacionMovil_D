@@ -1,6 +1,7 @@
 package com.maldonado.tecsupstore.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -10,9 +11,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,45 +34,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.maldonado.tecsupstore.model.Producto
-import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.HorizontalDivider
+
 @Composable
-fun ProductosScreen() {
-
-    val productos = listOf(
-
-        Producto(
-            id = 1,
-            nombre = "Mouse inalámbrico",
-            precio = 49.90,
-            categoria = "Accesorios"
-        ),
-
-        Producto(
-            id = 2,
-            nombre = "Teclado mecánico",
-            precio = 129.90,
-            categoria = "Tecnología"
-        ),
-
-        Producto(
-            id = 3,
-            nombre = "Audífonos Bluetooth",
-            precio = 89.90,
-            categoria = "Tecnología"
-        ),
-
-        Producto(
-            id = 4,
-            nombre = "Cuaderno TECSUP",
-            precio = 18.50,
-            categoria = "Oficina"
-        )
-    )
+fun ProductosScreen(
+    productos: List<Producto>,
+    favoritos: List<Int>,
+    onToggleFavorito: (Producto) -> Unit
+) {
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -76,7 +51,11 @@ fun ProductosScreen() {
         items(productos) { producto ->
 
             TarjetaProducto(
-                producto = producto
+                producto = producto,
+                esFavorito = favoritos.contains(producto.id),
+                onToggleFavorito = {
+                    onToggleFavorito(producto)
+                }
             )
         }
     }
@@ -84,7 +63,9 @@ fun ProductosScreen() {
 
 @Composable
 fun TarjetaProducto(
-    producto: Producto
+    producto: Producto,
+    esFavorito: Boolean,
+    onToggleFavorito: () -> Unit
 ) {
 
     var expanded by remember {
@@ -152,12 +133,35 @@ fun TarjetaProducto(
 
                     DropdownMenuItem(
                         text = {
-                            Text("Ver producto")
+                            Text(
+                                if (esFavorito) {
+                                    "Quitar de favoritos"
+                                } else {
+                                    "Favoritos"
+                                }
+                            )
                         },
                         leadingIcon = {
-
                             Icon(
-                                imageVector = Icons.Default.Info,
+                                imageVector = Icons.Default.Favorite,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            expanded = false
+                            onToggleFavorito()
+                        }
+                    )
+
+                    HorizontalDivider()
+
+                    DropdownMenuItem(
+                        text = {
+                            Text("Compartir")
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Share,
                                 contentDescription = null
                             )
                         },
@@ -166,21 +170,14 @@ fun TarjetaProducto(
                         }
                     )
 
-                    HorizontalDivider()
-
                     DropdownMenuItem(
                         text = {
-                            Text(
-                                text = "Eliminar",
-                                color = MaterialTheme.colorScheme.error
-                            )
+                            Text("Reportar")
                         },
                         leadingIcon = {
-
                             Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error
+                                imageVector = Icons.Default.Flag,
+                                contentDescription = null
                             )
                         },
                         onClick = {
@@ -190,4 +187,5 @@ fun TarjetaProducto(
                 }
             }
         }
-    }}
+    }
+}
