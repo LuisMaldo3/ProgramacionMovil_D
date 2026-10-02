@@ -12,9 +12,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -176,7 +176,7 @@ fun TarjetaProducto(
                         },
                         leadingIcon = {
                             Icon(
-                                imageVector = Icons.Default.Flag,
+                                imageVector = Icons.Default.Warning,
                                 contentDescription = null
                             )
                         },
