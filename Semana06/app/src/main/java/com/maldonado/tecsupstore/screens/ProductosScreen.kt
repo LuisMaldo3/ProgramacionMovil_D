@@ -27,7 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.maldonado.tecsupstore.model.Producto
-
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 @Composable
 fun ProductosScreen() {
 
@@ -97,7 +99,6 @@ fun TarjetaProducto(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-
             verticalAlignment = Alignment.CenterVertically
         ) {
 
@@ -121,22 +122,49 @@ fun TarjetaProducto(
                     text = "S/ ${"%.2f".format(producto.precio)}",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(
-                        top = 8.dp
-                    )
+                    modifier = Modifier.padding(top = 8.dp)
                 )
             }
 
-            IconButton(
-                onClick = {
-                    expanded = true
-                }
-            ) {
+            Box {
 
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "Opciones"
-                )
+                IconButton(
+                    onClick = {
+                        expanded = true
+                    }
+                ) {
+
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Opciones"
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = {
+                        expanded = false
+                    }
+                ) {
+
+                    DropdownMenuItem(
+                        text = {
+                            Text("Ver producto")
+                        },
+                        onClick = {
+                            expanded = false
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = {
+                            Text("Eliminar")
+                        },
+                        onClick = {
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
