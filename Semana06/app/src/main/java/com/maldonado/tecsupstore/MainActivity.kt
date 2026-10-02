@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.maldonado.tecsupstore.navigation.AppNavigation
+import com.maldonado.tecsupstore.navigation.AppNavegacion
 import com.maldonado.tecsupstore.ui.theme.TecsupStoreTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
 
             TecsupStoreTheme {
 
-                AppNavigation()
+                AppNavegacion()
             }
         }
     }
