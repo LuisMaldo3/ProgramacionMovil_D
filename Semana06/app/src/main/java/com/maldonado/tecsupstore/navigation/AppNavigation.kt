@@ -1,14 +1,17 @@
 package com.maldonado.tecsupstore.navigation
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Badge
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -25,6 +28,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -32,6 +37,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.maldonado.tecsupstore.model.Producto
+import com.maldonado.tecsupstore.screens.FavoritosScreen
 import com.maldonado.tecsupstore.screens.HomeScreen
 import com.maldonado.tecsupstore.screens.ProductosScreen
 import kotlinx.coroutines.launch
@@ -48,9 +55,44 @@ fun AppNavigation() {
 
     val scope = rememberCoroutineScope()
 
-    val backStackEntry by navController.currentBackStackEntryAsState()
+    val favoritos = remember {
+        mutableStateListOf<Int>()
+    }
 
-    val rutaActual = backStackEntry?.destination?.route
+    val productos = remember {
+        listOf(
+            Producto(
+                id = 1,
+                nombre = "Mouse inalámbrico",
+                precio = 49.90,
+                categoria = "Accesorios"
+            ),
+            Producto(
+                id = 2,
+                nombre = "Teclado mecánico",
+                precio = 129.90,
+                categoria = "Tecnología"
+            ),
+            Producto(
+                id = 3,
+                nombre = "Audífonos Bluetooth",
+                precio = 89.90,
+                categoria = "Tecnología"
+            ),
+            Producto(
+                id = 4,
+                nombre = "Cuaderno TECSUP",
+                precio = 18.50,
+                categoria = "Oficina"
+            )
+        )
+    }
+
+    val backStackEntry by
+    navController.currentBackStackEntryAsState()
+
+    val rutaActual =
+        backStackEntry?.destination?.route
 
     fun irA(ruta: String) {
 
@@ -66,6 +108,7 @@ fun AppNavigation() {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+
         drawerContent = {
 
             ModalDrawerSheet {
@@ -111,7 +154,8 @@ fun AppNavigation() {
                             contentDescription = null
                         )
                     },
-                    selected = rutaActual == Screen.Home.route,
+                    selected =
+                        rutaActual == Screen.Home.route,
                     onClick = {
                         irA(Screen.Home.route)
                     },
@@ -130,9 +174,49 @@ fun AppNavigation() {
                             contentDescription = null
                         )
                     },
-                    selected = rutaActual == Screen.Productos.route,
+                    selected =
+                        rutaActual == Screen.Productos.route,
                     onClick = {
                         irA(Screen.Productos.route)
+                    },
+                    modifier = Modifier.padding(
+                        NavigationDrawerItemDefaults.ItemPadding
+                    )
+                )
+
+                NavigationDrawerItem(
+                    label = {
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+
+                            Text(
+                                text = "Favoritos",
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            if (favoritos.isNotEmpty()) {
+
+                                Badge {
+
+                                    Text(
+                                        text = favoritos.size.toString()
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Favorite,
+                            contentDescription = null
+                        )
+                    },
+                    selected =
+                        rutaActual == Screen.Favoritos.route,
+                    onClick = {
+                        irA(Screen.Favoritos.route)
                     },
                     modifier = Modifier.padding(
                         NavigationDrawerItemDefaults.ItemPadding
@@ -153,6 +237,9 @@ fun AppNavigation() {
 
                                 Screen.Productos.route ->
                                     "Productos"
+
+                                Screen.Favoritos.route ->
+                                    "Favoritos"
 
                                 else ->
                                     "TECSUP Store"
@@ -188,7 +275,7 @@ fun AppNavigation() {
             ) {
 
                 composable(
-                    route = Screen.Home.route
+                    Screen.Home.route
                 ) {
 
                     HomeScreen(
@@ -197,10 +284,40 @@ fun AppNavigation() {
                 }
 
                 composable(
-                    route = Screen.Productos.route
+                    Screen.Productos.route
                 ) {
 
-                    ProductosScreen()
+                    ProductosScreen(
+                        productos = productos,
+                        favoritos = favoritos,
+                        onToggleFavorito = { producto ->
+
+                            if (
+                                favoritos.contains(producto.id)
+                            ) {
+
+                                favoritos.remove(
+                                    producto.id
+                                )
+
+                            } else {
+
+                                favoritos.add(
+                                    producto.id
+                                )
+                            }
+                        }
+                    )
+                }
+
+                composable(
+                    Screen.Favoritos.route
+                ) {
+
+                    FavoritosScreen(
+                        productos = productos,
+                        favoritos = favoritos
+                    )
                 }
             }
         }
