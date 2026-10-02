@@ -29,16 +29,25 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppNavigation() {
 
-    val navController =
-        rememberNavController()
+    val navController = rememberNavController()
 
-    val drawerState =
-        rememberDrawerState(
-            initialValue = DrawerValue.Closed
-        )
+    val drawerState = rememberDrawerState(
+        initialValue = DrawerValue.Closed
+    )
 
-    val scope =
-        rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
+
+    fun irA(ruta: String) {
+
+        scope.launch {
+            drawerState.close()
+        }
+
+        navController.navigate(ruta) {
+            popUpTo(Screen.Home.route)
+            launchSingleTop = true
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -58,18 +67,18 @@ fun AppNavigation() {
                     label = {
                         Text("Inicio")
                     },
+
                     icon = {
                         Icon(
                             Icons.Default.Home,
                             contentDescription = null
                         )
                     },
-                    selected = false,
-                    onClick = {
 
-                        scope.launch {
-                            drawerState.close()
-                        }
+                    selected = false,
+
+                    onClick = {
+                        irA(Screen.Home.route)
                     }
                 )
 
@@ -77,18 +86,18 @@ fun AppNavigation() {
                     label = {
                         Text("Productos")
                     },
+
                     icon = {
                         Icon(
                             Icons.Default.ShoppingBag,
                             contentDescription = null
                         )
                     },
-                    selected = false,
-                    onClick = {
 
-                        scope.launch {
-                            drawerState.close()
-                        }
+                    selected = false,
+
+                    onClick = {
+                        irA(Screen.Productos.route)
                     }
                 )
             }
@@ -102,6 +111,7 @@ fun AppNavigation() {
                     title = {
                         Text("TECSUP Store")
                     },
+
                     navigationIcon = {
 
                         IconButton(
