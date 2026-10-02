@@ -30,6 +30,9 @@ import com.maldonado.tecsupstore.model.Producto
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.HorizontalDivider
 @Composable
 fun ProductosScreen() {
 
@@ -151,14 +154,34 @@ fun TarjetaProducto(
                         text = {
                             Text("Ver producto")
                         },
+                        leadingIcon = {
+
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null
+                            )
+                        },
                         onClick = {
                             expanded = false
                         }
                     )
 
+                    HorizontalDivider()
+
                     DropdownMenuItem(
                         text = {
-                            Text("Eliminar")
+                            Text(
+                                text = "Eliminar",
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        },
+                        leadingIcon = {
+
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
                         },
                         onClick = {
                             expanded = false
@@ -167,5 +190,4 @@ fun TarjetaProducto(
                 }
             }
         }
-    }
-}
+    }}
