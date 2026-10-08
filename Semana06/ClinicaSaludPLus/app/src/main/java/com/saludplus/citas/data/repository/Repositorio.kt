@@ -78,7 +78,10 @@ object Repositorio {
     fun obtenerMedico(id: Int): Medico? = medicos.find { it.id == id }
 
     fun horariosDisponibles(medicoId: Int, fecha: String): List<String> {
-        return emptyList()
+        val ocupados = citas
+            .filter { it.medicoId == medicoId && it.fecha == fecha }
+            .map { it.hora }
+        return horariosBase.filter { it !in ocupados }
     }
 
     fun agendarCita(medicoId: Int, fecha: String, hora: String): Boolean {
