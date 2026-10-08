@@ -5,8 +5,10 @@ import com.saludplus.citas.data.model.Especialidad
 import com.saludplus.citas.data.model.Medico
 import com.saludplus.citas.data.model.Usuario
 
+/** Repositorio en memoria para gestionar usuarios y citas. */
 object Repositorio {
 
+    // Datos principales de la aplicación
     private val usuarios = mutableListOf<Usuario>()
     private val citas = mutableListOf<Cita>()
 
@@ -36,21 +38,38 @@ object Repositorio {
     var usuarioActual: Usuario? = null
         private set
 
+    var ultimaCita: Cita? = null
+        private set
+
+    fun siguienteIdUsuario(): Int = (usuarios.maxOfOrNull { it.id } ?: 0) + 1
+
+    // Usuarios
     fun registrarUsuario(usuario: Usuario): Boolean {
-        return false
+        val yaExiste = usuarios.any { it.correo.equals(usuario.correo, ignoreCase = true) }
+        if (yaExiste) return false
+        usuarios.add(usuario)
+        return true
     }
 
     fun iniciarSesion(correo: String, contrasena: String): Boolean {
-        return false
+        val encontrado = usuarios.find {
+            it.correo.equals(correo, ignoreCase = true) && it.contrasena == contrasena
+        }
+        usuarioActual = encontrado
+        return encontrado != null
     }
 
     fun cerrarSesion() {
+        usuarioActual = null
     }
 
+    // Especialidades
+    // Busca especialidades por nombre o descripción.
     fun buscarEspecialidades(texto: String): List<Especialidad> {
         return emptyList()
     }
 
+    // Obtiene las especialidades destacadas.
     fun especialidadesDestacadas(): List<Especialidad> {
         return emptyList()
     }
@@ -59,6 +78,7 @@ object Repositorio {
         return null
     }
 
+    // Médicos
     fun medicosPorEspecialidad(especialidadId: Int): List<Medico> {
         return emptyList()
     }
@@ -71,6 +91,8 @@ object Repositorio {
         return null
     }
 
+    // Citas
+    // Devuelve los horarios que todavía están disponibles.
     fun horariosDisponibles(medicoId: Int, fecha: String): List<String> {
         return emptyList()
     }
