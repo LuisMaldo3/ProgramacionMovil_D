@@ -1,19 +1,28 @@
 package com.saludplus.citas.ui.screens.auth
 
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.Arrangement
+import compose.icons.fontawesomeicons.Solid
+import compose.icons.FontAwesomeIcons
+import compose.icons.fontawesomeicons.solid.Lock
+import compose.icons.fontawesomeicons.solid.Envelope
+import compose.icons.fontawesomeicons.solid.PhoneVolume
+import compose.icons.fontawesomeicons.solid.User
 import android.util.Patterns
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,102 +30,217 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import com.saludplus.citas.data.model.Usuario
 import com.saludplus.citas.data.repository.Repositorio
 import com.saludplus.citas.navigation.Rutas
-import com.saludplus.citas.ui.components.BarraSuperior
 import com.saludplus.citas.ui.components.BotonPrincipal
-import com.saludplus.citas.ui.components.CampoTexto
+import com.saludplus.citas.ui.components.CampoDiseno
+import com.saludplus.citas.ui.theme.Azul
+import com.saludplus.citas.ui.theme.ErrorRojo
+import com.saludplus.citas.ui.theme.TextoPrincipal
+import com.saludplus.citas.ui.theme.TextoSecundario
+import com.saludplus.citas.ui.theme.rememberEscala
 
 @Composable
 fun RegistroScreen(navController: NavController) {
+    val e = rememberEscala()
+
     var nombre by remember { mutableStateOf("") }
+    var telefono by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
-    var confirmar by remember { mutableStateOf("") }
-    var acepta by remember { mutableStateOf(false) }
 
     var errorNombre by remember { mutableStateOf<String?>(null) }
+    var errorTelefono by remember { mutableStateOf<String?>(null) }
     var errorCorreo by remember { mutableStateOf<String?>(null) }
     var errorContrasena by remember { mutableStateOf<String?>(null) }
-    var errorConfirmar by remember { mutableStateOf<String?>(null) }
-    var errorTerminos by remember { mutableStateOf(false) }
+    var errorGeneral by remember { mutableStateOf<String?>(null) }
 
     fun validar(): Boolean {
         errorNombre = if (nombre.isBlank()) "Ingresa tu nombre" else null
-        errorCorreo = if (!Patterns.EMAIL_ADDRESS.matcher(correo.trim()).matches()) "Correo no válido" else null
+        errorTelefono =
+            if (telefono.count { it.isDigit() } != 9) "Ingresa un teléfono de 9 dígitos" else null
+        // El correo es opcional: si se escribe, debe ser válido
+        errorCorreo =
+            if (correo.isNotBlank() && !Patterns.EMAIL_ADDRESS.matcher(correo.trim()).matches())
+                "Correo no válido" else null
         errorContrasena = if (contrasena.length < 6) "Mínimo 6 caracteres" else null
-        errorConfirmar = if (confirmar != contrasena) "Las contraseñas no coinciden" else null
-        errorTerminos = !acepta
-        return errorNombre == null && errorCorreo == null &&
-                errorContrasena == null && errorConfirmar == null && !errorTerminos
+        return errorNombre == null && errorTelefono == null &&
+                errorCorreo == null && errorContrasena == null
     }
 
-    Scaffold(
-        topBar = { BarraSuperior("Crear cuenta", onAtras = { navController.popBackStack() }) }
-    ) { padding ->
+    fun registrar() {
+        errorGeneral = null
+        if (!validar()) return
+        val tel = telefono.filter { it.isDigit() }
+        val usuario = Usuario(
+            id = Repositorio.siguienteIdUsuario(),
+            nombre = nombre.trim(),
+            correo = correo.trim(),
+            contrasena = contrasena,
+            telefono = tel
+        )
+        if (Repositorio.registrarUsuario(usuario)) {
+            val identificador = if (usuario.correo.isNotEmpty()) usuario.correo else tel
+            Repositorio.iniciarSesion(identificador, contrasena)
+            navController.navigate(Rutas.HOME) {
+                popUpTo(Rutas.SPLASH) { inclusive = true }
+            }
+        } else {
+            errorGeneral = "Ya existe una cuenta con ese correo o teléfono"
+        }
+    }
+
+    // Estructura: [contenido con scroll] + [pie fijo]. El pie siempre queda arriba de la barra
+    // de navegación del teléfono, y el contenido se desplaza si la pantalla es corta.
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .imePadding()
+    ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
+                .weight(1f)
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp)
         ) {
-            CampoTexto(nombre, { nombre = it }, "Nombre completo", error = errorNombre)
-            Spacer(Modifier.height(8.dp))
-            CampoTexto(
-                correo, { correo = it }, "Correo electrónico",
-                error = errorCorreo, teclado = KeyboardType.Email
+            Spacer(Modifier.height(e.d(20)))
+            Text(
+                "Crear cuenta",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                fontSize = e.s(28),
+                lineHeight = e.s(34),
+                fontWeight = FontWeight.Bold,
+                color = TextoPrincipal
             )
-            Spacer(Modifier.height(8.dp))
-            CampoTexto(
-                contrasena, { contrasena = it }, "Contraseña",
-                error = errorContrasena, esPassword = true
+            Spacer(Modifier.height(e.d(6)))
+            Text(
+                "Regístrate para agendar tus citas",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                fontSize = e.s(18),
+                lineHeight = e.s(22),
+                color = TextoSecundario
             )
-            Spacer(Modifier.height(8.dp))
-            CampoTexto(
-                confirmar, { confirmar = it }, "Confirmar contraseña",
-                error = errorConfirmar, esPassword = true
-            )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(e.d(30)))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = acepta, onCheckedChange = { acepta = it })
-                Text("Acepto los ")
-                TextButton(onClick = { navController.navigate(Rutas.TERMINOS) }) {
-                    Text("términos y condiciones")
-                }
-            }
-            if (errorTerminos) {
+            CampoDiseno(
+                etiqueta = "Nombre",
+                valor = nombre,
+                onCambio = { nombre = it },
+                ejemplo = "Juan Pérez",
+                icono = FontAwesomeIcons.Solid.User,
+                error = errorNombre,
+                modifier = Modifier.padding(horizontal = e.d(17))
+            )
+            Spacer(Modifier.height(e.d(20)))
+            CampoDiseno(
+                etiqueta = "Teléfono",
+                valor = telefono,
+                onCambio = { texto -> telefono = texto.filter { c -> c.isDigit() || c == ' ' } },
+                ejemplo = "987 654 321",
+                icono = FontAwesomeIcons.Solid.PhoneVolume,
+                error = errorTelefono,
+                teclado = KeyboardType.Phone,
+                modifier = Modifier.padding(horizontal = e.d(17))
+            )
+            Spacer(Modifier.height(e.d(20)))
+            CampoDiseno(
+                etiqueta = "Correo (opcional)",
+                valor = correo,
+                onCambio = { correo = it },
+                ejemplo = "juan@correo.com",
+                icono = FontAwesomeIcons.Solid.Envelope,
+                error = errorCorreo,
+                teclado = KeyboardType.Email,
+                modifier = Modifier.padding(horizontal = e.d(17))
+            )
+            Spacer(Modifier.height(e.d(20)))
+            CampoDiseno(
+                etiqueta = "Contraseña",
+                valor = contrasena,
+                onCambio = { contrasena = it },
+                ejemplo = "••••••••",
+                icono = FontAwesomeIcons.Solid.Lock,
+                error = errorContrasena,
+                esPassword = true,
+                modifier = Modifier.padding(horizontal = e.d(17))
+            )
+
+            Spacer(Modifier.height(e.d(26)))
+            BotonPrincipal(
+                "Registrarme",
+                onClick = { registrar() },
+                modifier = Modifier.padding(horizontal = e.d(17))
+            )
+            if (errorGeneral != null) {
                 Text(
-                    "Debes aceptar los términos",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
+                    errorGeneral ?: "",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = e.d(8)),
+                    textAlign = TextAlign.Center,
+                    color = ErrorRojo,
+                    fontSize = e.s(14)
                 )
             }
-            Spacer(Modifier.height(16.dp))
 
-            BotonPrincipal("Crear cuenta", onClick = {
-                if (validar()) {
-                    val usuario = Usuario(
-                        Repositorio.siguienteIdUsuario(),
-                        nombre.trim(),
-                        correo.trim(),
-                        contrasena
-                    )
-                    if (Repositorio.registrarUsuario(usuario)) {
-                        Repositorio.iniciarSesion(usuario.correo, usuario.contrasena)
-                        navController.navigate(Rutas.HOME) {
-                            popUpTo(Rutas.SPLASH) { inclusive = true }
-                        }
-                    } else {
-                        errorCorreo = "Este correo ya está registrado"
-                    }
-                }
-            })
+            Spacer(Modifier.height(e.d(16)))
+            Text(
+                "Al registrarte aceptas nuestros",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                fontSize = e.s(18),
+                lineHeight = e.s(24),
+                color = TextoSecundario
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    "Términos y Condiciones",
+                    modifier = Modifier.clickable { navController.navigate(Rutas.TERMINOS) },
+                    fontSize = e.s(18),
+                    lineHeight = e.s(24),
+                    fontWeight = FontWeight.SemiBold,
+                    color = Azul
+                )
+                Text(".", fontSize = e.s(18), lineHeight = e.s(24), color = TextoSecundario)
+            }
+            Spacer(Modifier.height(e.d(12)))
+        }
+
+        // Pie fijo
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = e.d(8), bottom = e.d(14)),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "¿Ya tienes cuenta? ",
+                fontSize = e.s(18),
+                fontWeight = FontWeight.Bold,
+                color = TextoPrincipal
+            )
+            Text(
+                "Iniciar sesión",
+                modifier = Modifier.clickable { navController.navigate(Rutas.LOGIN) },
+                fontSize = e.s(18),
+                fontWeight = FontWeight.Bold,
+                color = Azul
+            )
         }
     }
 }
