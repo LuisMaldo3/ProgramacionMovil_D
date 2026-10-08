@@ -36,7 +36,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.saludplus.citas.data.repository.Repositorio
 import com.saludplus.citas.navigation.Rutas
@@ -56,59 +55,31 @@ import com.saludplus.citas.util.FechasEs
 import java.time.LocalDate
 
 @Composable
-fun FechaHoraScreen(
-    navController: NavController,
-    medicoId: Int
-) {
+fun FechaHoraScreen(navController: NavController, medicoId: Int) {
     val e = rememberEscala()
-
     val medico = Repositorio.obtenerMedico(medicoId)
-    val especialidad = medico?.let {
-        Repositorio.obtenerEspecialidad(it.especialidadId)
-    }
+    val especialidad = medico?.let { Repositorio.obtenerEspecialidad(it.especialidadId) }
 
-    // Si hoy es sábado o domingo, empieza el lunes.
-    val inicio = remember {
-        FechasEs.primerDiaHabil(LocalDate.now())
-    }
+    // Primer día hábil desde hoy: si hoy es sábado o domingo, empieza el lunes
+    val inicio = remember { FechasEs.primerDiaHabil(LocalDate.now()) }
 
-    var semana by rememberSaveable {
-        mutableStateOf(0)
-    }
+    // 0 = semana actual. Las flechas suman o restan una semana.
+    var semana by rememberSaveable { mutableStateOf(0) }
+    var fechaIso by rememberSaveable { mutableStateOf(inicio.toString()) }
+    var hora by rememberSaveable { mutableStateOf<String?>(null) }
 
-    var fechaIso by rememberSaveable {
-        mutableStateOf(inicio.toString())
-    }
-
-    var hora by rememberSaveable {
-        mutableStateOf<String?>(null)
-    }
-
-    // Genera cinco días hábiles desde el inicio del periodo mostrado.
-    val dias = FechasEs.diasHabiles(
-        inicio.plusWeeks(semana.toLong()),
-        5
-    )
-
+    // Los 5 días hábiles de la semana mostrada (generados con LocalDate)
+    val dias = FechasEs.diasHabiles(inicio.plusWeeks(semana.toLong()), 5)
     val fecha = LocalDate.parse(fechaIso)
 
-    val horarios = Repositorio.horariosDisponibles(
-        medicoId,
-        fechaIso
-    )
+    // Se recalcula solo cada vez que cambia el día: un horario reservado no aparece
+    val horarios = Repositorio.horariosDisponibles(medicoId, fechaIso)
 
     fun cambiarSemana(delta: Int) {
         val nueva = semana + delta
-
-        if (nueva < 0) return
-
+        if (nueva < 0) return // no se puede retroceder antes de la semana actual
         semana = nueva
-
-        fechaIso = FechasEs.diasHabiles(
-            inicio.plusWeeks(nueva.toLong()),
-            5
-        ).first().toString()
-
+        fechaIso = FechasEs.diasHabiles(inicio.plusWeeks(nueva.toLong()), 5).first().toString()
         hora = null
     }
 
@@ -117,18 +88,10 @@ fun FechaHoraScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        BarraSuperior(
-            "Seleccionar fecha y hora",
-            onAtras = {
-                navController.popBackStack()
-            }
-        )
+        BarraSuperior("Seleccionar fecha y hora", onAtras = { navController.popBackStack() })
+        Spacer(Modifier.height(e.d(11)))
 
-        Spacer(
-            modifier = Modifier.height(e.d(11))
-        )
-
-        // Tarjeta del médico.
+        // Tarjeta del médico (y 107–229)
         if (medico != null) {
             Row(
                 modifier = Modifier
@@ -140,30 +103,19 @@ fun FechaHoraScreen(
                     .padding(start = e.d(12)),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                FotoMedico(
-                    medico = medico,
-                    tamano = e.d(96)
-                )
-
-                Spacer(
-                    modifier = Modifier.width(e.d(13))
-                )
-
+                FotoMedico(medico = medico, tamano = e.d(96))
+                Spacer(Modifier.width(e.d(13)))
                 Column {
                     Text(
-                        text = medico.nombre,
+                        medico.nombre,
                         fontSize = e.s(22),
                         lineHeight = e.s(28),
                         fontWeight = FontWeight.Bold,
                         color = TextoPrincipal
                     )
-
-                    Spacer(
-                        modifier = Modifier.height(e.d(13))
-                    )
-
+                    Spacer(Modifier.height(e.d(13)))
                     Text(
-                        text = cargoMedico(medico, especialidad),
+                        cargoMedico(medico, especialidad),
                         fontSize = e.s(21),
                         lineHeight = e.s(26),
                         color = TextoSecundario
@@ -172,11 +124,9 @@ fun FechaHoraScreen(
             }
         }
 
-        Spacer(
-            modifier = Modifier.height(e.d(30))
-        )
+        Spacer(Modifier.height(e.d(30)))
 
-        // Mes y año con navegación por semanas.
+        // Mes y año con las flechas de semana (y 259–283)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -185,46 +135,34 @@ fun FechaHoraScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Filled.ChevronLeft,
+                Icons.Filled.ChevronLeft,
                 contentDescription = "Semana anterior",
-                tint = if (semana > 0) {
-                    TextoPrincipal
-                } else {
-                    GrisClaro
-                },
+                tint = if (semana > 0) TextoPrincipal else GrisClaro,
                 modifier = Modifier
                     .size(e.d(28))
-                    .clickable(enabled = semana > 0) {
-                        cambiarSemana(-1)
-                    }
+                    .clickable(enabled = semana > 0) { cambiarSemana(-1) }
             )
-
             Text(
-                text = FechasEs.mesYAnio(dias),
+                FechasEs.mesYAnio(dias),
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
                 fontSize = e.s(21),
                 fontWeight = FontWeight.SemiBold,
                 color = TextoPrincipal
             )
-
             Icon(
-                imageVector = Icons.Filled.ChevronRight,
+                Icons.Filled.ChevronRight,
                 contentDescription = "Semana siguiente",
                 tint = TextoPrincipal,
                 modifier = Modifier
                     .size(e.d(28))
-                    .clickable {
-                        cambiarSemana(1)
-                    }
+                    .clickable { cambiarSemana(1) }
             )
         }
 
-        Spacer(
-            modifier = Modifier.height(e.d(34))
-        )
+        Spacer(Modifier.height(e.d(34)))
 
-        // Días disponibles.
+        // Abreviaturas y cuadros de día (y 324–411)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -233,70 +171,46 @@ fun FechaHoraScreen(
         ) {
             dias.forEach { dia ->
                 val seleccionado = dia == fecha
-
                 Column(
                     modifier = Modifier.width(e.d(58)),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = FechasEs.diaSemanaCorto(dia),
+                        FechasEs.diaSemanaCorto(dia),
                         fontSize = e.s(17),
                         lineHeight = e.s(20),
-                        fontWeight = if (seleccionado) {
-                            FontWeight.Bold
-                        } else {
-                            FontWeight.Normal
-                        },
-                        color = if (seleccionado) {
-                            Azul
-                        } else {
-                            TextoSecundario
-                        }
+                        fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Normal,
+                        color = if (seleccionado) Azul else TextoSecundario
                     )
-
-                    Spacer(
-                        modifier = Modifier.height(e.d(5))
-                    )
-
+                    Spacer(Modifier.height(e.d(5)))
                     Box(
                         modifier = Modifier
-                            .size(
-                                width = e.d(58),
-                                height = e.d(64)
-                            )
+                            .size(e.d(58), e.d(64))
                             .clip(RoundedCornerShape(e.d(12)))
-                            .background(
-                                if (seleccionado) Azul else RellenoHora
-                            )
+                            .background(if (seleccionado) Azul else Color.Transparent)
                             .clickable {
                                 fechaIso = dia.toString()
-                                hora = null
+                                hora = null // al cambiar de día se reinicia la hora
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = dia.dayOfMonth.toString(),
+                            dia.dayOfMonth.toString(),
                             fontSize = e.s(25),
                             fontWeight = FontWeight.Bold,
-                            color = if (seleccionado) {
-                                Color.White
-                            } else {
-                                TextoPrincipal
-                            }
+                            color = if (seleccionado) Color.White else TextoPrincipal
                         )
                     }
                 }
             }
         }
 
-        Spacer(
-            modifier = Modifier.height(e.d(27))
-        )
+        Spacer(Modifier.height(e.d(27)))
 
-        // Horarios disponibles para la fecha seleccionada.
+        // Cuadrícula de horarios (empieza en y 437)
         if (horarios.isEmpty()) {
             Text(
-                text = "No hay horarios disponibles para este día",
+                "No hay horarios disponibles para este día",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = e.d(19)),
@@ -304,7 +218,6 @@ fun FechaHoraScreen(
                 fontSize = e.s(18)
             )
         }
-
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
             modifier = Modifier
@@ -313,64 +226,42 @@ fun FechaHoraScreen(
             horizontalArrangement = Arrangement.spacedBy(e.d(23)),
             verticalArrangement = Arrangement.spacedBy(e.d(15.5f))
         ) {
-            items(horarios) { horario ->
-                val seleccionada = horario == hora
-
+            items(horarios) { h ->
+                val seleccionada = h == hora
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(e.d(59))
                         .clip(RoundedCornerShape(e.d(12)))
-                        .background(
-                            if (seleccionada) Azul else RellenoHora
-                        )
+                        .background(if (seleccionada) Azul else RellenoHora)
                         .border(
-                            width = 1.dp,
-                            color = if (seleccionada) Azul else BordeHora,
-                            shape = RoundedCornerShape(e.d(12))
+                            1.dp,
+                            if (seleccionada) Azul else BordeHora,
+                            RoundedCornerShape(e.d(12))
                         )
-                        .clickable {
-                            hora = horario
-                        },
+                        .clickable { hora = h },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = horario,
+                        h,
                         fontSize = e.s(20),
-                        color = if (seleccionada) {
-                            Color.White
-                        } else {
-                            TextoPrincipal
-                        }
+                        color = if (seleccionada) Color.White else TextoPrincipal
                     )
                 }
             }
         }
 
-        // Continuar cuando se haya seleccionado un horario.
+        // Botón "Continuar": solo se habilita con día y hora elegidos
         Box(
             modifier = Modifier
                 .navigationBarsPadding()
-                .padding(
-                    start = e.d(16),
-                    end = e.d(16),
-                    top = e.d(8),
-                    bottom = e.d(20)
-                )
+                .padding(start = e.d(16), end = e.d(16), top = e.d(8), bottom = e.d(20))
         ) {
             BotonPrincipal(
                 "Continuar",
                 habilitado = hora != null,
                 onClick = {
-                    hora?.let { horaSeleccionada ->
-                        navController.navigate(
-                            Rutas.confirmar(
-                                medicoId,
-                                fechaIso,
-                                horaSeleccionada
-                            )
-                        )
-                    }
+                    hora?.let { navController.navigate(Rutas.confirmar(medicoId, fechaIso, it)) }
                 }
             )
         }
