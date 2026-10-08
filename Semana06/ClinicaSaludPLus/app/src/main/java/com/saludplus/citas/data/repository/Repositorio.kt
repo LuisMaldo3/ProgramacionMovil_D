@@ -41,82 +41,67 @@ object Repositorio {
 
     fun siguienteIdUsuario(): Int = (usuarios.maxOfOrNull { it.id } ?: 0) + 1
 
-    private fun siguienteIdCita(): Int = (citas.maxOfOrNull { it.id } ?: 0) + 1
-
     fun registrarUsuario(usuario: Usuario): Boolean {
-        val correo = usuario.correo.trim()
-        val yaExiste = usuarios.any { it.correo.equals(correo, ignoreCase = true) }
+        val yaExiste = usuarios.any { it.correo.equals(usuario.correo, ignoreCase = true) }
         if (yaExiste) return false
-        usuarios.add(usuario.copy(correo = correo))
+        usuarios.add(usuario)
         return true
     }
 
     fun iniciarSesion(correo: String, contrasena: String): Boolean {
-        val usuario = usuarios.firstOrNull {
-            it.correo.equals(correo.trim(), ignoreCase = true) && it.contrasena == contrasena
-        } ?: return false
-        usuarioActual = usuario
-        return true
+        val encontrado = usuarios.find {
+            it.correo.equals(correo, ignoreCase = true) && it.contrasena == contrasena
+        }
+        usuarioActual = encontrado
+        return encontrado != null
     }
 
     fun cerrarSesion() {
         usuarioActual = null
-        ultimaCita = null
     }
 
-    fun buscarEspecialidades(texto: String): List<Especialidad> {
-        val t = texto.trim()
-        if (t.isEmpty()) return especialidades
-        return especialidades.filter {
-            it.nombre.contains(t, ignoreCase = true) ||
-                    it.descripcion.contains(t, ignoreCase = true)
-        }
-    }
+    fun buscarEspecialidades(texto: String): List<Especialidad> =
+        especialidades.filter { it.nombre.contains(texto, ignoreCase = true) }
 
-    fun especialidadesDestacadas(): List<Especialidad> {
-        return especialidades.take(4)
-    }
+    fun especialidadesDestacadas(): List<Especialidad> = especialidades.take(4)
 
-    fun obtenerEspecialidad(id: Int): Especialidad? {
-        return especialidades.firstOrNull { it.id == id }
-    }
+    fun obtenerEspecialidad(id: Int): Especialidad? = especialidades.find { it.id == id }
 
-    fun medicosPorEspecialidad(especialidadId: Int): List<Medico> {
-        return medicos.filter { it.especialidadId == especialidadId }
-    }
+    fun medicosPorEspecialidad(especialidadId: Int): List<Medico> =
+        medicos.filter { it.especialidadId == especialidadId }
+            .sortedByDescending { it.calificacion }
 
-    fun buscarMedicos(especialidadId: Int, texto: String): List<Medico> {
-        val t = texto.trim()
-        return medicosPorEspecialidad(especialidadId).filter {
-            t.isEmpty() || it.nombre.contains(t, ignoreCase = true)
-        }
-    }
+    fun buscarMedicos(especialidadId: Int, texto: String): List<Medico> =
+        medicosPorEspecialidad(especialidadId)
+            .filter { it.nombre.contains(texto, ignoreCase = true) }
 
-    fun obtenerMedico(id: Int): Medico? {
-        return medicos.firstOrNull { it.id == id }
-    }
+    fun obtenerMedico(id: Int): Medico? = medicos.find { it.id == id }
 
     fun horariosDisponibles(medicoId: Int, fecha: String): List<String> {
         val ocupados = citas
             .filter { it.medicoId == medicoId && it.fecha == fecha }
             .map { it.hora }
-            .toSet()
         return horariosBase.filter { it !in ocupados }
     }
 
     fun agendarCita(medicoId: Int, fecha: String, hora: String): Boolean {
         val usuario = usuarioActual ?: return false
         val medico = obtenerMedico(medicoId) ?: return false
-        if (hora !in horariosDisponibles(medicoId, fecha)) return false
+        val ocupado = citas.any {
+            it.medicoId == medicoId && it.fecha == fecha && it.hora == hora
+        }
+        if (ocupado) return false
 
+        val nuevoId = (citas.maxOfOrNull { it.id } ?: 0) + 1
         val cita = Cita(
-            id = siguienteIdCita(),
-            usuarioId = usuario.id,
-            medicoId = medico.id,
-            especialidadId = medico.especialidadId,
-            fecha = fecha,
-            hora = hora
+            nuevoId,
+            usuario.id,
+            medicoId,
+            medico.especialidadId,
+            fecha,
+            hora
         )
+
         citas.add(cita)
         ultimaCita = cita
         return true
@@ -129,13 +114,7 @@ object Repositorio {
             .sortedWith(compareBy({ it.fecha }, { it.hora }))
     }
 
-    fun obtenerCita(id: Int): Cita? {
-        val usuario = usuarioActual ?: return null
-        return citas.firstOrNull { it.id == id && it.usuarioId == usuario.id }
-    }
+    fun obtenerCita(id: Int): Cita? = citas.find { it.id == id }
 
-    fun cancelarCita(id: Int): Boolean {
-        val cita = obtenerCita(id) ?: return false
-        return citas.remove(cita)
-    }
+    fun cancelarCita(id: Int): Boolean = citas.removeIf { it.id == id }
 }
