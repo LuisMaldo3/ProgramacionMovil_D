@@ -1,8 +1,8 @@
 package com.saludplus.citas.ui.components
 
-import androidx.annotation.DrawableRes
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,8 +19,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
@@ -31,8 +29,8 @@ import compose.icons.fontawesomeicons.solid.Eye
 import compose.icons.fontawesomeicons.solid.Heart
 import compose.icons.fontawesomeicons.solid.Heartbeat
 import compose.icons.fontawesomeicons.solid.User
+import compose.icons.fontawesomeicons.solid.UserMd
 import compose.icons.fontawesomeicons.solid.Venus
-import com.saludplus.citas.R
 import com.saludplus.citas.data.model.Especialidad
 import com.saludplus.citas.data.model.Medico
 import com.saludplus.citas.ui.theme.Azul
@@ -119,24 +117,6 @@ fun LogoSaludPlus(modifier: Modifier = Modifier) {
     }
 }
 
-/** Foto de cada médico. Los que no tienen foto propia reutilizan una de las del diseño. */
-@DrawableRes
-fun fotoMedico(medico: Medico): Int {
-    val fotosMujer = listOf(
-        R.drawable.medico_ana_torres,
-        R.drawable.medico_claudia_rojas,
-        R.drawable.medico_mariana_soto
-    )
-    return when {
-        medico.nombre.contains("Ana Torres") -> R.drawable.medico_ana_torres
-        medico.nombre.contains("Claudia Rojas") -> R.drawable.medico_claudia_rojas
-        medico.nombre.contains("Luis Ramírez") -> R.drawable.medico_luis_ramirez
-        medico.nombre.contains("Mariana Soto") -> R.drawable.medico_mariana_soto
-        medico.nombre.startsWith("Dra.") -> fotosMujer[medico.id % fotosMujer.size]
-        else -> R.drawable.medico_luis_ramirez
-    }
-}
-
 /** Texto que va bajo el nombre del médico ("Ginecóloga", "Cardiólogo"...). */
 fun cargoMedico(medico: Medico, especialidad: Especialidad?): String {
     val mujer = medico.nombre.startsWith("Dra.")
@@ -152,15 +132,57 @@ fun cargoMedico(medico: Medico, especialidad: Especialidad?): String {
     }
 }
 
-/** Foto circular del médico (las fotos son imágenes; no existe un ícono equivalente). */
+/** Colores del avatar de respaldo de cada médico (fondo pastel, ícono). */
+private val coloresAvatar = listOf(
+    Color(0xFFDCEBFF) to Color(0xFF0468FD),
+    Color(0xFFD4FDE9) to Color(0xFF07AF4E),
+    Color(0xFFF2E9FD) to Color(0xFF8736FD),
+    Color(0xFFFDF2E3) to Color(0xFFFD8407)
+)
+
+// Retratos de ejemplo de randomuser.me (servicio gratuito de fotos para pruebas de apps)
+private val retratosMujer = listOf(44, 65, 68, 12, 33, 90, 22, 55, 8, 47, 71, 29)
+private val retratosHombre = listOf(32, 41, 75, 18, 52, 63, 9, 27)
+
+private fun urlFotoMedico(medico: Medico): String {
+    val mujer = medico.nombre.startsWith("Dra.")
+    val numero = when {
+        medico.nombre.contains("Ana Torres") -> 44
+        medico.nombre.contains("Claudia Rojas") -> 65
+        medico.nombre.contains("Luis Ramírez") -> 32
+        medico.nombre.contains("Mariana Soto") -> 68
+        mujer -> retratosMujer[medico.id % retratosMujer.size]
+        else -> retratosHombre[medico.id % retratosHombre.size]
+    }
+    return "https://randomuser.me/api/portraits/${if (mujer) "women" else "men"}/$numero.jpg"
+}
+
+/**
+ * Foto real del médico, cargada con Coil. Debajo se dibuja el ícono de persona con estetoscopio
+ * (Font Awesome) dentro de un círculo de color: se ve mientras la foto carga y se queda si no hay
+ * internet o la foto no se puede descargar.
+ */
 @Composable
 fun FotoMedico(medico: Medico, tamano: Dp, modifier: Modifier = Modifier) {
-    Image(
-        painter = painterResource(fotoMedico(medico)),
-        contentDescription = medico.nombre,
+    val (fondo, glifo) = coloresAvatar[medico.id % coloresAvatar.size]
+    Box(
         modifier = modifier
             .size(tamano)
-            .clip(CircleShape),
-        contentScale = ContentScale.Crop
-    )
+            .clip(CircleShape)
+            .background(fondo),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = FontAwesomeIcons.Solid.UserMd,
+            contentDescription = medico.nombre,
+            tint = glifo,
+            modifier = Modifier.size(tamano * 0.56f)
+        )
+        AsyncImage(
+            model = urlFotoMedico(medico),
+            contentDescription = medico.nombre,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+    }
 }
