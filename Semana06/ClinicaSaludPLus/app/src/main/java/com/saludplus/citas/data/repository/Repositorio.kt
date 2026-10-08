@@ -5,10 +5,8 @@ import com.saludplus.citas.data.model.Especialidad
 import com.saludplus.citas.data.model.Medico
 import com.saludplus.citas.data.model.Usuario
 
-/** Repositorio en memoria para gestionar usuarios y citas. */
 object Repositorio {
 
-    // Datos principales de la aplicación
     private val usuarios = mutableListOf<Usuario>()
     private val citas = mutableListOf<Cita>()
 
@@ -43,7 +41,6 @@ object Repositorio {
 
     fun siguienteIdUsuario(): Int = (usuarios.maxOfOrNull { it.id } ?: 0) + 1
 
-    // Usuarios
     fun registrarUsuario(usuario: Usuario): Boolean {
         val yaExiste = usuarios.any { it.correo.equals(usuario.correo, ignoreCase = true) }
         if (yaExiste) return false
@@ -63,36 +60,23 @@ object Repositorio {
         usuarioActual = null
     }
 
-    // Especialidades
-    // Busca especialidades por nombre o descripción.
-    fun buscarEspecialidades(texto: String): List<Especialidad> {
-        return emptyList()
-    }
+    fun buscarEspecialidades(texto: String): List<Especialidad> =
+        especialidades.filter { it.nombre.contains(texto, ignoreCase = true) }
 
-    // Obtiene las especialidades destacadas.
-    fun especialidadesDestacadas(): List<Especialidad> {
-        return emptyList()
-    }
+    fun especialidadesDestacadas(): List<Especialidad> = especialidades.take(4)
 
-    fun obtenerEspecialidad(id: Int): Especialidad? {
-        return null
-    }
+    fun obtenerEspecialidad(id: Int): Especialidad? = especialidades.find { it.id == id }
 
-    // Médicos
-    fun medicosPorEspecialidad(especialidadId: Int): List<Medico> {
-        return emptyList()
-    }
+    fun medicosPorEspecialidad(especialidadId: Int): List<Medico> =
+        medicos.filter { it.especialidadId == especialidadId }
+            .sortedByDescending { it.calificacion }
 
-    fun buscarMedicos(especialidadId: Int, texto: String): List<Medico> {
-        return emptyList()
-    }
+    fun buscarMedicos(especialidadId: Int, texto: String): List<Medico> =
+        medicosPorEspecialidad(especialidadId)
+            .filter { it.nombre.contains(texto, ignoreCase = true) }
 
-    fun obtenerMedico(id: Int): Medico? {
-        return null
-    }
+    fun obtenerMedico(id: Int): Medico? = medicos.find { it.id == id }
 
-    // Citas
-    // Devuelve los horarios que todavía están disponibles.
     fun horariosDisponibles(medicoId: Int, fecha: String): List<String> {
         return emptyList()
     }
