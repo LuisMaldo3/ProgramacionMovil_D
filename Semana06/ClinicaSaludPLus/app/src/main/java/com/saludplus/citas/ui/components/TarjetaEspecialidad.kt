@@ -23,7 +23,7 @@ import com.saludplus.citas.ui.theme.TextoPrincipal
 import com.saludplus.citas.ui.theme.TextoSecundario
 import com.saludplus.citas.ui.theme.rememberEscala
 
-/** Fila de la lista de Especialidades (84 dp de alto, como en el diseño). */
+/** Fila de la lista de Especialidades (104 dp de alto: más grande y espaciada que el diseño base). */
 @Composable
 fun TarjetaEspecialidad(
     especialidad: Especialidad,
@@ -34,31 +34,30 @@ fun TarjetaEspecialidad(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(e.d(84))
+            .height(e.d(104))
             .clickable(onClick = onClick)
             .padding(start = e.d(32), end = e.d(20)),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconoEspecialidad(especialidad = especialidad, tamano = e.d(46))
+        IconoEspecialidad(especialidad = especialidad, tamano = e.d(56))
         Spacer(Modifier.width(e.d(19)))
         Column(
             modifier = Modifier
                 .weight(1f)
-                .align(Alignment.Top)
-                .padding(top = e.d(13))
+                .align(Alignment.CenterVertically)
         ) {
             Text(
                 especialidad.nombre,
-                fontSize = e.s(18),
-                lineHeight = e.s(24),
+                fontSize = e.s(20),
+                lineHeight = e.s(26),
                 fontWeight = FontWeight.Bold,
                 color = TextoPrincipal
             )
-            Spacer(Modifier.height(e.d(7)))
+            Spacer(Modifier.height(e.d(8)))
             Text(
                 especialidad.descripcion,
-                fontSize = e.s(16),
-                lineHeight = e.s(20),
+                fontSize = e.s(17),
+                lineHeight = e.s(22),
                 color = TextoSecundario
             )
         }

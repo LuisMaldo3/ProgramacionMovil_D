@@ -23,5 +23,8 @@ Mejora obligatoria: **calendario dinámico en la Pantalla 6 (Fecha y hora)** con
 - El bloqueo de horarios ya reservados sigue funcionando: la fecha se guarda como `yyyy-MM-dd`.
 - Íconos con la librería Font Awesome (`compose-icons`); fotos de los médicos con Coil (retratos de ejemplo de randomuser.me, con un ícono de respaldo si no hay internet); `minSdk` 26 por `java.time`.
 
+- Registro con casilla obligatoria de aceptación de Términos y Política de Privacidad (el botón "Aceptar y continuar" de Términos la marca sola).
+- Usuario de prueba: `carlos@saludplus.com` / `123456`. La sesión se inicia desde Login o Registro.
+
 Los prompts usados con el asistente de IA están documentados en [PROMPTS.md](PROMPTS.md).
 

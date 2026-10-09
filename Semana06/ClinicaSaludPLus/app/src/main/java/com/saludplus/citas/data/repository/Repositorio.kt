@@ -53,8 +53,7 @@ object Repositorio {
 
     init {
         val demo = Usuario(1, "Carlos Mendoza", "carlos@saludplus.com", "123456", "900111222")
-        usuarios.add(demo)
-        usuarioActual = demo
+        usuarios.add(demo)   // usuario de prueba; la sesión se inicia desde Login o Registro
     }
 
     fun siguienteIdUsuario(): Int = (usuarios.maxOfOrNull { it.id } ?: 0) + 1
@@ -89,7 +88,8 @@ object Repositorio {
     fun buscarEspecialidades(texto: String): List<Especialidad> =
         especialidades.filter { it.nombre.contains(texto, ignoreCase = true) }
 
-    fun especialidadesDestacadas(): List<Especialidad> = especialidades.take(4)
+    // Destacadas del diseño: Medicina General, Pediatría y Ginecología
+    fun especialidadesDestacadas(): List<Especialidad> = especialidades.take(3)
 
     fun obtenerEspecialidad(id: Int): Especialidad? = especialidades.find { it.id == id }
 

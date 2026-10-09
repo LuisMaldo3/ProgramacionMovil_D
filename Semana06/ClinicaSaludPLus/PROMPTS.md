@@ -3,12 +3,12 @@
 **Asistente de IA usado:** Claude (Anthropic), mediante chat.
 **Mejora obligatoria:** calendario dinámico en la Pantalla 6 (Fecha y hora) con `java.time.LocalDate`.
 
-El trabajo se hizo en 3 partes, y cada parte corresponde a un commit de la rama. Para cada una se deja:
+El trabajo se hizo en 5 partes, y cada parte corresponde a un commit de la rama. Para cada una se deja:
 1. el **prompt completo**, escrito con todo el detalle necesario (contexto, reglas, medidas, colores, datos y comportamiento) para poder pegarlo en una IA y obtener el mismo resultado; son la versión ordenada de lo que se le pidió a la IA durante el desarrollo;
 2. una **respuesta resumida** de lo que la IA hizo, y
 3. **qué tuve que corregir** del código que generó.
 
-Orden para reproducirlo: pegar el prompt 1 en la IA, probar la app, luego el 2 y luego el 3, con el proyecto abierto en Android Studio.
+Orden para reproducirlo: pegar el prompt 1 en la IA, probar la app, luego el 2, el 3, el 4 y por último el 5, con el proyecto abierto en Android Studio.
 
 ---
 
@@ -294,5 +294,85 @@ CIERRE: compila, corrige errores y dime los archivos modificados.
 - La fecha sigue viajando por la ruta y guardándose como `yyyy-MM-dd`; solo se muestra en español, para no romper el bloqueo de horarios reservados.
 - Si hoy es sábado o domingo el calendario empieza el lunes, y si la semana cruza de mes el título muestra ambos meses.
 
+---
 
+## Prompt 4 — Revisión final: casilla de políticas, sesión limpia y datos del formulario
+**Commit:** `Parte 4: casilla de aceptación de Términos y Privacidad en Registro, sesión sin usuario precargado`
 
+**Prompt completo (para pegar en una IA):**
+
+```text
+ROL
+Eres un desarrollador Android senior. Trabaja directamente sobre los archivos del proyecto abierto y IMPLEMENTA los cambios; no entregues solo un plan. Lee antes RegistroScreen.kt, TerminosScreen.kt, Repositorio.kt y Rutas.kt.
+
+PROYECTO
+App "Clínica SaludPlus" (App Paciente) en Kotlin, Jetpack Compose y Material 3, paquete com.saludplus.citas, sin base de datos (todo en el object Repositorio). Los cambios son una REVISIÓN FINAL: no rediseñes nada que ya funciona.
+
+REGLAS (no negociables)
+1. No cambies Rutas.kt, AppNavigation.kt, los modelos ni los nombres, parámetros o tipos de retorno de las funciones del Repositorio.
+2. No agregues dependencias nuevas. Mantén el estilo del diseño (azul #0468FD, errores en rojo, medidas con e.d() y e.s()).
+3. No ejecutes comandos Git; los commits los hago yo. Compila (:app:assembleDebug) y corrige errores antes de terminar.
+
+CAMBIOS PEDIDOS
+1) REGISTRO (Pantalla 2): falta la casilla de aceptación. Reemplaza el texto "Al registrarte aceptas nuestros Términos y Condiciones" por un Checkbox de Material 3 (color azul) con el texto "He leído y acepto los Términos y Condiciones y la Política de Privacidad". El texto "Términos y Condiciones y la Política de Privacidad" es un enlace azul que abre Rutas.TERMINOS. La casilla va encima del botón "Registrarme".
+2) VALIDACIÓN: si la casilla no está marcada, "Registrarme" NO registra y muestra en rojo debajo de la casilla "Debes aceptar los Términos y la Política de Privacidad" (la casilla también se pinta en rojo). El error desaparece al marcarla. Las validaciones anteriores (nombre, teléfono de 9 dígitos, correo opcional válido, contraseña de mínimo 6) se mantienen.
+3) TÉRMINOS: al pulsar "Aceptar y continuar", la pantalla de Términos le avisa a Registro (previousBackStackEntry.savedStateHandle con la clave CLAVE_TERMINOS = "terminos_aceptados") y vuelve; Registro lo lee con getStateFlow(...).collectAsState() y marca la casilla sola, y después limpia la clave. La flecha atrás NO marca la casilla.
+4) DATOS DEL FORMULARIO: nombre, teléfono, correo, contraseña y la casilla deben usar rememberSaveable, para que no se borren cuando el paciente abre Términos y vuelve a Registro.
+5) SESIÓN: en Repositorio, el usuario de prueba (Carlos Mendoza, carlos@saludplus.com, 123456) debe seguir existiendo en la lista, pero usuarioActual debe empezar en null: la sesión solo se inicia desde Login o Registro.
+
+PRUEBAS QUE DEBES HACER Y REPORTAR
+a) Registro sin marcar la casilla: muestra el error y no navega. Marcándola, registra y entra a Inicio.
+b) Escribo nombre, teléfono y contraseña, abro Términos, pulso "Aceptar y continuar": regreso con los datos intactos y la casilla marcada. Si regreso con la flecha atrás, los datos siguen y la casilla queda sin marcar.
+c) Abro la app, voy a Login con carlos@saludplus.com / 123456: el saludo dice "¡Hola, Carlos!". En Perfil, "Cerrar sesión" vuelve al Splash y ya no hay usuario.
+d) El calendario dinámico, el bloqueo de horarios reservados y el flujo completo de agendamiento siguen funcionando igual.
+
+CIERRE: compila, corrige errores y dime los archivos modificados.
+```
+
+**Respuesta resumida:**
+Se agregó el `Checkbox` con el enlace a Términos y la validación en `RegistroScreen`; `TerminosScreen` avisa la aceptación con `savedStateHandle`; los campos pasaron a `rememberSaveable`; y `Repositorio` ya no deja iniciada la sesión del usuario de prueba al abrir la app.
+
+**Qué tuve que corregir:**
+- La IA dejó el texto viejo "Al registrarte aceptas…" además de la casilla; lo quité para no repetir el mensaje.
+- Con `remember` normal, al volver de Términos el formulario quedaba vacío (la pantalla sale de la composición); lo cambié a `rememberSaveable`.
+- Para leer la aceptación usé `navController.getBackStackEntry(Rutas.REGISTRO)` y `getStateFlow`, en lugar de `MutableStateFlow`, para no depender de otra importación.
+- La clave `CLAVE_TERMINOS` quedó en `RegistroScreen.kt` y no en `Rutas.kt`, porque `Rutas.kt` se entrega completo y no debe modificarse.
+- No toqué el calendario ni el Repositorio de citas: el bloqueo de horarios sigue igual porque la fecha viaja como `yyyy-MM-dd`.
+
+---
+
+## Prompt 5 — Ajustes de diseño: Inicio, Especialidades y campos de Registro/Login
+**Commit:** `Parte 5: ajustes de diseño en Inicio, Especialidades y campos de formulario`
+
+**Prompt completo (para pegar en una IA):**
+
+```text
+ROL
+Eres un desarrollador Android senior. Trabaja directamente sobre los archivos del proyecto abierto y IMPLEMENTA los cambios. No cambies Rutas.kt, AppNavigation.kt, los modelos ni las funciones públicas del Repositorio (salvo el dato de especialidadesDestacadas que se indica). No agregues dependencias. No ejecutes comandos Git. Compila (:app:assembleDebug) y corrige errores antes de terminar.
+
+PROYECTO
+App "Clínica SaludPlus" (App Paciente), Kotlin + Jetpack Compose + Material 3, paquete com.saludplus.citas, sin base de datos. Medidas con e.d() (dp) y e.s() (sp) de Escala.kt.
+
+CAMBIOS PEDIDOS
+1) INICIO: "Especialidades destacadas" muestra solo 3 (Medicina General, Pediatría y Ginecología), como en el diseño: especialidadesDestacadas() devuelve las 3 primeras. Siguen en un LazyRow, pero las 3 tarjetas deben medir lo mismo y llenar TODO el ancho de la pantalla (BoxWithConstraints: ancho = (maxWidth - 2 x 14 - 8 x (cantidad - 1)) / cantidad) y ser más altas (176 de alto, ícono de 76) para que no quede espacio vacío.
+2) ESPECIALIDADES (lista): filas más grandes y espaciadas: 104 de alto, ícono de 56, nombre de 20 sp y descripción de 17 sp, con el texto centrado verticalmente. La línea divisoria empieza donde empieza el texto (start = 107).
+3) CAMPOS DE REGISTRO Y LOGIN (CampoDiseno): los textos de ejemplo ("juan@correo.com", "987 654 321", "••••••••") se reemplazan por textos guía que indican qué escribir: "Tu nombre completo", "Tu teléfono de 9 dígitos", "Escribe tu correo", "Mínimo 6 caracteres" (Registro) y "Tu correo o teléfono", "Tu contraseña" (Login). El texto guía va en 18 sp, una sola línea con puntos suspensivos si no cabe.
+4) CONTRASEÑA: en los campos de contraseña agrega a la derecha un ícono de ojo (Font Awesome Eye / EyeSlash) que muestra u oculta lo escrito. Por defecto está oculta.
+
+PRUEBAS QUE DEBES HACER Y REPORTAR
+a) Inicio muestra 3 tarjetas que llenan el ancho, sin hueco a la derecha, y cada una abre los médicos de su especialidad.
+b) Especialidades muestra las 7, con filas más altas, y la búsqueda sigue filtrando en tiempo real.
+c) Login y Registro muestran los textos guía; al escribir desaparecen. El ojo muestra y oculta la contraseña.
+d) Registro y Login siguen validando y el flujo de agendamiento sigue igual.
+
+CIERRE: compila, corrige errores y dime los archivos modificados.
+```
+
+**Respuesta resumida:**
+Se limitó `especialidadesDestacadas()` a 3 y las tarjetas del Inicio se calculan para llenar el ancho con `BoxWithConstraints`; las filas de Especialidades pasaron a 104 de alto; `CampoDiseno` ahora muestra un texto guía más pequeño y, en contraseñas, un ojo para ver u ocultar el texto.
+
+**Qué tuve que corregir:**
+- Al agrandar el ícono de Especialidades hubo que mover la línea divisoria (de 97 a 107) para que siguiera alineada con el texto.
+- Los textos guía más largos no cabían a 23 sp; los acorté y bajé el tamaño a 18 sp con puntos suspensivos.
+- Para el ojo tuve que envolver el campo en un `Row` con `weight(1f)` para que el ícono no empujara ni tapara el texto.
+- La lista de especialidades completa (7) no se cambió: solo las destacadas del Inicio.

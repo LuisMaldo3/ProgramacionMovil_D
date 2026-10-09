@@ -132,7 +132,11 @@ fun TerminosScreen(navController: NavController) {
                 .navigationBarsPadding()
                 .padding(start = e.d(17), end = e.d(17), top = e.d(8), bottom = e.d(20))
         ) {
-            BotonPrincipal("Aceptar y continuar", onClick = { navController.popBackStack() })
+            BotonPrincipal("Aceptar y continuar", onClick = {
+                // Le avisa a Registro para que marque la casilla de aceptación
+                navController.previousBackStackEntry?.savedStateHandle?.set(CLAVE_TERMINOS, true)
+                navController.popBackStack()
+            })
         }
     }
 }

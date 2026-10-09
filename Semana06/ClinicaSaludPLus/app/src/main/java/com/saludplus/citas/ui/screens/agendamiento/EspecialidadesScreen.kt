@@ -69,7 +69,7 @@ fun EspecialidadesScreen(navController: NavController) {
                             onClick = { navController.navigate(Rutas.medicos(especialidad.id)) }
                         )
                         HorizontalDivider(
-                            modifier = Modifier.padding(start = e.d(97)),
+                            modifier = Modifier.padding(start = e.d(107)),
                             color = Divisor
                         )
                     }

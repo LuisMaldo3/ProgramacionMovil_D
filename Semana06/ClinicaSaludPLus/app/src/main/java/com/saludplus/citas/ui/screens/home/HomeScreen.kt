@@ -15,6 +15,7 @@ import compose.icons.fontawesomeicons.solid.CalendarCheck
 import compose.icons.fontawesomeicons.solid.CalendarAlt
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -200,15 +201,23 @@ fun HomeScreen(navController: NavController) {
                 )
             }
             Spacer(Modifier.height(e.d(14)))
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = e.d(14)),
-                horizontalArrangement = Arrangement.spacedBy(e.d(8))
-            ) {
-                items(destacadas) { especialidad ->
-                    EspecialidadDestacada(
-                        especialidad = especialidad,
-                        onClick = { navController.navigate(Rutas.medicos(especialidad.id)) }
-                    )
+            // Cada tarjeta mide lo mismo y las tres llenan todo el ancho de la pantalla
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val separacion = e.d(8)
+                val margen = e.d(14)
+                val cantidad = destacadas.size.coerceAtLeast(1)
+                val anchoTarjeta = (maxWidth - margen * 2 - separacion * (cantidad - 1)) / cantidad
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = margen),
+                    horizontalArrangement = Arrangement.spacedBy(separacion)
+                ) {
+                    items(destacadas) { especialidad ->
+                        EspecialidadDestacada(
+                            especialidad = especialidad,
+                            ancho = anchoTarjeta,
+                            onClick = { navController.navigate(Rutas.medicos(especialidad.id)) }
+                        )
+                    }
                 }
             }
             Spacer(Modifier.height(e.d(24)))
@@ -257,13 +266,13 @@ private fun AccesoRapido(
 }
 
 @Composable
-private fun EspecialidadDestacada(especialidad: Especialidad, onClick: () -> Unit) {
+private fun EspecialidadDestacada(especialidad: Especialidad, ancho: Dp, onClick: () -> Unit) {
     val e = rememberEscala()
     Card(
         onClick = onClick,
         modifier = Modifier
-            .width(e.d(108))
-            .height(e.d(140)),
+            .width(ancho)
+            .height(e.d(176)),
         shape = RoundedCornerShape(e.d(16)),
         colors = CardDefaults.cardColors(containerColor = RellenoTarjetaEspecialidad),
         border = BorderStroke(1.dp, BordeTarjeta),
@@ -275,10 +284,10 @@ private fun EspecialidadDestacada(especialidad: Especialidad, onClick: () -> Uni
                 .padding(horizontal = e.d(2)),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(e.d(10)))
-            IconoEspecialidad(especialidad = especialidad, tamano = e.d(64))
-            Spacer(Modifier.height(e.d(8)))
-            NombreEspecialidad(texto = especialidad.nombre, anchoMax = e.d(98))
+            Spacer(Modifier.height(e.d(16)))
+            IconoEspecialidad(especialidad = especialidad, tamano = e.d(76))
+            Spacer(Modifier.height(e.d(12)))
+            NombreEspecialidad(texto = especialidad.nombre, anchoMax = ancho - e.d(10))
         }
     }
 }

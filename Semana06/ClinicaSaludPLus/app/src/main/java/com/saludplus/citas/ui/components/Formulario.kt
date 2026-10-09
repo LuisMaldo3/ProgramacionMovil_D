@@ -3,6 +3,7 @@ package com.saludplus.citas.ui.components
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +40,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
+import compose.icons.FontAwesomeIcons
+import compose.icons.fontawesomeicons.Solid
+import compose.icons.fontawesomeicons.solid.Eye
+import compose.icons.fontawesomeicons.solid.EyeSlash
 import androidx.compose.ui.unit.dp
 import com.saludplus.citas.ui.theme.Azul
 import com.saludplus.citas.ui.theme.AzulDeshabilitado
@@ -119,6 +129,8 @@ fun CampoDiseno(
     val e = rememberEscala()
     val formaTarjeta = RoundedCornerShape(e.d(14))
     val formaCaja = RoundedCornerShape(e.d(10))
+    // Solo se usa en los campos de contraseña: ojito para ver u ocultar lo escrito
+    var verPassword by remember { mutableStateOf(false) }
     Column(modifier = modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Box(
@@ -161,26 +173,61 @@ fun CampoDiseno(
                         .padding(horizontal = e.d(14)),
                     contentAlignment = Alignment.CenterStart
                 ) {
-                    BasicTextField(
-                        value = valor,
-                        onValueChange = onCambio,
-                        singleLine = true,
-                        textStyle = TextStyle(fontSize = e.s(23), color = Color.Black),
-                        cursorBrush = SolidColor(Azul),
-                        visualTransformation = if (esPassword) PasswordVisualTransformation() else VisualTransformation.None,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = if (esPassword) KeyboardType.Password else teclado
-                        ),
-                        decorationBox = { campo ->
-                            Box(contentAlignment = Alignment.CenterStart) {
-                                if (valor.isEmpty()) {
-                                    Text(ejemplo, fontSize = e.s(23), color = GrisClaro, maxLines = 1)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        BasicTextField(
+                            value = valor,
+                            onValueChange = onCambio,
+                            singleLine = true,
+                            textStyle = TextStyle(fontSize = e.s(23), color = Color.Black),
+                            cursorBrush = SolidColor(Azul),
+                            visualTransformation = if (esPassword && !verPassword) {
+                                PasswordVisualTransformation()
+                            } else {
+                                VisualTransformation.None
+                            },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = if (esPassword) KeyboardType.Password else teclado
+                            ),
+                            decorationBox = { campo ->
+                                Box(contentAlignment = Alignment.CenterStart) {
+                                    if (valor.isEmpty()) {
+                                        // Texto guía (indica qué escribir), más pequeño que lo escrito
+                                        Text(
+                                            ejemplo,
+                                            fontSize = e.s(18),
+                                            color = GrisClaro,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                    campo()
                                 }
-                                campo()
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (esPassword) {
+                            Icon(
+                                imageVector = if (verPassword) {
+                                    FontAwesomeIcons.Solid.EyeSlash
+                                } else {
+                                    FontAwesomeIcons.Solid.Eye
+                                },
+                                contentDescription = if (verPassword) {
+                                    "Ocultar contraseña"
+                                } else {
+                                    "Mostrar contraseña"
+                                },
+                                tint = GrisClaro,
+                                modifier = Modifier
+                                    .padding(start = e.d(8))
+                                    .size(e.d(22))
+                                    .clickable { verPassword = !verPassword }
+                            )
+                        }
+                    }
                 }
             }
         }

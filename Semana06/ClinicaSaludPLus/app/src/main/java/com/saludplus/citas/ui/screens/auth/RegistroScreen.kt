@@ -22,8 +22,13 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,19 +51,36 @@ import com.saludplus.citas.ui.theme.TextoPrincipal
 import com.saludplus.citas.ui.theme.TextoSecundario
 import com.saludplus.citas.ui.theme.rememberEscala
 
+/** Clave con la que Términos le avisa a Registro que el paciente pulsó "Aceptar y continuar". */
+internal const val CLAVE_TERMINOS = "terminos_aceptados"
+
 @Composable
 fun RegistroScreen(navController: NavController) {
     val e = rememberEscala()
 
-    var nombre by remember { mutableStateOf("") }
-    var telefono by remember { mutableStateOf("") }
-    var correo by remember { mutableStateOf("") }
-    var contrasena by remember { mutableStateOf("") }
+    // rememberSaveable: lo escrito no se pierde al abrir Términos y volver
+    var nombre by rememberSaveable { mutableStateOf("") }
+    var telefono by rememberSaveable { mutableStateOf("") }
+    var correo by rememberSaveable { mutableStateOf("") }
+    var contrasena by rememberSaveable { mutableStateOf("") }
+    var aceptaTerminos by rememberSaveable { mutableStateOf(false) }
+
+    // Si el paciente acepta desde la pantalla de Términos, la casilla se marca sola
+    val entrada = remember { navController.getBackStackEntry(Rutas.REGISTRO) }
+    val aceptadoEnTerminos by entrada.savedStateHandle
+        .getStateFlow(CLAVE_TERMINOS, false).collectAsState()
+    LaunchedEffect(aceptadoEnTerminos) {
+        if (aceptadoEnTerminos) {
+            aceptaTerminos = true
+            entrada.savedStateHandle[CLAVE_TERMINOS] = false
+        }
+    }
 
     var errorNombre by remember { mutableStateOf<String?>(null) }
     var errorTelefono by remember { mutableStateOf<String?>(null) }
     var errorCorreo by remember { mutableStateOf<String?>(null) }
     var errorContrasena by remember { mutableStateOf<String?>(null) }
+    var errorTerminos by remember { mutableStateOf<String?>(null) }
     var errorGeneral by remember { mutableStateOf<String?>(null) }
 
     fun validar(): Boolean {
@@ -70,8 +92,10 @@ fun RegistroScreen(navController: NavController) {
             if (correo.isNotBlank() && !Patterns.EMAIL_ADDRESS.matcher(correo.trim()).matches())
                 "Correo no válido" else null
         errorContrasena = if (contrasena.length < 6) "Mínimo 6 caracteres" else null
+        errorTerminos =
+            if (!aceptaTerminos) "Debes aceptar los Términos y la Política de Privacidad" else null
         return errorNombre == null && errorTelefono == null &&
-                errorCorreo == null && errorContrasena == null
+                errorCorreo == null && errorContrasena == null && errorTerminos == null
     }
 
     fun registrar() {
@@ -137,7 +161,7 @@ fun RegistroScreen(navController: NavController) {
                 etiqueta = "Nombre",
                 valor = nombre,
                 onCambio = { nombre = it },
-                ejemplo = "Juan Pérez",
+                ejemplo = "Tu nombre completo",
                 icono = FontAwesomeIcons.Solid.User,
                 error = errorNombre,
                 modifier = Modifier.padding(horizontal = e.d(17))
@@ -147,7 +171,7 @@ fun RegistroScreen(navController: NavController) {
                 etiqueta = "Teléfono",
                 valor = telefono,
                 onCambio = { texto -> telefono = texto.filter { c -> c.isDigit() || c == ' ' } },
-                ejemplo = "987 654 321",
+                ejemplo = "Tu teléfono de 9 dígitos",
                 icono = FontAwesomeIcons.Solid.PhoneVolume,
                 error = errorTelefono,
                 teclado = KeyboardType.Phone,
@@ -158,7 +182,7 @@ fun RegistroScreen(navController: NavController) {
                 etiqueta = "Correo (opcional)",
                 valor = correo,
                 onCambio = { correo = it },
-                ejemplo = "juan@correo.com",
+                ejemplo = "Escribe tu correo",
                 icono = FontAwesomeIcons.Solid.Envelope,
                 error = errorCorreo,
                 teclado = KeyboardType.Email,
@@ -169,14 +193,58 @@ fun RegistroScreen(navController: NavController) {
                 etiqueta = "Contraseña",
                 valor = contrasena,
                 onCambio = { contrasena = it },
-                ejemplo = "••••••••",
+                ejemplo = "Mínimo 6 caracteres",
                 icono = FontAwesomeIcons.Solid.Lock,
                 error = errorContrasena,
                 esPassword = true,
                 modifier = Modifier.padding(horizontal = e.d(17))
             )
 
-            Spacer(Modifier.height(e.d(26)))
+            Spacer(Modifier.height(e.d(14)))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = e.d(11)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = aceptaTerminos,
+                    onCheckedChange = {
+                        aceptaTerminos = it
+                        if (it) errorTerminos = null
+                    },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = Azul,
+                        uncheckedColor = if (errorTerminos != null) ErrorRojo else TextoSecundario
+                    )
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "He leído y acepto los",
+                        fontSize = e.s(17),
+                        lineHeight = e.s(22),
+                        color = TextoSecundario
+                    )
+                    Text(
+                        "Términos y Condiciones y la Política de Privacidad",
+                        modifier = Modifier.clickable { navController.navigate(Rutas.TERMINOS) },
+                        fontSize = e.s(17),
+                        lineHeight = e.s(22),
+                        fontWeight = FontWeight.SemiBold,
+                        color = Azul
+                    )
+                }
+            }
+            if (errorTerminos != null) {
+                Text(
+                    errorTerminos ?: "",
+                    modifier = Modifier.padding(start = e.d(17), top = e.d(2)),
+                    color = ErrorRojo,
+                    fontSize = e.s(14)
+                )
+            }
+
+            Spacer(Modifier.height(e.d(20)))
             BotonPrincipal(
                 "Registrarme",
                 onClick = { registrar() },
@@ -194,29 +262,6 @@ fun RegistroScreen(navController: NavController) {
                 )
             }
 
-            Spacer(Modifier.height(e.d(16)))
-            Text(
-                "Al registrarte aceptas nuestros",
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                fontSize = e.s(18),
-                lineHeight = e.s(24),
-                color = TextoSecundario
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    "Términos y Condiciones",
-                    modifier = Modifier.clickable { navController.navigate(Rutas.TERMINOS) },
-                    fontSize = e.s(18),
-                    lineHeight = e.s(24),
-                    fontWeight = FontWeight.SemiBold,
-                    color = Azul
-                )
-                Text(".", fontSize = e.s(18), lineHeight = e.s(24), color = TextoSecundario)
-            }
             Spacer(Modifier.height(e.d(12)))
         }
 
