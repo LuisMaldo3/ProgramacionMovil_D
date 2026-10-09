@@ -45,7 +45,8 @@ fun TarjetaCita(
     fechaIso: String,
     hora: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    local: String = ""
 ) {
     val e = rememberEscala()
     val fecha = try { LocalDate.parse(fechaIso) } catch (ex: Exception) { null }
@@ -82,7 +83,11 @@ fun TarjetaCita(
             Spacer(Modifier.width(e.d(14)))
             Column(modifier = Modifier.weight(1f)) {
                 Text(medico, fontSize = e.s(19), fontWeight = FontWeight.Bold, color = TextoPrincipal)
-                Text(especialidad, fontSize = e.s(16), color = TextoSecundario)
+                Text(
+                    if (local.isNotBlank()) "$especialidad • Local $local" else especialidad,
+                    fontSize = e.s(15),
+                    color = TextoSecundario
+                )
                 Spacer(Modifier.height(e.d(4)))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(

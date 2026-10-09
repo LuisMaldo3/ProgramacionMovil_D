@@ -72,16 +72,8 @@ fun FechaHoraScreen(
         FechasEs.primerDiaHabil(LocalDate.now())
     }
 
-    var semana by rememberSaveable {
+    var semana by rememberSaveable(medicoId) {
         mutableStateOf(0)
-    }
-
-    var fechaIso by rememberSaveable {
-        mutableStateOf(inicio.toString())
-    }
-
-    var hora by rememberSaveable {
-        mutableStateOf<String?>(null)
     }
 
     // Genera cinco días hábiles desde el inicio del periodo mostrado.
@@ -89,6 +81,25 @@ fun FechaHoraScreen(
         inicio.plusWeeks(semana.toLong()),
         5
     )
+
+    var fechaIso by rememberSaveable(medicoId, semana) {
+        mutableStateOf(
+            dias.firstOrNull { Repositorio.horariosDisponibles(medicoId, it.toString()).isNotEmpty() }?.toString()
+                ?: dias.first().toString()
+        )
+    }
+
+    var hora by rememberSaveable(medicoId, fechaIso) {
+        mutableStateOf<String?>(null)
+    }
+
+    // Asegurarse de que si fechaIso no está en 'dias', se seleccione el primer día disponible de 'dias'
+    if (dias.none { it.toString() == fechaIso }) {
+        val primerDisp = dias.firstOrNull { Repositorio.horariosDisponibles(medicoId, it.toString()).isNotEmpty() }?.toString()
+            ?: dias.first().toString()
+        fechaIso = primerDisp
+        hora = null
+    }
 
     val fecha = LocalDate.parse(fechaIso)
 
@@ -99,16 +110,15 @@ fun FechaHoraScreen(
 
     fun cambiarSemana(delta: Int) {
         val nueva = semana + delta
-
         if (nueva < 0) return
-
         semana = nueva
-
-        fechaIso = FechasEs.diasHabiles(
+        val nuevosDias = FechasEs.diasHabiles(
             inicio.plusWeeks(nueva.toLong()),
             5
-        ).first().toString()
-
+        )
+        fechaIso = nuevosDias.firstOrNull {
+            Repositorio.horariosDisponibles(medicoId, it.toString()).isNotEmpty()
+        }?.toString() ?: nuevosDias.first().toString()
         hora = null
     }
 
@@ -224,7 +234,7 @@ fun FechaHoraScreen(
             modifier = Modifier.height(e.d(34))
         )
 
-        // Días disponibles.
+        // Días disponibles basados en la disponibilidad real del médico.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -233,6 +243,8 @@ fun FechaHoraScreen(
         ) {
             dias.forEach { dia ->
                 val seleccionado = dia == fecha
+                val horariosDia = Repositorio.horariosDisponibles(medicoId, dia.toString())
+                val disponible = horariosDia.isNotEmpty()
 
                 Column(
                     modifier = Modifier.width(e.d(58)),
@@ -247,10 +259,10 @@ fun FechaHoraScreen(
                         } else {
                             FontWeight.Normal
                         },
-                        color = if (seleccionado) {
-                            Azul
+                        color = if (disponible) {
+                            if (seleccionado) Azul else TextoSecundario
                         } else {
-                            TextoSecundario
+                            GrisClaro
                         }
                     )
 
@@ -266,11 +278,17 @@ fun FechaHoraScreen(
                             )
                             .clip(RoundedCornerShape(e.d(12)))
                             .background(
-                                if (seleccionado) Azul else RellenoHora
+                                when {
+                                    seleccionado -> Azul
+                                    disponible -> RellenoHora
+                                    else -> GrisClaro.copy(alpha = 0.25f)
+                                }
                             )
-                            .clickable {
-                                fechaIso = dia.toString()
-                                hora = null
+                            .clickable(enabled = disponible) {
+                                if (disponible) {
+                                    fechaIso = dia.toString()
+                                    hora = null
+                                }
                             },
                         contentAlignment = Alignment.Center
                     ) {
@@ -278,10 +296,10 @@ fun FechaHoraScreen(
                             text = dia.dayOfMonth.toString(),
                             fontSize = e.s(25),
                             fontWeight = FontWeight.Bold,
-                            color = if (seleccionado) {
-                                Color.White
-                            } else {
-                                TextoPrincipal
+                            color = when {
+                                seleccionado -> Color.White
+                                disponible -> TextoPrincipal
+                                else -> TextoSecundario.copy(alpha = 0.4f)
                             }
                         )
                     }

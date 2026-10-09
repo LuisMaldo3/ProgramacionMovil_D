@@ -73,11 +73,13 @@ fun MisCitasScreen(navController: NavController) {
                 items(citas, key = { it.id }) { cita ->
                     val medico = Repositorio.obtenerMedico(cita.medicoId)
                     val especialidad = Repositorio.obtenerEspecialidad(cita.especialidadId)
+                    val localObj = Repositorio.obtenerLocal(cita.localId)
                     TarjetaCita(
                         medico = medico?.nombre ?: "-",
                         especialidad = especialidad?.nombre ?: "-",
                         fechaIso = cita.fecha,
                         hora = cita.hora,
+                        local = localObj?.nombre ?: "",
                         onClick = { navController.navigate(Rutas.detalleCita(cita.id)) },
                         modifier = Modifier.fillMaxWidth()
                     )

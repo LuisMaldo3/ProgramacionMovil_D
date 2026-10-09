@@ -44,8 +44,10 @@ import com.saludplus.citas.ui.theme.rememberEscala
 import com.saludplus.citas.util.FechasEs
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
+import compose.icons.fontawesomeicons.solid.Building
 import compose.icons.fontawesomeicons.solid.CalendarAlt
 import compose.icons.fontawesomeicons.solid.Clock
+import compose.icons.fontawesomeicons.solid.MapMarkerAlt
 
 @Composable
 fun CitaExitosaScreen(navController: NavController) {
@@ -99,12 +101,21 @@ fun CitaExitosaScreen(navController: NavController) {
             )
             Spacer(Modifier.height(e.d(22)))
             if (cita != null && medico != null) {
+                val local = Repositorio.obtenerLocal(cita.localId)
                 TarjetaMedicoInfo(
                     medico = medico,
                     especialidad = especialidad,
                     modifier = Modifier.padding(horizontal = e.d(16))
                 )
                 Spacer(Modifier.height(e.d(12)))
+                FilaInfo(
+                    FontAwesomeIcons.Solid.Building, "Sede / Local", "Local ${local?.nombre ?: "-"}",
+                    separacion = 14f
+                )
+                FilaInfo(
+                    FontAwesomeIcons.Solid.MapMarkerAlt, "Dirección", local?.direccion ?: "-",
+                    separacion = 14f
+                )
                 FilaInfo(
                     FontAwesomeIcons.Solid.CalendarAlt, "Fecha", FechasEs.fechaLarga(cita.fecha),
                     separacion = 14f

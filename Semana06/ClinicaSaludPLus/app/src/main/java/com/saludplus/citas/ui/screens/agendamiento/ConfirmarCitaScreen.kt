@@ -148,6 +148,8 @@ fun ConfirmarCitaScreen(
                     modifier = Modifier.height(e.d(11))
                 )
 
+                val local = Repositorio.localSeleccionado
+
                 FilaInfo(
                     icono = FontAwesomeIcons.Solid.CalendarAlt,
                     etiqueta = "Fecha",
@@ -162,14 +164,14 @@ fun ConfirmarCitaScreen(
 
                 FilaInfo(
                     icono = FontAwesomeIcons.Solid.Building,
-                    etiqueta = "Tipo de atención",
-                    valor = "Consulta presencial"
+                    etiqueta = "Sede / Local",
+                    valor = "Local ${local?.nombre ?: "-"}"
                 )
 
                 FilaInfo(
                     icono = FontAwesomeIcons.Solid.MapMarkerAlt,
                     etiqueta = "Dirección",
-                    valor = "Av. Los Olivos 123\nLima"
+                    valor = local?.direccion ?: "-"
                 )
 
                 Spacer(

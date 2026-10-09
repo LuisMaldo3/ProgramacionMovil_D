@@ -8,8 +8,10 @@ import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.solid.Lock
 import compose.icons.fontawesomeicons.solid.Envelope
 import android.util.Patterns
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,11 +31,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
+import com.saludplus.citas.R
 import com.saludplus.citas.data.repository.Repositorio
 import com.saludplus.citas.navigation.Rutas
 import com.saludplus.citas.ui.components.BotonPrincipal
@@ -91,7 +98,7 @@ fun LoginScreen(navController: NavController) {
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
         ) {
-            Spacer(Modifier.height(e.d(20)))
+            Spacer(Modifier.height(e.d(16)))
             Text(
                 "Iniciar sesión",
                 modifier = Modifier.fillMaxWidth(),
@@ -101,7 +108,7 @@ fun LoginScreen(navController: NavController) {
                 fontWeight = FontWeight.Bold,
                 color = TextoPrincipal
             )
-            Spacer(Modifier.height(e.d(6)))
+            Spacer(Modifier.height(e.d(4)))
             Text(
                 "Ingresa para gestionar tus citas",
                 modifier = Modifier.fillMaxWidth(),
@@ -110,7 +117,28 @@ fun LoginScreen(navController: NavController) {
                 lineHeight = e.s(22),
                 color = TextoSecundario
             )
-            Spacer(Modifier.height(e.d(30)))
+            Spacer(Modifier.height(e.d(20)))
+
+            // Imagen ilustrativa atractiva integrada (completa)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(e.d(175))
+                    .padding(horizontal = e.d(17))
+                    .clip(RoundedCornerShape(e.d(16)))
+                    .background(Color(0xFFE5F1FE))
+                    .padding(vertical = e.d(8)),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.ilustracion_bienvenida_saludplus),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            }
+
+            Spacer(Modifier.height(e.d(22)))
 
             CampoDiseno(
                 etiqueta = "Correo o teléfono",

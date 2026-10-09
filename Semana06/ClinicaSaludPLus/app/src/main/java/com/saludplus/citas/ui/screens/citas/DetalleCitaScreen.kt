@@ -72,6 +72,7 @@ fun DetalleCitaScreen(navController: NavController, citaId: Int) {
         } else {
             val medico = Repositorio.obtenerMedico(cita.medicoId)
             val especialidad = Repositorio.obtenerEspecialidad(cita.especialidadId)
+            val local = Repositorio.obtenerLocal(cita.localId)
 
             Column(
                 modifier = Modifier
@@ -95,12 +96,10 @@ fun DetalleCitaScreen(navController: NavController, citaId: Int) {
                     modifier = Modifier.padding(start = e.d(26))
                 )
                 Spacer(Modifier.height(e.d(10)))
+                FilaInfo(FontAwesomeIcons.Solid.Building, "Sede / Local", "Local ${local?.nombre ?: "-"}")
+                FilaInfo(FontAwesomeIcons.Solid.MapMarkerAlt, "Dirección", local?.direccion ?: "-")
                 FilaInfo(FontAwesomeIcons.Solid.CalendarAlt, "Fecha", FechasEs.fechaLarga(cita.fecha))
                 FilaInfo(FontAwesomeIcons.Solid.Clock, "Hora", FechasEs.rangoHora(cita.hora))
-                FilaInfo(FontAwesomeIcons.Solid.Building, "Tipo de atención", "Consulta presencial")
-                FilaInfo(
-                    FontAwesomeIcons.Solid.MapMarkerAlt, "Dirección", "Av. Los Olivos 123\nLima"
-                )
             }
 
             Column(

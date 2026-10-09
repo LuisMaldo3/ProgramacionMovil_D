@@ -67,9 +67,20 @@ import com.saludplus.citas.ui.theme.TextoPrincipal
 import com.saludplus.citas.ui.theme.TextoSecundario
 import com.saludplus.citas.ui.theme.rememberEscala
 
+import androidx.compose.runtime.LaunchedEffect
+
 @Composable
 fun HomeScreen(navController: NavController) {
     val e = rememberEscala()
+
+    LaunchedEffect(Unit) {
+        if (Repositorio.usuarioActual == null) {
+            navController.navigate(Rutas.LOGIN) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
+
     val nombre = Repositorio.usuarioActual?.nombre
         ?.trim()?.split(" ")?.firstOrNull()?.takeIf { it.isNotEmpty() } ?: "Paciente"
     val destacadas = Repositorio.especialidadesDestacadas()
@@ -137,7 +148,13 @@ fun HomeScreen(navController: NavController) {
                     icono = FontAwesomeIcons.Solid.CalendarAlt,
                     fondo = TarjetaAgendarFondo,
                     colorTexto = Azul,
-                    onClick = { navController.navigate(Rutas.ESPECIALIDADES) },
+                    onClick = {
+                        if (Repositorio.localSeleccionado == null) {
+                            navController.navigate(Rutas.LOCALES)
+                        } else {
+                            navController.navigate(Rutas.ESPECIALIDADES)
+                        }
+                    },
                     modifier = Modifier.weight(1f)
                 )
                 AccesoRapido(
@@ -193,7 +210,13 @@ fun HomeScreen(navController: NavController) {
                 )
                 Text(
                     "Ver todas",
-                    modifier = Modifier.clickable { navController.navigate(Rutas.ESPECIALIDADES) },
+                    modifier = Modifier.clickable {
+                        if (Repositorio.localSeleccionado == null) {
+                            navController.navigate(Rutas.LOCALES)
+                        } else {
+                            navController.navigate(Rutas.ESPECIALIDADES)
+                        }
+                    },
                     fontSize = e.s(18),
                     lineHeight = e.s(24),
                     fontWeight = FontWeight.Bold,
@@ -215,7 +238,13 @@ fun HomeScreen(navController: NavController) {
                         EspecialidadDestacada(
                             especialidad = especialidad,
                             ancho = anchoTarjeta,
-                            onClick = { navController.navigate(Rutas.medicos(especialidad.id)) }
+                            onClick = {
+                                if (Repositorio.localSeleccionado == null) {
+                                    navController.navigate(Rutas.LOCALES)
+                                } else {
+                                    navController.navigate(Rutas.medicos(especialidad.id))
+                                }
+                            }
                         )
                     }
                 }

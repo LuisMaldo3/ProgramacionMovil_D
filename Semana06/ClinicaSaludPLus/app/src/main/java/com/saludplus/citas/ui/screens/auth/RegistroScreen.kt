@@ -110,10 +110,8 @@ fun RegistroScreen(navController: NavController) {
             telefono = tel
         )
         if (Repositorio.registrarUsuario(usuario)) {
-            val identificador = if (usuario.correo.isNotEmpty()) usuario.correo else tel
-            Repositorio.iniciarSesion(identificador, contrasena)
-            navController.navigate(Rutas.HOME) {
-                popUpTo(Rutas.SPLASH) { inclusive = true }
+            navController.navigate(Rutas.LOGIN) {
+                popUpTo(Rutas.SPLASH)
             }
         } else {
             errorGeneral = "Ya existe una cuenta con ese correo o teléfono"

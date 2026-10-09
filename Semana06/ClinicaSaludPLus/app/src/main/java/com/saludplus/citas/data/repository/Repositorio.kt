@@ -2,6 +2,7 @@ package com.saludplus.citas.data.repository
 
 import com.saludplus.citas.data.model.Cita
 import com.saludplus.citas.data.model.Especialidad
+import com.saludplus.citas.data.model.Local
 import com.saludplus.citas.data.model.Medico
 import com.saludplus.citas.data.model.Usuario
 
@@ -10,14 +11,55 @@ object Repositorio {
     private val usuarios = mutableListOf<Usuario>()
     private val citas = mutableListOf<Cita>()
 
+    val locales = listOf(
+        Local(
+            id = 1,
+            nombre = "La Molina",
+            direccion = "Av. Javier Prado Este 6210, La Molina",
+            telefono = "(01) 612-3456"
+        ),
+        Local(
+            id = 2,
+            nombre = "Independencia",
+            direccion = "Av. Carlos Izaguirre 120, Independencia",
+            telefono = "(01) 612-3457"
+        ),
+        Local(
+            id = 3,
+            nombre = "San Isidro",
+            direccion = "Av. República de Panamá 3450, San Isidro",
+            telefono = "(01) 612-3458"
+        ),
+        Local(
+            id = 4,
+            nombre = "Miraflores",
+            direccion = "Av. Benavides 1240, Miraflores",
+            telefono = "(01) 612-3459"
+        ),
+        Local(
+            id = 5,
+            nombre = "Santiago de Surco",
+            direccion = "Av. Caminos del Inca 1500, Surco",
+            telefono = "(01) 612-3460"
+        )
+    )
+
+    var localSeleccionado: Local? = null
+
+    fun seleccionarLocal(local: Local) {
+        localSeleccionado = local
+    }
+
+    fun obtenerLocal(id: Int): Local? = locales.find { it.id == id }
+
     private val especialidades = listOf(
-        Especialidad(1, "Medicina General", "Atención integral"),
-        Especialidad(2, "Pediatría", "Infancia y adolescencia"),
-        Especialidad(3, "Ginecología", "Salud de la mujer"),
-        Especialidad(4, "Cardiología", "Corazón y sistema sanguíneo"),
-        Especialidad(5, "Dermatología", "Piel, cabello y uñas"),
-        Especialidad(6, "Traumatología", "Huesos y sistema muscular"),
-        Especialidad(7, "Oftalmología", "Salud visual")
+        Especialidad(1, "Medicina General", "Atención integral", "Atención Primaria"),
+        Especialidad(2, "Pediatría", "Infancia y adolescencia", "Atención Primaria"),
+        Especialidad(3, "Ginecología", "Salud de la mujer", "Especialidades Clínicas"),
+        Especialidad(4, "Cardiología", "Corazón y sistema sanguíneo", "Especialidades Clínicas"),
+        Especialidad(5, "Dermatología", "Piel, cabello y uñas", "Especialidades Clínicas"),
+        Especialidad(6, "Traumatología", "Huesos y sistema muscular", "Especialidades Quirúrgicas"),
+        Especialidad(7, "Oftalmología", "Salud visual", "Especialidades Quirúrgicas")
     )
 
     private val medicos = listOf(
@@ -104,28 +146,31 @@ object Repositorio {
     fun obtenerMedico(id: Int): Medico? = medicos.find { it.id == id }
 
     fun horariosDisponibles(medicoId: Int, fecha: String): List<String> {
+        val currentLocalId = localSeleccionado?.id
         val ocupados = citas
-            .filter { it.medicoId == medicoId && it.fecha == fecha }
+            .filter { it.medicoId == medicoId && it.fecha == fecha && (currentLocalId == null || it.localId == currentLocalId) }
             .map { it.hora }
         return horariosBase.filter { it !in ocupados }
     }
 
     fun agendarCita(medicoId: Int, fecha: String, hora: String): Boolean {
         val usuario = usuarioActual ?: return false
+        val local = localSeleccionado ?: return false
         val medico = obtenerMedico(medicoId) ?: return false
         val ocupado = citas.any {
-            it.medicoId == medicoId && it.fecha == fecha && it.hora == hora
+            it.medicoId == medicoId && it.fecha == fecha && it.hora == hora && it.localId == local.id
         }
         if (ocupado) return false
 
         val nuevoId = (citas.maxOfOrNull { it.id } ?: 0) + 1
         val cita = Cita(
-            nuevoId,
-            usuario.id,
-            medicoId,
-            medico.especialidadId,
-            fecha,
-            hora
+            id = nuevoId,
+            usuarioId = usuario.id,
+            medicoId = medicoId,
+            especialidadId = medico.especialidadId,
+            fecha = fecha,
+            hora = hora,
+            localId = local.id
         )
 
         citas.add(cita)
