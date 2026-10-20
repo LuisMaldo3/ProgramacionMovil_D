@@ -1,4 +1,3 @@
-
 package com.tecsup.huellitasvet.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -21,41 +20,26 @@ class SesionViewModel(
     private val preferencias: PreferenciasStore
 ) : ViewModel() {
 
-    private val _usuarioActual =
-        MutableStateFlow<Usuario?>(null)
+    private val _usuarioActual = MutableStateFlow<Usuario?>(null)
+    val usuarioActual: StateFlow<Usuario?> = _usuarioActual.asStateFlow()
 
-    val usuarioActual: StateFlow<Usuario?> =
-        _usuarioActual.asStateFlow()
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
 
-    private val _error =
-        MutableStateFlow<String?>(null)
+    private val _cargando = MutableStateFlow(false)
+    val cargando: StateFlow<Boolean> = _cargando.asStateFlow()
 
-    val error: StateFlow<String?> =
-        _error.asStateFlow()
-
-    private val _cargando =
-        MutableStateFlow(false)
-
-    val cargando: StateFlow<Boolean> =
-        _cargando.asStateFlow()
-
-    val modoOscuro: StateFlow<Boolean> =
-        preferencias.modoOscuro.stateIn(
-            viewModelScope,
-            SharingStarted.Eagerly,
-            false
-        )
+    val modoOscuro: StateFlow<Boolean> = preferencias.modoOscuro.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        false
+    )
 
     fun limpiarError() {
         _error.value = null
     }
 
-    fun login(
-        correo: String,
-        clave: String,
-        rolSeleccionado: Rol
-    ) {
-
+    fun login(correo: String, clave: String, rolSeleccionado: Rol) {
         val correoLimpio = correo.trim().lowercase()
         _error.value = null
 
@@ -63,12 +47,10 @@ class SesionViewModel(
             _error.value = "Completa el correo y la contraseña"
             return
         }
-
         if (_cargando.value) return
 
         viewModelScope.launch {
             _cargando.value = true
-
             try {
                 val usuario = repo.login(correoLimpio, clave)
 
@@ -76,51 +58,34 @@ class SesionViewModel(
                     usuario == null -> {
                         _error.value = "Correo o contraseña incorrectos"
                     }
-
                     usuario.rol != rolSeleccionado.name -> {
-                        _error.value =
-                            "Selecciona el perfil que corresponde a esta cuenta"
+                        _error.value = "Selecciona el perfil que corresponde a esta cuenta"
                     }
-
                     else -> {
-                        preferencias.guardarSesion(
-                            usuario.rol,
-                            usuario.id
-                        )
-
+                        preferencias.guardarSesion(usuario.rol, usuario.id, usuario.nombre)
                         _usuarioActual.value = usuario
                     }
                 }
-
             } catch (e: CancellationException) {
                 throw e
-
             } catch (e: Exception) {
-                _error.value =
-                    "No se pudo iniciar sesión. Vuelve a intentarlo"
-
+                _error.value = "No se pudo iniciar sesión. Vuelve a intentarlo"
             } finally {
                 _cargando.value = false
             }
         }
     }
 
+    // El Splash usa este valor después de su animación inicial.
     suspend fun recuperarRolGuardado(): Rol? {
-
         val perfil = preferencias.perfilActivo.first()
         val id = preferencias.usuarioId.first()
-
         if (id <= 0) return null
-
-        return Rol.entries.firstOrNull {
-            it.name == perfil
-        }
+        return Rol.entries.firstOrNull { it.name == perfil }
     }
 
     suspend fun cerrarSesion() {
-
         preferencias.cerrarSesion()
-
         _usuarioActual.value = null
         _error.value = null
     }
