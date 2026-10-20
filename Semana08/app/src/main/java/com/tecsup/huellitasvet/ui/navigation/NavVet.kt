@@ -3,17 +3,22 @@ package com.tecsup.huellitasvet.ui.navigation
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.tecsup.huellitasvet.VetApp
 import com.tecsup.huellitasvet.data.prefs.PreferenciasStore
 import com.tecsup.huellitasvet.model.Rol
+import com.tecsup.huellitasvet.ui.dueno.FichaMascotaScreen
+import com.tecsup.huellitasvet.ui.dueno.FormularioMascotaScreen
 import com.tecsup.huellitasvet.ui.dueno.InicioScreen
 import com.tecsup.huellitasvet.ui.dueno.LoginScreen
 import com.tecsup.huellitasvet.ui.dueno.MascotasScreen
@@ -21,6 +26,7 @@ import com.tecsup.huellitasvet.ui.dueno.SplashScreen
 import com.tecsup.huellitasvet.ui.theme.VetTheme
 import com.tecsup.huellitasvet.ui.veterinario.ServiciosScreen
 import com.tecsup.huellitasvet.viewmodel.InicioViewModel
+import com.tecsup.huellitasvet.viewmodel.MascotaViewModel
 import com.tecsup.huellitasvet.viewmodel.ServiciosViewModel
 import com.tecsup.huellitasvet.viewmodel.SesionViewModel
 import com.tecsup.huellitasvet.viewmodel.VetViewModelFactory
@@ -28,6 +34,7 @@ import kotlinx.coroutines.launch
 
 private const val FICHA_RUTA = "ficha_mascota/{mascotaId}"
 private const val FORMULARIO_RUTA = "formulario_mascota"
+private const val EDITAR_RUTA = "editar_mascota/{mascotaId}"
 
 @Composable
 fun NavVet(app: VetApp) {
@@ -55,8 +62,6 @@ fun NavVet(app: VetApp) {
     fun rutaPerfil(rol: Rol): String =
         if (rol == Rol.CLIENTE) Rutas.INICIO else Rutas.PANEL
 
-    // La factory usa el id actual (incluido el recuperado de DataStore).
-    // Un key diferente evita reutilizar un VM antiguo al cambiar de usuario.
     fun crearFactoryDueno(duenoId: Int): ViewModelProvider.Factory =
         object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -68,11 +73,31 @@ fun NavVet(app: VetApp) {
             }
         }
 
+    // Paso 8: para crear pasa mascotaId = null; para ficha o editar pasa su ID real.
+    fun crearFactoryMascota(duenoId: Int, mascotaId: Int? = null): ViewModelProvider.Factory =
+        object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(MascotaViewModel::class.java)) {
+                    return MascotaViewModel(app.repository, duenoId, mascotaId) as T
+                }
+                throw IllegalArgumentException("ViewModel no registrado: ${modelClass.name}")
+            }
+        }
+
     fun irTab(ruta: String) {
         navController.navigate(ruta) {
             popUpTo(Rutas.INICIO) { saveState = true }
             launchSingleTop = true
             restoreState = true
+        }
+    }
+
+    // Quita formularios del stack al guardar o eliminar; Room actualiza las listas con Flow.
+    fun irListaMascotas() {
+        navController.navigate(Rutas.MASCOTAS) {
+            popUpTo(Rutas.INICIO) { inclusive = false }
+            launchSingleTop = true
         }
     }
 
@@ -126,9 +151,7 @@ fun NavVet(app: VetApp) {
                         onSeleccionarTab = { irTab(it) }
                     )
                 } else {
-                    Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
+                    EsperandoSesion()
                 }
             }
         }
@@ -146,28 +169,86 @@ fun NavVet(app: VetApp) {
                         onSeleccionarTab = { irTab(it) }
                     )
                 } else {
-                    Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
+                    EsperandoSesion()
                 }
             }
         }
 
-        // Destinos temporales: se sustituirán por sus pantallas reales en los pasos 8, 9 y 10.
-        composable(FICHA_RUTA) { entry ->
+        // Paso 8: ficha real de la mascota (antes era una pantalla provisional).
+        composable(
+            route = FICHA_RUTA,
+            arguments = listOf(navArgument("mascotaId") { type = NavType.IntType })
+        ) { entry ->
             VetTheme(rol = Rol.CLIENTE) {
-                PantallaProximoPaso(
-                    "Ficha de mascota", "Paso 8 · Mascota #${entry.arguments?.getString("mascotaId") ?: ""}",
-                    onVolver = { navController.popBackStack() }
-                )
+                val mascotaId = entry.arguments?.getInt("mascotaId") ?: 0
+                if (idDueno > 0 && mascotaId > 0) {
+                    val vm: MascotaViewModel = viewModel(
+                        key = "ficha_${idDueno}_$mascotaId",
+                        factory = remember(app, idDueno, mascotaId) {
+                            crearFactoryMascota(idDueno, mascotaId)
+                        }
+                    )
+                    FichaMascotaScreen(
+                        vm = vm,
+                        mascotaId = mascotaId,
+                        onVolver = { navController.popBackStack() },
+                        onEditar = { navController.navigate("editar_mascota/$mascotaId") },
+                        onPedirCita = { navController.navigate(Rutas.PEDIR_CITA) },
+                        onSeleccionarTab = { irTab(it) },
+                        onEliminada = { irListaMascotas() }
+                    )
+                } else {
+                    EsperandoSesion()
+                }
             }
         }
+
+        // Paso 8: formulario REAL para crear una mascota.
         composable(FORMULARIO_RUTA) {
             VetTheme(rol = Rol.CLIENTE) {
-                PantallaProximoPaso("Registrar mascota", "Paso 8 · Formulario de mascota",
-                    onVolver = { navController.popBackStack() })
+                if (idDueno > 0) {
+                    val vm: MascotaViewModel = viewModel(
+                        key = "nueva_mascota_$idDueno",
+                        factory = remember(app, idDueno) { crearFactoryMascota(idDueno) }
+                    )
+                    FormularioMascotaScreen(
+                        vm = vm,
+                        onVolver = { navController.popBackStack() },
+                        onGuardado = { irListaMascotas() }
+                    )
+                } else {
+                    EsperandoSesion()
+                }
             }
         }
+
+        // Paso 8: reutiliza el mismo formulario para editar (sin insertar duplicados).
+        composable(
+            route = EDITAR_RUTA,
+            arguments = listOf(navArgument("mascotaId") { type = NavType.IntType })
+        ) { entry ->
+            VetTheme(rol = Rol.CLIENTE) {
+                val mascotaId = entry.arguments?.getInt("mascotaId") ?: 0
+                if (idDueno > 0 && mascotaId > 0) {
+                    val vm: MascotaViewModel = viewModel(
+                        key = "editar_${idDueno}_$mascotaId",
+                        factory = remember(app, idDueno, mascotaId) {
+                            crearFactoryMascota(idDueno, mascotaId)
+                        }
+                    )
+                    FormularioMascotaScreen(
+                        vm = vm,
+                        onVolver = { navController.popBackStack() },
+                        // Retorna a la ficha: esta observa los cambios de Room con Flow.
+                        onGuardado = { navController.popBackStack() }
+                    )
+                } else {
+                    EsperandoSesion()
+                }
+            }
+        }
+
+        // Destinos de los pasos siguientes, aún provisionales.
         composable(Rutas.PEDIR_CITA) {
             VetTheme(rol = Rol.CLIENTE) {
                 PantallaProximoPaso("Pedir una cita", "Paso 9 · Calendario y horarios",
@@ -201,6 +282,13 @@ fun NavVet(app: VetApp) {
                 ServiciosScreen(vm = vm, onEditar = { /* Paso 13 */ })
             }
         }
+    }
+}
+
+@Composable
+private fun EsperandoSesion() {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
     }
 }
 
