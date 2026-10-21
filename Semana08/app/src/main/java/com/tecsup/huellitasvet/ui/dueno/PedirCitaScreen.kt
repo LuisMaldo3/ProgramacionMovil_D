@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.huellitasvet.data.local.entity.Servicio
@@ -60,6 +61,7 @@ fun PedirCitaScreen(
     val horasOcupadas by vm.horasOcupadas.collectAsState()
     val error by vm.error.collectAsState()
     val procesando by vm.procesando.collectAsState()
+    val aceptarCitas by vm.aceptarCitas.collectAsState()
 
     val mascota = mascotas.firstOrNull { it.id == mascotaId }
     val servicio = servicios.firstOrNull { it.id == servicioId }
@@ -67,6 +69,9 @@ fun PedirCitaScreen(
         !vm.horaDeshabilitada(hora!!)
 
     LaunchedEffect(vm) { vm.citaCreada.collect { onConfirmada() } }
+
+    // Separación adaptable sin cortar formularios en pantallas pequeñas.
+    val gapPantalla = ((LocalConfiguration.current.screenHeightDp - 660) / 11).coerceIn(10, 24).dp
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -115,12 +120,19 @@ fun PedirCitaScreen(
                         fontSize = 12.sp, color = SecundarioCita
                     )
                 }
+                if (!aceptarCitas) {
+                    Surface(color = Color(0xFFFFF2C6), shape = RoundedCornerShape(12.dp)) {
+                        Text("La clínica no está recibiendo citas",
+                            color = Color(0xFF92400E), fontSize = 13.sp,
+                            modifier = Modifier.padding(12.dp))
+                    }
+                }
                 if (!error.isNullOrBlank()) {
                     Text(error.orEmpty(), color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
                 }
                 Button(
                     onClick = { vm.confirmar() },
-                    enabled = listo && !procesando,
+                    enabled = listo && !procesando && aceptarCitas,
                     modifier = Modifier.fillMaxWidth().height(54.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -147,7 +159,7 @@ fun PedirCitaScreen(
             modifier = Modifier.fillMaxSize().padding(inner)
                 .verticalScroll(rememberScrollState())
                 .padding(start = 18.dp, end = 18.dp, top = 7.dp, bottom = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(gapPantalla)
         ) {
             EtiquetaCita("¿Quién viene?")
             if (mascotas.isEmpty()) {

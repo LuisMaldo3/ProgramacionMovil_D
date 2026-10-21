@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.huellitasvet.data.local.entity.Mascota
@@ -70,6 +71,9 @@ fun FormularioMascotaScreen(
         vm.guardado.collect { onGuardado() }
     }
 
+    // Separación adaptable sin cortar formularios en pantallas pequeñas.
+    val gapPantalla = ((LocalConfiguration.current.screenHeightDp - 650) / 11).coerceIn(11, 24).dp
+
     Scaffold(containerColor = Fondo, topBar = {
         BarraSuperiorMascota(if (editando) "Editar mascota" else "Nueva mascota", onVolver)
     }) { padding ->
@@ -77,7 +81,7 @@ fun FormularioMascotaScreen(
             modifier = Modifier.fillMaxSize().padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 18.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(gapPantalla)
         ) {
             // Avatar y botón + fieles a la pantalla guía.
             Box(modifier = Modifier.fillMaxWidth().height(104.dp), contentAlignment = Alignment.TopCenter) {
@@ -205,7 +209,7 @@ private fun CampoMascota(
                 .padding(horizontal = 12.dp, vertical = 5.dp)
         ) {
             Column(verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
-                Text(etiqueta, color = Gris, fontSize = 10.sp)
+                Text(etiqueta, color = Gris, fontSize = 12.sp)
                 BasicTextField(
                     value = valor,
                     onValueChange = onCambio,
@@ -215,7 +219,7 @@ private fun CampoMascota(
                     modifier = Modifier.fillMaxWidth().padding(top = 1.dp),
                     decorationBox = { campo ->
                         Box {
-                            if (valor.isEmpty()) Text(placeholder, color = Gris, fontSize = 12.sp)
+                            if (valor.isEmpty()) Text(placeholder, color = Gris, fontSize = 13.sp)
                             campo()
                         }
                     }
@@ -248,7 +252,7 @@ private fun ChipMascota(
             if (seleccionado && resaltadoSuave) Verde else if (seleccionado) Verde else Borde)
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Text(titulo, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+            Text(titulo, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
                 color = if (seleccionado && !resaltadoSuave) Color.White else if (seleccionado) Verde else Gris)
         }
     }
@@ -256,5 +260,5 @@ private fun ChipMascota(
 
 @Composable
 private fun TextoError(mensaje: String) {
-    Text(mensaje, color = Color(0xFFDC2626), fontSize = 11.sp)
+    Text(mensaje, color = Color(0xFFDC2626), fontSize = 12.sp)
 }

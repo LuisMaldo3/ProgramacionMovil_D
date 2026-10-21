@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tecsup.huellitasvet.data.local.entity.Mascota
 import com.tecsup.huellitasvet.data.local.entity.Servicio
+import com.tecsup.huellitasvet.data.prefs.PreferenciasStore
 import com.tecsup.huellitasvet.data.repository.VetRepository
 import com.tecsup.huellitasvet.model.Horarios
 import kotlinx.coroutines.CancellationException
@@ -26,8 +27,12 @@ import java.time.LocalTime
 class PedirCitaViewModel(
     private val repo: VetRepository,
     private val duenoId: Int,
-    mascotaInicialId: Int? = null
+    mascotaInicialId: Int? = null,
+    private val preferencias: PreferenciasStore
 ) : ViewModel() {
+
+    val aceptarCitas: StateFlow<Boolean> = preferencias.aceptarCitas
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     val mascotas: StateFlow<List<Mascota>> = repo.observarMascotasDeDueno(duenoId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -127,6 +132,7 @@ class PedirCitaViewModel(
         val hoy = LocalDate.now()
 
         _error.value = when {
+            !aceptarCitas.value -> "La clínica no está recibiendo citas"
             idMascota == null || mascotas.value.none { it.id == idMascota && it.duenoId == duenoId } ->
                 "Selecciona una mascota de tu cuenta"
             idServicio == null || servicios.value.none { it.id == idServicio && it.activo } ->
@@ -144,6 +150,10 @@ class PedirCitaViewModel(
         viewModelScope.launch {
             _procesando.value = true
             try {
+                // Consulta persistida justo antes de guardar, además del bloqueo en pantalla.
+                require(preferencias.aceptarCitas.first()) {
+                    "La clínica no está recibiendo citas"
+                }
                 // crearCita comprueba de nuevo la ocupacion DENTRO de withTransaction.
                 val nuevaId = repo.crearCita(
                     mascotaId = requireNotNull(idMascota),

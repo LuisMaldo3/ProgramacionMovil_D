@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.huellitasvet.data.local.entity.Mascota
@@ -85,6 +86,9 @@ fun FichaMascotaScreen(
         )
     }
 
+    // Separación adaptable sin cortar formularios en pantallas pequeñas.
+    val gapPantalla = ((LocalConfiguration.current.screenHeightDp - 640) / 11).coerceIn(12, 25).dp
+
     Scaffold(
         containerColor = FondoFicha,
         topBar = { BarraSuperiorMascota(mascota?.nombre ?: "Mascota", onVolver) },
@@ -102,7 +106,7 @@ fun FichaMascotaScreen(
                 modifier = Modifier.fillMaxSize().padding(padding)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 18.dp, vertical = 13.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(gapPantalla)
             ) {
                 CabeceraFicha(actual, historial)
 
@@ -116,7 +120,7 @@ fun FichaMascotaScreen(
                     ) {
                         Icon(Icons.Filled.EventAvailable, null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Pedir cita", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Pedir cita", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                     OutlinedButton(
                         onClick = onEditar,
@@ -128,7 +132,7 @@ fun FichaMascotaScreen(
                     ) {
                         Icon(Icons.Filled.Edit, null, modifier = Modifier.size(15.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Editar", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Editar", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
 
@@ -146,7 +150,7 @@ fun FichaMascotaScreen(
                             color = if (tab == index) Color.White else Color.Transparent
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Text(titulo, fontSize = 11.sp, fontWeight = FontWeight.SemiBold,
+                                Text(titulo, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
                                     color = if (tab == index) VerdeFicha else GrisFicha)
                             }
                         }
@@ -215,11 +219,11 @@ private fun CabeceraFicha(m: Mascota, historial: List<CitaConDetalle>) {
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text(m.nombre, color = OscuroFicha, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                 Text("$especieTexto ${m.raza.lowercase()} · $edad años",
-                    color = GrisFicha, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("$sexoTexto · ${"%.1f".format(Locale.US, m.peso)} kg", color = GrisFicha, fontSize = 11.sp)
+                    color = GrisFicha, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("$sexoTexto · ${"%.1f".format(Locale.US, m.peso)} kg", color = GrisFicha, fontSize = 12.sp)
                 Surface(color = Color(0xFFDFF8E9), shape = RoundedCornerShape(4.dp)) {
                     Text(if (vacunas) "Vacunas registradas" else "Ficha registrada",
-                        color = VerdeFicha, fontSize = 10.sp,
+                        color = VerdeFicha, fontSize = 12.sp,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
                 }
             }
@@ -246,8 +250,8 @@ private fun DatosFicha(m: Mascota) {
 @Composable
 private fun DatoFila(nombre: String, valor: String) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(nombre, fontSize = 12.sp, color = GrisFicha)
-        Text(valor, fontSize = 12.sp, color = OscuroFicha, fontWeight = FontWeight.SemiBold)
+        Text(nombre, fontSize = 13.sp, color = GrisFicha)
+        Text(valor, fontSize = 13.sp, color = OscuroFicha, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -258,7 +262,7 @@ private fun LineaHistorial(detalle: CitaConDetalle, ultima: Boolean) {
             // El diseño del timeline se completa con un punto verde y una línea vertical.
             Box(modifier = Modifier.size(17.dp).background(VerdeFicha, RoundedCornerShape(50)),
                 contentAlignment = Alignment.Center) {
-                Text("✓", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text("✓", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
             if (!ultima) {
                 Box(modifier = Modifier.width(2.dp).height(86.dp).background(Color(0xFFCCF2DE)))
