@@ -33,10 +33,15 @@ import com.tecsup.huellitasvet.ui.theme.VetTheme
 import com.tecsup.huellitasvet.ui.veterinario.ServiciosScreen
 import com.tecsup.huellitasvet.ui.veterinario.PanelScreen
 import com.tecsup.huellitasvet.ui.veterinario.AgendaScreen
+import com.tecsup.huellitasvet.ui.veterinario.AtenderCitaScreen
+import com.tecsup.huellitasvet.ui.veterinario.PacientesScreen
+import com.tecsup.huellitasvet.ui.veterinario.FichaPacienteScreen
 import com.tecsup.huellitasvet.ui.veterinario.BarraNavegacionVeterinario
 import com.tecsup.huellitasvet.viewmodel.InicioViewModel
 import com.tecsup.huellitasvet.viewmodel.PanelViewModel
 import com.tecsup.huellitasvet.viewmodel.AgendaViewModel
+import com.tecsup.huellitasvet.viewmodel.AtenderCitaViewModel
+import com.tecsup.huellitasvet.viewmodel.PacientesViewModel
 import com.tecsup.huellitasvet.viewmodel.MascotaViewModel
 import com.tecsup.huellitasvet.viewmodel.MisCitasViewModel
 import com.tecsup.huellitasvet.viewmodel.PedirCitaViewModel
@@ -49,6 +54,8 @@ private const val FICHA_RUTA = "ficha_mascota/{mascotaId}"
 private const val FORMULARIO_RUTA = "formulario_mascota"
 private const val EDITAR_RUTA = "editar_mascota/{mascotaId}"
 private const val PEDIR_CITA_RUTA = "pedir_cita?mascotaId={mascotaId}"
+private const val ATENDER_RUTA = "atender_cita/{citaId}"
+private const val FICHA_PACIENTE_RUTA = "ficha_paciente/{mascotaId}"
 
 @Composable
 fun NavVet(app: VetApp) {
@@ -392,27 +399,98 @@ fun NavVet(app: VetApp) {
                 )
             }
         }
-        // El formulario de atención se implementará en el Paso 12.
+        // PASO 12: registro de atención clínica y actualización de peso.
         composable(
-            route = "atender_cita/{citaId}",
+            route = ATENDER_RUTA,
             arguments = listOf(navArgument("citaId") { type = NavType.IntType })
-        ) {
+        ) { entry ->
             VetTheme(rol = Rol.ADMIN) {
-                PantallaProximoPaso(
-                    "Atender cita", "El registro de la atención se completará en el Paso 12",
-                    onVolver = { navController.popBackStack() }
+                val citaId = entry.arguments?.getInt("citaId") ?: 0
+                if (citaId > 0) {
+                    val vm: AtenderCitaViewModel = viewModel(
+                        key = "atender_cita_$citaId",
+                        factory = remember(app, citaId) {
+                            object : ViewModelProvider.Factory {
+                                @Suppress("UNCHECKED_CAST")
+                                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                    if (modelClass.isAssignableFrom(AtenderCitaViewModel::class.java)) {
+                                        return AtenderCitaViewModel(app.repository, citaId) as T
+                                    }
+                                    throw IllegalArgumentException("ViewModel no registrado")
+                                }
+                            }
+                        }
+                    )
+                    AtenderCitaScreen(
+                        vm = vm,
+                        onVolver = { navController.popBackStack() },
+                        onFinalizada = {
+                            navController.navigate(Rutas.AGENDA) {
+                                popUpTo(Rutas.AGENDA) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    )
+                } else {
+                    EsperandoSesion()
+                }
+            }
+        }
+
+        // PASO 12: listado de pacientes con búsqueda y filtros.
+        composable(Rutas.PACIENTES) {
+            VetTheme(rol = Rol.ADMIN) {
+                val vm: PacientesViewModel = viewModel(
+                    key = "pacientes_veterinario",
+                    factory = remember(app) {
+                        object : ViewModelProvider.Factory {
+                            @Suppress("UNCHECKED_CAST")
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                if (modelClass.isAssignableFrom(PacientesViewModel::class.java)) {
+                                    return PacientesViewModel(app.repository) as T
+                                }
+                                throw IllegalArgumentException("ViewModel no registrado")
+                            }
+                        }
+                    }
+                )
+                PacientesScreen(
+                    vm = vm,
+                    onVolver = { if (!navController.popBackStack()) irTabVet(Rutas.PANEL) },
+                    onPaciente = { mascotaId ->
+                        navController.navigate("ficha_paciente/$mascotaId")
+                    },
+                    onSeleccionarTab = { irTabVet(it) }
                 )
             }
         }
-        composable(Rutas.PACIENTES) {
+
+        // Ficha clínica de consulta exclusiva para el veterinario.
+        composable(
+            route = FICHA_PACIENTE_RUTA,
+            arguments = listOf(navArgument("mascotaId") { type = NavType.IntType })
+        ) { entry ->
             VetTheme(rol = Rol.ADMIN) {
-                Scaffold(bottomBar = {
-                    BarraNavegacionVeterinario(Rutas.PACIENTES) { irTabVet(it) }
-                }) { padding ->
-                    Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                        Text("Pacientes se completará en el Paso 12")
+                val mascotaId = entry.arguments?.getInt("mascotaId") ?: 0
+                val vm: PacientesViewModel = viewModel(
+                    key = "ficha_paciente_vet_$mascotaId",
+                    factory = remember(app, mascotaId) {
+                        object : ViewModelProvider.Factory {
+                            @Suppress("UNCHECKED_CAST")
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                if (modelClass.isAssignableFrom(PacientesViewModel::class.java)) {
+                                    return PacientesViewModel(app.repository) as T
+                                }
+                                throw IllegalArgumentException("ViewModel no registrado")
+                            }
+                        }
                     }
-                }
+                )
+                FichaPacienteScreen(
+                    vm = vm,
+                    mascotaId = mascotaId,
+                    onVolver = { navController.popBackStack() }
+                )
             }
         }
         composable(Rutas.AJUSTES) {
