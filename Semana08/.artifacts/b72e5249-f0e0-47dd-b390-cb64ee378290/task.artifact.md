@@ -1,4 +1,0 @@
-- `[x]` Step 1: Analyze project structure, prepare global theme and shared visual components
-- `[x]` Step 2: Redesign Dueño screens (Inicio, Mis Citas, Pedir Cita, Mascotas, Perfil, Login/Splash)
-- `[x]` Step 3: Redesign Veterinario screens (Panel, Agenda, Atender Cita, Pacientes, Servicios, Ajustes)
-- `[x]` Step 4: Verify dark mode, responsiveness, accessibility, and build success

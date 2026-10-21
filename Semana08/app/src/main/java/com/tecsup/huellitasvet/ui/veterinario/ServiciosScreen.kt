@@ -7,10 +7,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Vaccines
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,12 +20,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.tecsup.huellitasvet.data.local.entity.Servicio
-import com.tecsup.huellitasvet.ui.components.AppTopBar
-import com.tecsup.huellitasvet.ui.components.VetEmptyState
 import com.tecsup.huellitasvet.ui.navigation.Rutas
 import com.tecsup.huellitasvet.viewmodel.ServiciosViewModel
 import java.util.Locale
+
+private val azul = Color(0xFF1D4ED8)
+private val fondo = Color(0xFFF7F9FF)
+private val borde = Color(0xFFE2E8F0)
 
 @Composable
 fun ServiciosScreen(
@@ -38,7 +41,6 @@ fun ServiciosScreen(
     val servicios by vm.servicios.collectAsState()
     val mensaje by vm.mensaje.collectAsState()
     val snackbar = remember { SnackbarHostState() }
-
     LaunchedEffect(mensaje) {
         if (!mensaje.isNullOrBlank()) {
             snackbar.showSnackbar(mensaje.orEmpty())
@@ -47,109 +49,69 @@ fun ServiciosScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = fondo,
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = { BarraNavegacionVeterinario(Rutas.SERVICIOS, onSeleccionarTab) },
         topBar = {
-            AppTopBar(
-                titulo = "Catálogo de servicios",
-                onVolver = onVolver
-            )
+            Row(Modifier.fillMaxWidth().height(62.dp).padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onVolver) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
+                }
+                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Text("Servicios", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.width(48.dp))
+            }
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAgregar,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Nuevo servicio"
-                )
-            }
+                containerColor = azul,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(19.dp),
+                modifier = Modifier.size(66.dp)
+            ) { Icon(Icons.Filled.Add, "Nuevo servicio", Modifier.size(31.dp)) }
         }
     ) { inner ->
-        if (servicios.isEmpty()) {
-            VetEmptyState(
-                titulo = "Sin servicios registrados",
-                descripcion = "Agrega servicios médicos o estéticos para que tus clientes puedan reservar citas.",
-                icono = Icons.Default.MedicalServices,
-                accionTexto = "Agregar servicio",
-                onAccion = onAgregar,
-                modifier = Modifier
-                    .padding(inner)
-                    .padding(top = 40.dp)
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(inner),
-                contentPadding = PaddingValues(20.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                items(servicios, key = { it.id }) { servicio ->
-                    ElevatedCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.elevatedCardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(inner),
+            contentPadding = PaddingValues(start = 15.dp, end = 15.dp, top = 12.dp, bottom = 100.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(servicios, key = { it.id }) { servicio ->
+                Surface(
+                    color = Color.White,
+                    shape = RoundedCornerShape(15.dp),
+                    border = BorderStroke(1.dp, borde),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(Modifier.padding(13.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            modifier = Modifier.size(49.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            color = Color(0xFFDBEAFE)
                         ) {
-                            Surface(
-                                modifier = Modifier.size(52.dp),
-                                shape = RoundedCornerShape(14.dp),
-                                color = MaterialTheme.colorScheme.primaryContainer
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = iconoServicio(servicio.icono),
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(26.dp)
-                                    )
-                                }
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(iconoServicio(servicio.icono), null, tint = azul,
+                                    modifier = Modifier.size(25.dp))
                             }
-
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    text = servicio.nombre,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = "${servicio.duracionMin} min · S/ ${String.format(Locale.US, "%.2f", servicio.precio)}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-
-                            Switch(
-                                checked = servicio.activo,
-                                onCheckedChange = { vm.alternar(servicio) },
-                                colors = SwitchDefaults.colors(
-                                    checkedTrackColor = MaterialTheme.colorScheme.primary,
-                                    checkedThumbColor = Color.White
-                                )
-                            )
-
-                            IconButton(onClick = { onEditar(servicio.id) }) {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = "Editar ${servicio.nombre}",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Text(servicio.nombre, fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp, maxLines = 1)
+                            Text("${servicio.duracionMin} min · S/ ${String.format(Locale.US, "%.2f", servicio.precio)}",
+                                color = Color(0xFF7E8796), fontSize = 12.sp)
+                        }
+                        Switch(
+                            checked = servicio.activo,
+                            onCheckedChange = { vm.alternar(servicio) },
+                            colors = SwitchDefaults.colors(checkedTrackColor = azul)
+                        )
+                        IconButton(onClick = { onEditar(servicio.id) }) {
+                            Icon(Icons.Filled.Edit, "Editar ${servicio.nombre}", tint = azul,
+                                modifier = Modifier.size(21.dp))
                         }
                     }
                 }

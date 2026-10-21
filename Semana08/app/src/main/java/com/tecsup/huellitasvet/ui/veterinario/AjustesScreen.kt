@@ -6,9 +6,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonOutline
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,11 +16,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.tecsup.huellitasvet.data.prefs.PreferenciasStore
-import com.tecsup.huellitasvet.ui.components.AppTopBar
 import com.tecsup.huellitasvet.ui.navigation.Rutas
 import kotlinx.coroutines.launch
+
+private val azulAjustes = Color(0xFF1D4ED8)
 
 @Composable
 fun AjustesScreen(
@@ -37,237 +40,113 @@ fun AjustesScreen(
     val notificaciones by preferencias.notificaciones.collectAsState(initial = true)
     val aceptarCitas by preferencias.aceptarCitas.collectAsState(initial = true)
 
+    // Separación adaptable sin cortar formularios en pantallas pequeñas.
+    val gapPantalla = ((LocalConfiguration.current.screenHeightDp - 680) / 11).coerceIn(14, 27).dp
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = { BarraNavegacionVeterinario(Rutas.AJUSTES, onSeleccionarTab) },
         topBar = {
-            AppTopBar(
-                titulo = "Ajustes de la clínica",
-                onVolver = onVolver
-            )
+            Row(Modifier.fillMaxWidth().height(62.dp).padding(horizontal = 11.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onVolver) { Icon(Icons.Filled.ArrowBack, "Volver") }
+                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Text("Ajustes", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.width(48.dp))
+            }
         }
     ) { inner ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(inner)
-                .verticalScroll(rememberScrollState())
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            // USER INFO CARD (HUMAN VET AVATAR)
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(22.dp),
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(18.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Surface(
-                        modifier = Modifier.size(68.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        shape = RoundedCornerShape(50)
-                    ) {
+        Column(Modifier.fillMaxSize().padding(inner).verticalScroll(rememberScrollState())
+            .padding(horizontal = 15.dp, vertical = 15.dp),
+            verticalArrangement = Arrangement.spacedBy(gapPantalla)) {
+
+            Surface(shape = RoundedCornerShape(17.dp), color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+                Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Surface(color = Color(0xFFDBEAFE), shape = RoundedCornerShape(50.dp),
+                        modifier = Modifier.size(63.dp)) {
                         Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Filled.Person,
-                                contentDescription = "Avatar veterinario",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(36.dp)
-                            )
+                            Icon(Icons.Filled.PersonOutline, null, tint = azulAjustes,
+                                modifier = Modifier.size(34.dp))
                         }
                     }
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = nombre.ifBlank { "Dr. Veterinario" },
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = correo.ifBlank { "vet@huellitasvet.pe" },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Surface(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(30.dp)
-                        ) {
-                            Text(
-                                text = "Médico Veterinario",
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold
-                            )
+                    Spacer(Modifier.width(13.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(nombre.ifBlank { "Veterinario" }, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(correo.ifBlank { "Cuenta local" }, fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Surface(color = Color(0xFFDBEAFE), shape = RoundedCornerShape(30.dp)) {
+                            Text("Perfil activo", color = azulAjustes, fontSize = 12.sp,
+                                modifier = Modifier.padding(horizontal = 9.dp, vertical = 3.dp))
                         }
                     }
                 }
             }
-
-            // ROLE SWITCH BUTTON
-            Button(
-                onClick = onCambiarPerfil,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp),
-                shape = RoundedCornerShape(18.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                contentPadding = PaddingValues(horizontal = 20.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.SwapHoriz,
-                    contentDescription = null,
-                    modifier = Modifier.size(26.dp)
-                )
-                Spacer(Modifier.width(14.dp))
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    Text(
-                        text = "Cambiar de perfil",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Cambiar al perfil de Dueño",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.85f)
-                    )
+            Button(onClick = onCambiarPerfil, modifier = Modifier.fillMaxWidth().height(70.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = azulAjustes)) {
+                Icon(Icons.Filled.SwapHoriz, null, modifier = Modifier.size(27.dp))
+                Spacer(Modifier.width(13.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Cambiar de perfil", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text("Modo práctica: ir a vista Dueño", fontSize = 12.sp,
+                        color = Color.White.copy(alpha = .75f))
                 }
-                Icon(
-                    imageVector = Icons.Filled.ChevronRight,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
-                )
+                Text("›", fontSize = 25.sp)
             }
-
-            // PREFERENCES
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    text = "Ajustes de la aplicación",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                ElevatedCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Column(Modifier.padding(horizontal = 16.dp)) {
-                        AjusteSwitchFila(
-                            titulo = "Modo oscuro",
-                            subtitulo = "Activa o desactiva la interfaz oscura",
-                            valor = oscuro,
-                            onCambio = { scope.launch { preferencias.guardarModoOscuro(it) } }
-                        )
-
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-                        AjusteSwitchFila(
-                            titulo = "Notificaciones de agenda",
-                            subtitulo = "Avisar sobre nuevas citas confirmadas",
-                            valor = notificaciones,
-                            onCambio = { scope.launch { preferencias.guardarNotificaciones(it) } }
-                        )
-
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-                        AjusteSwitchFila(
-                            titulo = "Recibir citas públicas",
-                            subtitulo = "Abrir o pausar la agenda para los dueños",
-                            valor = aceptarCitas,
-                            onCambio = { scope.launch { preferencias.guardarAceptarCitas(it) } }
-                        )
+            Text("Preferencias", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Surface(shape = RoundedCornerShape(15.dp), color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+                Column(Modifier.padding(horizontal = 14.dp)) {
+                    AjusteSwitch("Modo oscuro", "Cambia el tema de la app", oscuro) {
+                        scope.launch { preferencias.guardarModoOscuro(it) }
+                    }
+                    HorizontalDivider()
+                    AjusteSwitch("Notificaciones", "Avisar citas nuevas", notificaciones) {
+                        scope.launch { preferencias.guardarNotificaciones(it) }
+                    }
+                    HorizontalDivider()
+                    AjusteSwitch("Aceptar citas", "Abrir o cerrar la agenda", aceptarCitas) {
+                        scope.launch { preferencias.guardarAceptarCitas(it) }
                     }
                 }
             }
-
-            // LOGOUT BUTTON
-            OutlinedButton(
-                onClick = onCerrarSesion,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.error),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.ExitToApp,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = "Cerrar sesión",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+            Surface(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f),
+                shape = RoundedCornerShape(15.dp)) {
+                Column(Modifier.fillMaxWidth().padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Se guardan en el dispositivo", fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("con DataStore", color = azulAjustes, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                }
             }
-
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.height(9.dp))
+            OutlinedButton(onClick = onCerrarSesion,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(13.dp),
+                border = BorderStroke(1.5.dp, Color(0xFFDC2626))) {
+                Icon(Icons.Filled.ExitToApp, null, tint = Color(0xFFDC2626))
+                Spacer(Modifier.width(10.dp))
+                Text("Cerrar sesión", color = Color(0xFFDC2626), fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
 
 @Composable
-private fun AjusteSwitchFila(
+private fun AjusteSwitch(
     titulo: String,
     subtitulo: String,
     valor: Boolean,
     onCambio: (Boolean) -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(68.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            Text(
-                text = titulo,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = subtitulo,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+    Row(Modifier.fillMaxWidth().height(68.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(titulo, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Text(subtitulo, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(
-            checked = valor,
-            onCheckedChange = onCambio,
-            colors = SwitchDefaults.colors(
-                checkedTrackColor = MaterialTheme.colorScheme.primary,
-                checkedThumbColor = Color.White
-            )
-        )
+        Switch(checked = valor, onCheckedChange = onCambio,
+            colors = SwitchDefaults.colors(checkedTrackColor = azulAjustes))
     }
 }

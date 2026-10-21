@@ -118,6 +118,19 @@ interface CitaDao {
         mascotaId: Int
     ): Flow<List<CitaConDetalle>>
 
+    @Query("""
+        SELECT fecha, hora, pesoRegistrado AS peso
+        FROM citas
+        WHERE mascotaId = :mascotaId
+          AND estado = 'ATENDIDA'
+          AND pesoRegistrado IS NOT NULL
+          AND pesoRegistrado > 0
+        ORDER BY fecha ASC, hora ASC, id ASC
+    """)
+    fun observarHistorialPeso(
+        mascotaId: Int
+    ): Flow<List<com.tecsup.huellitasvet.model.PuntoPeso>>
+
 
     // ESTADISTICAS DEL PANEL
 

@@ -4,8 +4,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -14,12 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.tecsup.huellitasvet.data.local.entity.Servicio
-import com.tecsup.huellitasvet.ui.components.AppTopBar
-import com.tecsup.huellitasvet.ui.components.VetButton
-import com.tecsup.huellitasvet.ui.components.VetTextField
 import com.tecsup.huellitasvet.viewmodel.ServiciosViewModel
+
+private val azulFormulario = Color(0xFF1D4ED8)
 
 @Composable
 fun FormularioServicioScreen(
@@ -60,222 +63,138 @@ fun FormularioServicioScreen(
         onDispose { vm.limpiarMensaje(); vm.limpiarGuardado() }
     }
 
+    // Separación adaptable sin cortar formularios en pantallas pequeñas.
+    val gapPantalla = ((LocalConfiguration.current.screenHeightDp - 670) / 11).coerceIn(12, 27).dp
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            AppTopBar(
-                titulo = if (servicioId == null) "Nuevo servicio" else "Editar servicio",
-                onVolver = onVolver
-            )
+            Row(Modifier.fillMaxWidth().height(62.dp).padding(horizontal = 10.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onVolver) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
+                }
+                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Text(if (servicioId == null) "Nuevo servicio" else "Editar servicio",
+                        fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.width(48.dp))
+            }
         }
     ) { inner ->
         if (servicioId != null && original == null) {
             Box(Modifier.fillMaxSize().padding(inner), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                CircularProgressIndicator()
             }
         } else {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(inner)
-                    .imePadding()
+                Modifier.fillMaxSize().padding(inner).imePadding()
                     .verticalScroll(rememberScrollState())
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(gapPantalla)
             ) {
-                ElevatedCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        VetTextField(
-                            valor = nombre,
-                            onValorCambio = { nombre = it },
-                            etiqueta = "Nombre del servicio"
-                        )
-
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                text = "Duración estimada",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                listOf(15, 30, 45, 60).forEach { min ->
-                                    val seleccionado = duracion == min
-                                    FilterChip(
-                                        selected = seleccionado,
-                                        onClick = { duracion = min },
-                                        label = { Text("$min min", fontWeight = FontWeight.SemiBold) },
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                            }
-                        }
-
-                        VetTextField(
-                            valor = precio,
-                            onValorCambio = { precio = it },
-                            etiqueta = "Precio (S/)",
-                            tipoTeclado = KeyboardType.Decimal
-                        )
-
-                        OutlinedTextField(
-                            value = descripcion,
-                            onValueChange = { descripcion = it },
-                            label = { Text("Descripción") },
-                            modifier = Modifier.fillMaxWidth(),
-                            minLines = 3,
-                            maxLines = 4,
-                            shape = RoundedCornerShape(14.dp)
-                        )
-
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                text = "Icono representativo",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-
-                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                listOf("heart", "syringe", "scissors").forEach { op ->
-                                    val seleccionado = icono == op
-                                    Surface(
-                                        onClick = { icono = op },
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .height(52.dp),
-                                        color = if (seleccionado) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
-                                        shape = RoundedCornerShape(14.dp),
-                                        border = BorderStroke(
-                                            if (seleccionado) 2.dp else 1.dp,
-                                            if (seleccionado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
-                                        )
-                                    ) {
-                                        Box(contentAlignment = Alignment.Center) {
-                                            Icon(
-                                                imageVector = iconoServicio(op),
-                                                contentDescription = op,
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(24.dp)
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
+                OutlinedTextField(
+                    value = nombre, onValueChange = { nombre = it },
+                    label = { Text("Nombre del servicio") },
+                    modifier = Modifier.fillMaxWidth(), singleLine = true,
+                    shape = RoundedCornerShape(13.dp)
+                )
+                Text("Duración", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.fillMaxWidth()) {
+                    listOf(15, 30, 45, 60).forEach { min ->
+                        val seleccionado = duracion == min
                         Surface(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            onClick = { duracion = min }, modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(30.dp),
+                            color = if (seleccionado) azulFormulario else MaterialTheme.colorScheme.surface,
+                            contentColor = if (seleccionado) Color.White else MaterialTheme.colorScheme.onSurface,
+                            border = if (seleccionado) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Servicio activo",
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = "Disponible para reservas públicas de dueños",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                Switch(
-                                    checked = activo,
-                                    onCheckedChange = { activo = it },
-                                    colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.primary)
-                                )
+                            Box(Modifier.height(37.dp), contentAlignment = Alignment.Center) {
+                                Text("$min min", fontSize = 12.sp)
                             }
                         }
-
-                        if (!mensaje.isNullOrBlank()) {
-                            Text(
-                                text = mensaje.orEmpty(),
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-
-                        VetButton(
-                            texto = if (servicioId == null) "Guardar servicio" else "Actualizar servicio",
-                            onClick = {
-                                vm.guardar(
-                                    Servicio(
-                                        id = original?.id ?: 0,
-                                        nombre = nombre,
-                                        descripcion = descripcion,
-                                        duracionMin = duracion,
-                                        precio = precio.replace(',', '.').toDoubleOrNull() ?: 0.0,
-                                        activo = activo,
-                                        icono = icono
-                                    )
-                                )
-                            },
-                            habilitado = !procesando
-                        )
-
-                        OutlinedButton(
-                            onClick = onVolver,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
+                    }
+                }
+                OutlinedTextField(
+                    value = precio, onValueChange = { precio = it },
+                    label = { Text("Precio (S/)") }, modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true, shape = RoundedCornerShape(13.dp)
+                )
+                OutlinedTextField(
+                    value = descripcion, onValueChange = { descripcion = it },
+                    label = { Text("Descripción") }, modifier = Modifier.fillMaxWidth(),
+                    minLines = 3, maxLines = 4, shape = RoundedCornerShape(13.dp)
+                )
+                Text("Ícono", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                    listOf("heart", "syringe", "scissors").forEach { op ->
+                        val seleccionado = icono == op
+                        Surface(
+                            onClick = { icono = op },
+                            modifier = Modifier.weight(1f).height(55.dp),
+                            color = if (seleccionado) Color(0xFFDBEAFE) else MaterialTheme.colorScheme.surface,
                             shape = RoundedCornerShape(14.dp),
-                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                            border = BorderStroke(if (seleccionado) 1.5.dp else 1.dp,
+                                if (seleccionado) azulFormulario else MaterialTheme.colorScheme.outlineVariant)
                         ) {
-                            Text(
-                                text = "Cancelar",
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-
-                        if (original != null) {
-                            TextButton(
-                                onClick = { confirmarEliminar = true },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = "Eliminar servicio",
-                                    color = MaterialTheme.colorScheme.error,
-                                    fontWeight = FontWeight.Bold
-                                )
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(iconoServicio(op), contentDescription = op, tint = azulFormulario,
+                                    modifier = Modifier.size(26.dp))
                             }
                         }
+                    }
+                }
+                Surface(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(15.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+                    Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("Servicio activo", fontWeight = FontWeight.Bold)
+                            Text("Los dueños podrán pedirlo", fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Switch(checked = activo, onCheckedChange = { activo = it },
+                            colors = SwitchDefaults.colors(checkedTrackColor = azulFormulario))
+                    }
+                }
+                if (!mensaje.isNullOrBlank()) {
+                    Text(mensaje.orEmpty(), color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
+                }
+                Button(
+                    onClick = {
+                        vm.guardar(Servicio(id = original?.id ?: 0, nombre = nombre,
+                            descripcion = descripcion, duracionMin = duracion,
+                            precio = precio.replace(',', '.').toDoubleOrNull() ?: 0.0,
+                            activo = activo, icono = icono))
+                    },
+                    enabled = !procesando,
+                    modifier = Modifier.fillMaxWidth().height(51.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = azulFormulario),
+                    shape = RoundedCornerShape(12.dp)
+                ) { Text("Guardar servicio", fontWeight = FontWeight.Bold) }
+                OutlinedButton(onClick = onVolver,
+                    modifier = Modifier.fillMaxWidth().height(49.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, azulFormulario)) {
+                    Text("Cancelar", color = azulFormulario)
+                }
+                if (original != null) {
+                    TextButton(onClick = { confirmarEliminar = true }, modifier = Modifier.fillMaxWidth()) {
+                        Text("Eliminar servicio", color = Color(0xFFDC2626))
                     }
                 }
             }
         }
     }
-
     if (confirmarEliminar && original != null) {
         AlertDialog(
             onDismissRequest = { confirmarEliminar = false },
             title = { Text("Eliminar servicio") },
-            text = { Text("Si tiene citas asociadas, no se eliminará; se marcará como inactivo. ¿Deseas continuar?") },
+            text = { Text("Si tiene citas, no se eliminará; quedará desactivado. ¿Continuar?") },
             confirmButton = {
                 TextButton(onClick = { confirmarEliminar = false; vm.eliminar(original) }) {
-                    Text("Continuar", color = MaterialTheme.colorScheme.error)
+                    Text("Continuar")
                 }
             },
             dismissButton = {

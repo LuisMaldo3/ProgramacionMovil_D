@@ -40,11 +40,23 @@ class MascotaViewModel(
             ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val historiales = mutableMapOf<Int, StateFlow<List<CitaConDetalle>>>()
+    private val historialesPeso = mutableMapOf<Int, StateFlow<List<com.tecsup.huellitasvet.model.PuntoPeso>>>()
 
     fun historial(id: Int): StateFlow<List<CitaConDetalle>> = synchronized(historiales) {
         historiales.getOrPut(id) {
             val fuente: Flow<List<CitaConDetalle>> = if (id > 0) {
                 repo.observarHistorial(id)
+            } else {
+                flowOf(emptyList())
+            }
+            fuente.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+        }
+    }
+
+    fun historialPeso(id: Int): StateFlow<List<com.tecsup.huellitasvet.model.PuntoPeso>> = synchronized(historialesPeso) {
+        historialesPeso.getOrPut(id) {
+            val fuente: Flow<List<com.tecsup.huellitasvet.model.PuntoPeso>> = if (id > 0) {
+                repo.observarHistorialPeso(id)
             } else {
                 flowOf(emptyList())
             }

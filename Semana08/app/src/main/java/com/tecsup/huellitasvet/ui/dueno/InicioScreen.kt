@@ -1,7 +1,6 @@
 package com.tecsup.huellitasvet.ui.dueno
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,11 +10,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.ContentCut
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.PersonOutline
 import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.PersonOutline
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Vaccines
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -24,14 +26,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tecsup.huellitasvet.R
 import com.tecsup.huellitasvet.data.local.entity.Mascota
 import com.tecsup.huellitasvet.data.local.relation.CitaConDetalle
 import com.tecsup.huellitasvet.model.Especie
@@ -42,6 +43,15 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+private val Verde = Color(0xFF059669)
+private val Fondo = Color(0xFFF6FDF9)
+private val Mint = Color(0xFFECFDF5)
+private val Borde = Color(0xFFDAE8E3)
+private val Oscuro = Color(0xFF1F2937)
+private val Gris = Color(0xFF929AA6)
+private val Amarillo = Color(0xFFFFF2C6)
+
+/** Mantiene exactamente la firma usada por NavVet del Paso 7. */
 @Composable
 fun InicioScreen(
     vm: InicioViewModel,
@@ -56,7 +66,7 @@ fun InicioScreen(
     val cita by vm.proximaCita.collectAsState()
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = Fondo,
         bottomBar = {
             BarraNavegacionDueno(
                 seleccionado = Rutas.INICIO,
@@ -64,325 +74,215 @@ fun InicioScreen(
             )
         }
     ) { insets ->
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(insets)
-                .verticalScroll(rememberScrollState())
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // CABECERA
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+            // En teléfonos más altos, repartimos el espacio para evitar
+            // el hueco enorme bajo «Pedir una cita».
+            val separacion = ((maxHeight - 538.dp) / 6f)
+                .coerceIn(10.dp, 62.dp)
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(start = 26.dp, end = 26.dp, top = 14.dp, bottom = 14.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "¡Hola, ${nombreDueno.ifBlank { "bienvenido" }}! 🐾",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = "¿Cómo están tus mascotas hoy?",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                IconButton(
-                    onClick = { onSeleccionarTab(Rutas.MIS_CITAS) },
-                    modifier = Modifier
-                        .background(
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Notifications,
-                        contentDescription = "Avisos",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
-            // PROXIMA CITA HERO CARD
-            TarjetaProximaCita(
-                cita = cita,
-                onPedirCita = onPedirCita
-            )
-
-            // MIS MASCOTAS SECTION
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // CABECERA
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Hola, ${nombreDueno.ifBlank { "bienvenido" }}",
+                            fontSize = 23.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Oscuro,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            "¿Cómo están tus mascotas hoy?",
+                            fontSize = 13.sp,
+                            color = Gris
+                        )
+                    }
+                    IconButton(onClick = { onSeleccionarTab(Rutas.MIS_CITAS) }) {
+                        Icon(
+                            Icons.Filled.Notifications,
+                            contentDescription = "Avisos",
+                            modifier = Modifier.size(21.dp),
+                            tint = Oscuro
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(separacion))
+                TarjetaCitaFiel(cita)
+                Spacer(Modifier.height(separacion))
+
+                // TITULO Y MASCOTAS
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(23.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Text("Mis mascotas", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Oscuro)
                     Text(
-                        text = "Mis mascotas",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = "Ver todas",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
+                        "Ver todas", fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold, color = Verde,
                         modifier = Modifier.clickable(onClick = onVerMascotas)
                     )
                 }
-
+                Spacer(Modifier.height(9.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(9.dp)
                 ) {
                     val visibles = mascotas.take(2)
                     visibles.forEach { mascota ->
-                        TarjetaMascotaInicio(
+                        TarjetaMascotaFiel(
                             mascota = mascota,
                             modifier = Modifier.weight(1f),
                             onClick = { onMascota(mascota.id) }
                         )
                     }
-                    if (visibles.size < 2) {
-                        repeat(1 - visibles.size) {
-                            Spacer(modifier = Modifier.weight(1f))
-                        }
+                    repeat((2 - visibles.size).coerceAtLeast(0)) {
+                        Spacer(Modifier.weight(1f))
                     }
                     Surface(
                         onClick = onAgregarMascota,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(115.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(18.dp),
-                        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+                        modifier = Modifier.weight(1f).height(105.dp),
+                        color = Color.White,
+                        shape = RoundedCornerShape(15.dp),
+                        border = BorderStroke(1.5.dp, Verde)
                     ) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Filled.Add,
-                                contentDescription = "Agregar mascota",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(28.dp)
-                            )
-                            Spacer(Modifier.height(6.dp))
-                            Text(
-                                text = "Agregar",
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Icon(Icons.Filled.Add, "Agregar mascota", tint = Verde, modifier = Modifier.size(26.dp))
+                            Spacer(Modifier.height(10.dp))
+                            Text("Agregar", color = Verde, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
-            }
 
-            // SERVICIOS POPULARES
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    text = "Servicios populares",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
+                Spacer(Modifier.height(separacion))
+                Text("Servicios", fontSize = 15.sp, color = Oscuro, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(11.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(9.dp)
                 ) {
-                    TarjetaServicioInicio(
-                        titulo = "Consulta",
-                        imageRes = R.drawable.servicio_consulta,
-                        modifier = Modifier.weight(1f),
-                        onClick = onPedirCita
-                    )
-                    TarjetaServicioInicio(
-                        titulo = "Vacunas",
-                        imageRes = R.drawable.servicio_vacunacion,
-                        modifier = Modifier.weight(1f),
-                        onClick = onPedirCita
-                    )
-                    TarjetaServicioInicio(
-                        titulo = "Baño",
-                        imageRes = R.drawable.servicio_bano,
-                        modifier = Modifier.weight(1f),
-                        onClick = onPedirCita
-                    )
+                    ServicioFiel("Consulta", Icons.Filled.Favorite, Modifier.weight(1f), onPedirCita)
+                    ServicioFiel("Vacunas", Icons.Filled.Vaccines, Modifier.weight(1f), onPedirCita)
+                    ServicioFiel("Baño", Icons.Filled.ContentCut, Modifier.weight(1f), onPedirCita)
                 }
-            }
 
-            // RECORDATORIO
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = Color(0xFFFFF7ED),
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, Color(0xFFFFEDD5))
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Spacer(Modifier.height(separacion))
+                // AVISO AMARILLO DEL MOCKUP (ejemplo de texto de la guía)
+                Surface(
+                    modifier = Modifier.fillMaxWidth().height(60.dp),
+                    color = Amarillo,
+                    shape = RoundedCornerShape(15.dp)
                 ) {
-                    Surface(
-                        color = Color(0xFFFFE4E6),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.size(40.dp)
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Filled.Notifications,
-                                contentDescription = null,
-                                tint = Color(0xFFC2410C),
-                                modifier = Modifier.size(22.dp)
-                            )
+                        Icon(Icons.Filled.Notifications, contentDescription = null,
+                            tint = Color(0xFFD97706), modifier = Modifier.size(19.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text("Recordatorio", fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
+                            Text("Max: refuerzo de vacuna en 5 días", fontSize = 12.sp,
+                                color = Color(0xFF97501F), maxLines = 1,
+                                overflow = TextOverflow.Ellipsis)
                         }
                     }
-                    Spacer(Modifier.width(14.dp))
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            text = "Recordatorio de vacuna",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF9A3412)
-                        )
-                        Text(
-                            text = "Refuerzo anual recomendado para tu mascota.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color(0xFFC2410C)
-                        )
-                    }
                 }
-            }
 
-            // BUTTON PEDIR CITA
-            Button(
-                onClick = onPedirCita,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) {
-                Text(
-                    text = "Pedir una cita",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Spacer(Modifier.height(separacion))
+                Button(
+                    onClick = onPedirCita,
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(11.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Verde, contentColor = Color.White)
+                ) {
+                    Text("Pedir una cita", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun TarjetaProximaCita(
-    cita: CitaConDetalle?,
-    onPedirCita: () -> Unit
-) {
+private fun TarjetaCitaFiel(detalle: CitaConDetalle?) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.primary,
-        shape = RoundedCornerShape(22.dp)
+        modifier = Modifier.fillMaxWidth().height(112.dp),
+        color = Verde,
+        shape = RoundedCornerShape(19.dp)
     ) {
         Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.padding(start = 17.dp, end = 16.dp, top = 12.dp, bottom = 11.dp),
+            verticalAlignment = Alignment.Top
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "PRÓXIMA CITA",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.height(6.dp))
-                if (cita == null) {
-                    Text(
-                        text = "Aún no tienes citas agendadas",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = "Reserva una consulta fácilmente",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.9f)
-                    )
+                Text("Próxima cita", color = Color(0xFFD3F4E8), fontSize = 12.sp)
+                Spacer(Modifier.height(5.dp))
+                if (detalle == null) {
+                    Text("Aún no tienes citas", color = Color.White,
+                        fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Spacer(Modifier.height(7.dp))
+                    Text("Reserva una consulta para tu mascota", color = Color.White,
+                        fontSize = 12.sp, maxLines = 2)
                 } else {
-                    val c = cita.cita
-                    Text(
-                        text = "${cita.mascota.mascota.nombre} · ${cita.servicio.nombre}",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(Modifier.height(6.dp))
+                    val c = detalle.cita
+                    Text("${detalle.mascota.mascota.nombre} · ${detalle.servicio.nombre}",
+                        fontWeight = FontWeight.Bold, color = Color.White, fontSize = 15.sp,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Spacer(Modifier.height(5.dp))
                     val fecha = runCatching {
                         LocalDate.parse(c.fecha).format(
                             DateTimeFormatter.ofPattern("EEE d MMM", Locale("es", "PE"))
                         ).replaceFirstChar { it.titlecase(Locale("es", "PE")) }
                     }.getOrDefault(c.fecha)
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Filled.Schedule,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(
-                            text = "$fecha · ${c.hora}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White
-                        )
+                        Icon(Icons.Filled.Schedule, null, tint = Color.White,
+                            modifier = Modifier.size(14.dp))
+                        Spacer(Modifier.width(5.dp))
+                        Text("$fecha · ${c.hora}", fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold, color = Color.White)
                     }
-                    Spacer(Modifier.height(8.dp))
-                    Surface(
-                        color = Color.White.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(50.dp)
-                    ) {
-                        Text(
-                            text = if (c.estado == "CONFIRMADA") "Confirmada" else "Pendiente",
-                            color = Color.White,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                        )
+                    Spacer(Modifier.height(4.dp))
+                    Surface(color = Color.White, shape = RoundedCornerShape(50.dp)) {
+                        Text(if (c.estado == "CONFIRMADA") "Confirmada" else "Pendiente",
+                            color = Verde, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(horizontal = 15.dp, vertical = 2.dp))
                     }
                 }
             }
-            Spacer(modifier = Modifier.width(12.dp))
             Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                modifier = Modifier.size(52.dp)
+                    .clip(RoundedCornerShape(13.dp))
                     .background(Color.White),
                 contentAlignment = Alignment.Center
             ) {
-                if (cita == null) {
-                    Icon(
-                        imageVector = Icons.Filled.CalendarMonth,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp)
-                    )
+                if (detalle == null) {
+                    Icon(Icons.Filled.CalendarMonth, contentDescription = null,
+                        tint = Verde, modifier = Modifier.size(27.dp))
                 } else {
                     MascotaAvatar(
-                        especie = especieDe(cita.mascota.mascota.especie),
-                        tamano = 48.dp
+                        especie = especieDe(detalle.mascota.mascota.especie),
+                        tamano = 44.dp
                     )
                 }
             }
@@ -391,98 +291,60 @@ private fun TarjetaProximaCita(
 }
 
 @Composable
-private fun TarjetaMascotaInicio(mascota: Mascota, modifier: Modifier, onClick: () -> Unit) {
-    ElevatedCard(
+private fun TarjetaMascotaFiel(mascota: Mascota, modifier: Modifier, onClick: () -> Unit) {
+    Surface(
         onClick = onClick,
-        modifier = modifier.height(115.dp),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        modifier = modifier.height(105.dp),
+        color = Color.White,
+        shape = RoundedCornerShape(15.dp),
+        border = BorderStroke(1.dp, Borde)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
+            modifier = Modifier.padding(top = 9.dp, bottom = 6.dp, start = 4.dp, end = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            MascotaAvatar(especieDe(mascota.especie), tamano = 52.dp)
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = mascota.nombre,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = "Ver ficha",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            MascotaAvatar(especieDe(mascota.especie), tamano = 55.dp)
+            Spacer(Modifier.height(3.dp))
+            Text(mascota.nombre, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Oscuro,
+                maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("Ver ficha", fontSize = 12.sp, color = Gris)
         }
     }
 }
 
 @Composable
-private fun TarjetaServicioInicio(
-    titulo: String,
-    imageRes: Int,
-    modifier: Modifier,
-    onClick: () -> Unit
-) {
-    ElevatedCard(
+private fun ServicioFiel(titulo: String, icono: ImageVector, modifier: Modifier, onClick: () -> Unit) {
+    Surface(
         onClick = onClick,
-        modifier = modifier.height(100.dp),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        modifier = modifier.height(70.dp),
+        color = Mint,
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, Color(0xFFD1FAE5))
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.Center
         ) {
-            Image(
-                painter = painterResource(id = imageRes),
-                contentDescription = titulo,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp)
-                    .clip(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp))
-            )
-            Text(
-                text = titulo,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+            Icon(icono, contentDescription = titulo, tint = Verde, modifier = Modifier.size(24.dp))
+            Spacer(Modifier.height(7.dp))
+            Text(titulo, fontSize = 12.sp, color = Oscuro, fontWeight = FontWeight.SemiBold)
         }
     }
 }
 
+/** Una sola barra compartida: NO usar NavigationBarItem porque genera óvalos. */
 @Composable
 fun BarraNavegacionDueno(seleccionado: String, onSeleccionar: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
+            .background(Color.White)
             .navigationBarsPadding()
     ) {
-        HorizontalDivider(
-            thickness = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-        )
+        HorizontalDivider(thickness = 1.dp, color = Color(0xFFE7ECEB))
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp)
-                .padding(horizontal = 8.dp),
+            modifier = Modifier.fillMaxWidth().height(61.dp).padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val opciones = listOf(
@@ -494,33 +356,24 @@ fun BarraNavegacionDueno(seleccionado: String, onSeleccionar: (String) -> Unit) 
             opciones.forEach { (ruta, etiqueta, icono) ->
                 val activo = seleccionado == ruta
                 Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .clip(RoundedCornerShape(12.dp))
+                    modifier = Modifier.weight(1f).fillMaxHeight()
                         .clickable { onSeleccionar(ruta) },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Icon(
-                        imageVector = icono,
-                        contentDescription = etiqueta,
-                        modifier = Modifier.size(22.dp),
-                        tint = if (activo) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Icon(icono, contentDescription = etiqueta, modifier = Modifier.size(22.dp),
+                        tint = if (activo) Verde else Color(0xFF9CA3AF))
                     Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = etiqueta,
-                        style = MaterialTheme.typography.labelSmall,
+                    Text(etiqueta, fontSize = 12.sp,
                         fontWeight = if (activo) FontWeight.Bold else FontWeight.Normal,
-                        color = if (activo) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
+                        color = if (activo) Verde else Color(0xFF9CA3AF),
+                        textAlign = TextAlign.Center)
                 }
             }
         }
     }
 }
 
+// También se utiliza en MascotasScreen.kt; debe estar definido solo aquí.
 internal fun especieDe(valor: String): Especie =
-    runCatching { Especie.valueOf(valor.uppercase()) }.getOrDefault(Especie.OTRO)
+    runCatching { Especie.valueOf(valor) }.getOrDefault(Especie.OTRO)

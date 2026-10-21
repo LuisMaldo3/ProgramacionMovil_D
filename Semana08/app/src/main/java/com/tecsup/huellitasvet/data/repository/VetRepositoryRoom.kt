@@ -190,6 +190,12 @@ class VetRepositoryRoom(
         return citaDao.observarHistorial(mascotaId)
     }
 
+    override fun observarHistorialPeso(
+        mascotaId: Int
+    ): Flow<List<com.tecsup.huellitasvet.model.PuntoPeso>> {
+        return citaDao.observarHistorialPeso(mascotaId)
+    }
+
     // CAMBIAR ESTADO
 
     override suspend fun cambiarEstadoCita(
