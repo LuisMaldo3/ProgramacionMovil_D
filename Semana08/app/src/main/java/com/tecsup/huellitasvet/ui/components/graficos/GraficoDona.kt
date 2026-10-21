@@ -12,7 +12,7 @@ import com.tecsup.huellitasvet.model.DatoGrafico
 /** [ENTREGADO] Gráfico reutilizable para el Paso 11. */
 @Composable
 fun GraficoDona(datos: List<DatoGrafico>, modifier: Modifier = Modifier) {
-    val colores = listOf(Color(0xFF1D4ED8), Color(0xFF059669), Color(0xFFD97706), Color(0xFFDC2626))
+    val colores = listOf(Color(0xFFD97706), Color(0xFF16A34A), Color(0xFF475569), Color(0xFFDC2626))
     Canvas(modifier = modifier.size(170.dp)) {
         val total = datos.sumOf { it.valor.toDouble() }.toFloat()
         if (total <= 0f) {

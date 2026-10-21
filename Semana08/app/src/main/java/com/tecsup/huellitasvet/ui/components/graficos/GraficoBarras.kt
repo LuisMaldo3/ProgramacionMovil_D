@@ -23,7 +23,7 @@ fun GraficoBarras(datos: List<DatoGrafico>, modifier: Modifier = Modifier) {
                 val alto = (dato.valor / mayor) * size.height * 0.86f
                 val ancho = espacio * 0.55f
                 drawRoundRect(
-                    color = if (index % 2 == 0) Color(0xFF1D4ED8) else Color(0xFF059669),
+                    color = if (index == 0) Color(0xFF1D4ED8) else Color(0xFF93C5FD),
                     topLeft = Offset(index * espacio + (espacio - ancho) / 2, size.height - alto),
                     size = Size(ancho, alto), cornerRadius = CornerRadius(9f, 9f)
                 )
