@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.tecsup.huellitasvet.data.local.entity.Servicio
 import com.tecsup.huellitasvet.viewmodel.ServiciosViewModel
 
-private val azulFormulario = Color(0xFF1D4ED8)
+private val azulFormulario = Color(0xFF2458DE)
 
 @Composable
 fun FormularioServicioScreen(
@@ -76,7 +76,7 @@ fun FormularioServicioScreen(
                 }
                 Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     Text(if (servicioId == null) "Nuevo servicio" else "Editar servicio",
-                        fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.width(48.dp))
             }
@@ -99,7 +99,7 @@ fun FormularioServicioScreen(
                     modifier = Modifier.fillMaxWidth(), singleLine = true,
                     shape = RoundedCornerShape(13.dp)
                 )
-                Text("Duración", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text("Duración", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.fillMaxWidth()) {
                     listOf(15, 30, 45, 60).forEach { min ->
                         val seleccionado = duracion == min
@@ -111,7 +111,7 @@ fun FormularioServicioScreen(
                             border = if (seleccionado) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
                             Box(Modifier.height(37.dp), contentAlignment = Alignment.Center) {
-                                Text("$min min", fontSize = 12.sp)
+                                Text("$min min", fontSize = 13.sp)
                             }
                         }
                     }
@@ -127,7 +127,7 @@ fun FormularioServicioScreen(
                     label = { Text("Descripción") }, modifier = Modifier.fillMaxWidth(),
                     minLines = 3, maxLines = 4, shape = RoundedCornerShape(13.dp)
                 )
-                Text("Ícono", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text("Ícono", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                     listOf("heart", "syringe", "scissors").forEach { op ->
                         val seleccionado = icono == op
@@ -151,7 +151,7 @@ fun FormularioServicioScreen(
                     Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text("Servicio activo", fontWeight = FontWeight.Bold)
-                            Text("Los dueños podrán pedirlo", fontSize = 12.sp,
+                            Text("Los dueños podrán pedirlo", fontSize = 13.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Switch(checked = activo, onCheckedChange = { activo = it },
@@ -159,7 +159,7 @@ fun FormularioServicioScreen(
                     }
                 }
                 if (!mensaje.isNullOrBlank()) {
-                    Text(mensaje.orEmpty(), color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
+                    Text(mensaje.orEmpty(), color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
                 }
                 Button(
                     onClick = {

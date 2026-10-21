@@ -7,8 +7,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,14 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.huellitasvet.data.prefs.PreferenciasStore
+import com.tecsup.huellitasvet.ui.components.*
 import com.tecsup.huellitasvet.ui.navigation.Rutas
 import kotlinx.coroutines.launch
-
-private val azulAjustes = Color(0xFF1D4ED8)
 
 @Composable
 fun AjustesScreen(
@@ -39,114 +41,79 @@ fun AjustesScreen(
     val oscuro by preferencias.modoOscuro.collectAsState(initial = false)
     val notificaciones by preferencias.notificaciones.collectAsState(initial = true)
     val aceptarCitas by preferencias.aceptarCitas.collectAsState(initial = true)
+    val azul = PremiumAzul
 
-    // Separación adaptable sin cortar formularios en pantallas pequeñas.
-    val gapPantalla = ((LocalConfiguration.current.screenHeightDp - 680) / 11).coerceIn(14, 27).dp
-
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = { BarraNavegacionVeterinario(Rutas.AJUSTES, onSeleccionarTab) },
+    Scaffold(modifier = Modifier.fillMaxSize(), containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Row(Modifier.fillMaxWidth().height(62.dp).padding(horizontal = 11.dp),
+            Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 13.dp),
                 verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onVolver) { Icon(Icons.Filled.ArrowBack, "Volver") }
                 Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    Text("Ajustes", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("Mi espacio", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.width(48.dp))
             }
-        }
-    ) { inner ->
-        Column(Modifier.fillMaxSize().padding(inner).verticalScroll(rememberScrollState())
-            .padding(horizontal = 15.dp, vertical = 15.dp),
-            verticalArrangement = Arrangement.spacedBy(gapPantalla)) {
+        }, bottomBar = { BarraNavegacionVeterinario(Rutas.AJUSTES, onSeleccionarTab) }
+    ) { padding ->
+        Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())
+            .padding(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(19.dp)) {
+            EncabezadoPersonaPremium(nombre, correo, veterinario = true)
 
-            Surface(shape = RoundedCornerShape(17.dp), color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
-                Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Surface(color = Color(0xFFDBEAFE), shape = RoundedCornerShape(50.dp),
-                        modifier = Modifier.size(63.dp)) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(Icons.Filled.PersonOutline, null, tint = azulAjustes,
-                                modifier = Modifier.size(34.dp))
-                        }
+            Surface(onClick = onCambiarPerfil, shape = RoundedCornerShape(21.dp),
+                color = azul, shadowElevation = 4.dp) {
+                Row(Modifier.fillMaxWidth().padding(18.dp),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(13.dp)) {
+                    Surface(shape = RoundedCornerShape(14.dp), color = Color.White.copy(alpha=.18f)) {
+                        Icon(Icons.Filled.SwapHoriz, contentDescription = null, tint = Color.White,
+                            modifier = Modifier.padding(11.dp).size(26.dp))
                     }
-                    Spacer(Modifier.width(13.dp))
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(nombre.ifBlank { "Veterinario" }, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        Text(correo.ifBlank { "Cuenta local" }, fontSize = 12.sp,
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("Cambiar de perfil", fontSize = 17.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("Modo práctica · Vista dueño", fontSize = 13.sp, color = Color.White.copy(alpha=.9f))
+                    }
+                    Icon(Icons.Filled.ChevronRight, null, tint = Color.White)
+                }
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(11.dp)) {
+                TituloSeccionPremium("Configuración", "Controla tu experiencia y la agenda clínica")
+                ElevatedCard(shape = RoundedCornerShape(21.dp),
+                    colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                    Column(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+                        PreferenciaPremium(Icons.Filled.DarkMode, "Modo oscuro", "Reduce el brillo de la interfaz",
+                            oscuro, azul) { scope.launch { preferencias.guardarModoOscuro(it) } }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        PreferenciaPremium(Icons.Filled.NotificationsActive, "Notificaciones", "Alertas de citas nuevas",
+                            notificaciones, azul) { scope.launch { preferencias.guardarNotificaciones(it) } }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        PreferenciaPremium(Icons.Filled.EventAvailable, "Aceptar citas", "Habilita o pausa las nuevas reservas",
+                            aceptarCitas, azul) { scope.launch { preferencias.guardarAceptarCitas(it) } }
+                    }
+                }
+            }
+
+            Surface(shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha=.48f)) {
+                Row(Modifier.fillMaxWidth().padding(15.dp),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Icon(Icons.Filled.Info, null, modifier = Modifier.size(22.dp), tint = MaterialTheme.colorScheme.primary)
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text("Configuración guardada", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("Los ajustes se conservan con DataStore", fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Surface(color = Color(0xFFDBEAFE), shape = RoundedCornerShape(30.dp)) {
-                            Text("Perfil activo", color = azulAjustes, fontSize = 12.sp,
-                                modifier = Modifier.padding(horizontal = 9.dp, vertical = 3.dp))
-                        }
                     }
                 }
             }
-            Button(onClick = onCambiarPerfil, modifier = Modifier.fillMaxWidth().height(70.dp),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = azulAjustes)) {
-                Icon(Icons.Filled.SwapHoriz, null, modifier = Modifier.size(27.dp))
-                Spacer(Modifier.width(13.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("Cambiar de perfil", fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                    Text("Modo práctica: ir a vista Dueño", fontSize = 12.sp,
-                        color = Color.White.copy(alpha = .75f))
-                }
-                Text("›", fontSize = 25.sp)
-            }
-            Text("Preferencias", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Surface(shape = RoundedCornerShape(15.dp), color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
-                Column(Modifier.padding(horizontal = 14.dp)) {
-                    AjusteSwitch("Modo oscuro", "Cambia el tema de la app", oscuro) {
-                        scope.launch { preferencias.guardarModoOscuro(it) }
-                    }
-                    HorizontalDivider()
-                    AjusteSwitch("Notificaciones", "Avisar citas nuevas", notificaciones) {
-                        scope.launch { preferencias.guardarNotificaciones(it) }
-                    }
-                    HorizontalDivider()
-                    AjusteSwitch("Aceptar citas", "Abrir o cerrar la agenda", aceptarCitas) {
-                        scope.launch { preferencias.guardarAceptarCitas(it) }
-                    }
-                }
-            }
-            Surface(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f),
-                shape = RoundedCornerShape(15.dp)) {
-                Column(Modifier.fillMaxWidth().padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Se guardan en el dispositivo", fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("con DataStore", color = azulAjustes, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                }
-            }
-            Spacer(Modifier.height(9.dp))
-            OutlinedButton(onClick = onCerrarSesion,
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(13.dp),
-                border = BorderStroke(1.5.dp, Color(0xFFDC2626))) {
-                Icon(Icons.Filled.ExitToApp, null, tint = Color(0xFFDC2626))
-                Spacer(Modifier.width(10.dp))
-                Text("Cerrar sesión", color = Color(0xFFDC2626), fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
 
-@Composable
-private fun AjusteSwitch(
-    titulo: String,
-    subtitulo: String,
-    valor: Boolean,
-    onCambio: (Boolean) -> Unit
-) {
-    Row(Modifier.fillMaxWidth().height(68.dp), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(titulo, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-            Text(subtitulo, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            OutlinedButton(onClick = onCerrarSesion, modifier = Modifier.fillMaxWidth().height(55.dp),
+                shape = RoundedCornerShape(17.dp), border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.error)) {
+                Icon(Icons.Filled.ExitToApp, null, tint = MaterialTheme.colorScheme.error)
+                Spacer(Modifier.width(10.dp))
+                Text("Cerrar sesión", color = MaterialTheme.colorScheme.error, fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.height(10.dp))
         }
-        Switch(checked = valor, onCheckedChange = onCambio,
-            colors = SwitchDefaults.colors(checkedTrackColor = azulAjustes))
     }
 }

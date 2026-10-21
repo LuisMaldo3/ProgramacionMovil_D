@@ -1,5 +1,10 @@
 package com.tecsup.huellitasvet.ui.veterinario
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.tecsup.huellitasvet.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,8 +31,8 @@ import com.tecsup.huellitasvet.ui.navigation.Rutas
 import com.tecsup.huellitasvet.viewmodel.ServiciosViewModel
 import java.util.Locale
 
-private val azul = Color(0xFF1D4ED8)
-private val fondo = Color(0xFFF7F9FF)
+private val azul = Color(0xFF2458DE)
+private val fondo = Color(0xFFF7FAFF)
 private val borde = Color(0xFFE2E8F0)
 
 @Composable
@@ -59,7 +64,7 @@ fun ServiciosScreen(
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
                 }
                 Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    Text("Servicios", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("Servicios", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.width(48.dp))
             }
@@ -81,8 +86,8 @@ fun ServiciosScreen(
         ) {
             items(servicios, key = { it.id }) { servicio ->
                 Surface(
-                    color = Color.White,
-                    shape = RoundedCornerShape(15.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(19.dp),
                     border = BorderStroke(1.dp, borde),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -93,16 +98,24 @@ fun ServiciosScreen(
                             color = Color(0xFFDBEAFE)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Icon(iconoServicio(servicio.icono), null, tint = azul,
-                                    modifier = Modifier.size(25.dp))
+                                val imagen = imagenServicio(servicio.nombre)
+                                if (imagen != null) {
+                                    Image(painter = painterResource(imagen),
+                                        contentDescription = servicio.nombre,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(14.dp)))
+                                } else {
+                                    Icon(iconoServicio(servicio.icono), null, tint = azul,
+                                        modifier = Modifier.size(25.dp))
+                                }
                             }
                         }
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                             Text(servicio.nombre, fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp, maxLines = 1)
+                                fontSize = 17.sp, maxLines = 2)
                             Text("${servicio.duracionMin} min · S/ ${String.format(Locale.US, "%.2f", servicio.precio)}",
-                                color = Color(0xFF7E8796), fontSize = 12.sp)
+                                color = Color(0xFF7E8796), fontSize = 13.sp)
                         }
                         Switch(
                             checked = servicio.activo,
@@ -124,4 +137,12 @@ internal fun iconoServicio(valor: String): ImageVector = when(valor) {
     "syringe" -> Icons.Filled.Vaccines
     "scissors" -> Icons.Filled.ContentCut
     else -> Icons.Filled.Favorite
+}
+
+private fun imagenServicio(nombre: String): Int? = when {
+    nombre.contains("vacun", ignoreCase = true) -> R.drawable.servicio_vacunacion
+    nombre.contains("bañ", ignoreCase = true) || nombre.contains("peluquer", ignoreCase = true) -> R.drawable.servicio_bano
+    nombre.contains("consulta", ignoreCase = true) -> R.drawable.servicio_consulta
+    nombre.contains("aliment", ignoreCase = true) -> R.drawable.servicio_alimentacion
+    else -> null
 }

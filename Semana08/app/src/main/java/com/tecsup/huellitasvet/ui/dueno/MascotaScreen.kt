@@ -72,20 +72,20 @@ fun MascotasScreen(
                     ElevatedCard(
                         onClick = { onMascota(mascota.id) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(15.dp)
+                        shape = RoundedCornerShape(22.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(15.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(13.dp)
                         ) {
-                            MascotaAvatar(especieDe(mascota.especie), tamano = 64.dp)
+                            MascotaAvatar(especieDe(mascota.especie), tamano = 76.dp)
                             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                Text(mascota.nombre, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                                Text(mascota.nombre, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                                 Text("${mascota.especie.lowercase().replaceFirstChar { it.uppercase() }} · ${mascota.raza}",
                                     style = MaterialTheme.typography.bodySmall)
                                 val edad = (LocalDate.now().year - mascota.anioNacimiento).coerceAtLeast(0)
-                                Text("$edad ${if (edad == 1) "año" else "años"}",
+                                Text("$edad ${if (edad == 1) "año" else "años"} · ${"%.1f".format(java.util.Locale.US, mascota.peso)} kg",
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }

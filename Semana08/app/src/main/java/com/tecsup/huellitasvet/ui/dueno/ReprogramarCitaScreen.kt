@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CheckCircle
+import com.tecsup.huellitasvet.ui.components.DialogoExitoAnimado
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
@@ -53,7 +54,16 @@ fun ReprogramarCitaScreen(
     val destinoValido = hora != null && vm.disponible(hora!!, ocupados) &&
         (fecha.toString() != detalle?.cita?.fecha || hora != detalle?.cita?.hora)
 
-    LaunchedEffect(guardada) { if (guardada) onGuardada() }
+    var mostrarReprogramada by remember { mutableStateOf(false) }
+    LaunchedEffect(guardada) { if (guardada) mostrarReprogramada = true }
+    if (mostrarReprogramada) {
+        DialogoExitoAnimado(
+            titulo = "¡Cita reprogramada!",
+            descripcion = "El nuevo horario se guardó correctamente y está actualizado en tu agenda.",
+            boton = "Ver mis citas",
+            onContinuar = { mostrarReprogramada = false; onGuardada() }
+        )
+    }
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(error) {
         if (!error.isNullOrBlank()) {
@@ -220,7 +230,7 @@ fun ReprogramarCitaScreen(
                                                 disponible -> MaterialTheme.colorScheme.onSurface
                                                 else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
                                             },
-                                            fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                                            fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                                     }
                                 }
                             }

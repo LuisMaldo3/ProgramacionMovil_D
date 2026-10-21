@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Vaccines
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -31,16 +32,17 @@ import com.tecsup.huellitasvet.data.local.entity.Servicio
 import com.tecsup.huellitasvet.model.Especie
 import com.tecsup.huellitasvet.model.Horarios
 import com.tecsup.huellitasvet.ui.components.MascotaAvatar
+import com.tecsup.huellitasvet.ui.components.DialogoExitoAnimado
 import com.tecsup.huellitasvet.viewmodel.PedirCitaViewModel
 import kotlinx.coroutines.flow.collect
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val VerdeCita = Color(0xFF059669)
-private val FondoCita = Color(0xFFF6FDF9)
-private val MentaCita = Color(0xFFD1FAE5)
-private val TextoCita = Color(0xFF1F2937)
+private val VerdeCita = Color(0xFF087F6D)
+private val FondoCita = Color(0xFFFAFBF9)
+private val MentaCita = Color(0xFFDDF7EF)
+private val TextoCita = Color(0xFF172B3A)
 private val SecundarioCita = Color(0xFF73808B)
 private val BordeCita = Color(0xFFE0E8E5)
 private val GrisOcupado = Color(0xFFF2F3F5)
@@ -68,14 +70,39 @@ fun PedirCitaScreen(
     val listo = mascota != null && servicio != null && hora != null &&
         !vm.horaDeshabilitada(hora!!)
 
-    LaunchedEffect(vm) { vm.citaCreada.collect { onConfirmada() } }
+    var citaRegistrada by remember { mutableStateOf(false) }
+    var nombreMascotaExito by remember { mutableStateOf("") }
+    var servicioExito by remember { mutableStateOf("") }
+    var fechaExito by remember { mutableStateOf("") }
+    val mascotaActual by rememberUpdatedState(mascota)
+    val servicioActual by rememberUpdatedState(servicio)
+    val fechaActual by rememberUpdatedState(fecha)
+    val horaActual by rememberUpdatedState(hora)
+    LaunchedEffect(vm) {
+        vm.citaCreada.collect {
+            nombreMascotaExito = mascotaActual?.nombre.orEmpty()
+            servicioExito = servicioActual?.nombre.orEmpty()
+            fechaExito = fechaActual.format(DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", Locale("es", "PE"))) +
+                " · " + (horaActual ?: "")
+            citaRegistrada = true
+        }
+    }
+    if (citaRegistrada) {
+        DialogoExitoAnimado(
+            titulo = "¡Cita registrada!",
+            descripcion = "Tu solicitud quedó pendiente de confirmación. Te avisaremos cuando sea confirmada.",
+            detalle = "$nombreMascotaExito · $servicioExito\n$fechaExito",
+            boton = "Ver mis citas",
+            onContinuar = { citaRegistrada = false; onConfirmada() }
+        )
+    }
 
     // Separación adaptable sin cortar formularios en pantallas pequeñas.
-    val gapPantalla = ((LocalConfiguration.current.screenHeightDp - 660) / 11).coerceIn(10, 24).dp
+    val gapPantalla = ((LocalConfiguration.current.screenHeightDp - 660) / 11).coerceIn(12, 18).dp
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = FondoCita,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Row(
                 modifier = Modifier.fillMaxWidth().height(56.dp)
@@ -86,7 +113,7 @@ fun PedirCitaScreen(
                     Icon(Icons.Filled.ArrowBack, "Volver", tint = TextoCita, modifier = Modifier.size(21.dp))
                 }
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    Text("Pedir cita", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextoCita)
+                    Text("Pedir cita", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 }
                 Spacer(Modifier.width(42.dp))
             }
@@ -110,25 +137,25 @@ fun PedirCitaScreen(
                             "${mascota.nombre} · ${servicio.nombre}"
                         else "Resumen de la cita",
                         color = VerdeCita, fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis
+                        fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis
                     )
                     Spacer(Modifier.height(3.dp))
                     val dia = fecha.format(DateTimeFormatter.ofPattern("EEE d MMM", Locale("es", "PE")))
                     Text(
                         "${dia.replaceFirstChar { it.uppercase() }} · ${hora ?: "Elige hora"} · " +
                             (servicio?.let { "S/ ${"%.2f".format(Locale.US, it.precio)}" } ?: "Elige servicio"),
-                        fontSize = 12.sp, color = SecundarioCita
+                        fontSize = 13.sp, color = SecundarioCita
                     )
                 }
                 if (!aceptarCitas) {
                     Surface(color = Color(0xFFFFF2C6), shape = RoundedCornerShape(12.dp)) {
                         Text("La clínica no está recibiendo citas",
-                            color = Color(0xFF92400E), fontSize = 13.sp,
+                            color = Color(0xFF92400E), fontSize = 14.sp,
                             modifier = Modifier.padding(12.dp))
                     }
                 }
                 if (!error.isNullOrBlank()) {
-                    Text(error.orEmpty(), color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
+                    Text(error.orEmpty(), color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
                 }
                 Button(
                     onClick = { vm.confirmar() },
@@ -149,7 +176,7 @@ fun PedirCitaScreen(
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text("Confirmar cita", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Confirmar cita", fontSize = 17.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -164,7 +191,7 @@ fun PedirCitaScreen(
             EtiquetaCita("¿Quién viene?")
             if (mascotas.isEmpty()) {
                 Text("Primero registra una mascota desde la sección Mascotas.",
-                    fontSize = 14.sp, color = SecundarioCita)
+                    fontSize = 15.sp, color = SecundarioCita)
             } else {
                 Row(
                     modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
@@ -188,7 +215,7 @@ fun PedirCitaScreen(
                                     especie = runCatching { Especie.valueOf(m.especie) }.getOrDefault(Especie.OTRO),
                                     tamano = 38.dp
                                 )
-                                Text(m.nombre, fontSize = 14.sp,
+                                Text(m.nombre, fontSize = 15.sp,
                                     fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Medium,
                                     color = if (seleccionado) VerdeCita else SecundarioCita)
                             }
@@ -200,7 +227,7 @@ fun PedirCitaScreen(
             Spacer(Modifier.height(2.dp))
             EtiquetaCita("Servicio")
             if (servicios.isEmpty()) {
-                Text("No hay servicios activos disponibles.", fontSize = 14.sp, color = SecundarioCita)
+                Text("No hay servicios activos disponibles.", fontSize = 15.sp, color = SecundarioCita)
             } else {
                 servicios.forEach { s ->
                     TarjetaServicioCita(
@@ -235,8 +262,8 @@ fun PedirCitaScreen(
                             Text(dia.format(DateTimeFormatter.ofPattern("EEE", Locale("es", "PE")))
                                 .replaceFirstChar { it.uppercase() },
                                 color = if (seleccionado) Color.White else SecundarioCita,
-                                fontWeight = FontWeight.Medium, fontSize = 12.sp)
-                            Text("${dia.dayOfMonth}", fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.Medium, fontSize = 13.sp)
+                            Text("${dia.dayOfMonth}", fontSize = 17.sp, fontWeight = FontWeight.Bold,
                                 color = if (seleccionado) Color.White else TextoCita)
                         }
                     }
@@ -248,7 +275,7 @@ fun PedirCitaScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically) {
                 EtiquetaCita("Hora")
-                Text("Ocupado = gris", fontSize = 12.sp, color = SecundarioCita)
+                Text("Ocupado = gris", fontSize = 13.sp, color = SecundarioCita)
             }
             // Los 18 horarios del PDF se distribuyen en 4 columnas, y toda la pantalla se desplaza.
             Horarios.todos.chunked(4).forEach { fila ->
@@ -278,7 +305,7 @@ fun PedirCitaScreen(
                                         else -> TextoCita
                                     },
                                     textDecoration = if (deshabilitado) TextDecoration.LineThrough else null,
-                                    fontSize = 13.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     textAlign = TextAlign.Center
                                 )
@@ -295,7 +322,7 @@ fun PedirCitaScreen(
 
 @Composable
 private fun EtiquetaCita(texto: String) {
-    Text(texto, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextoCita)
+    Text(texto, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
 }
 
 @Composable
@@ -326,12 +353,12 @@ private fun TarjetaServicioCita(
                 tint = if (seleccionado) VerdeCita else Color(0xFF78828D),
                 modifier = Modifier.size(23.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(servicio.nombre, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                    color = TextoCita, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("${servicio.duracionMin} min", fontSize = 12.sp, color = SecundarioCita)
+                Text(servicio.nombre, fontSize = 15.sp, fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("${servicio.duracionMin} min", fontSize = 13.sp, color = SecundarioCita)
             }
             Text("S/ ${"%.0f".format(Locale.US, servicio.precio)}",
-                fontSize = 14.sp, fontWeight = FontWeight.Bold, color = VerdeCita)
+                fontSize = 15.sp, fontWeight = FontWeight.Bold, color = VerdeCita)
         }
     }
 }

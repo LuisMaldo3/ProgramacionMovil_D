@@ -12,6 +12,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
+import com.tecsup.huellitasvet.ui.components.DialogoExitoAnimado
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -31,9 +33,9 @@ import com.tecsup.huellitasvet.model.Especie
 import com.tecsup.huellitasvet.ui.components.MascotaAvatar
 import com.tecsup.huellitasvet.viewmodel.MascotaViewModel
 
-private val Verde = Color(0xFF059669)
-private val Fondo = Color(0xFFF6FDF9)
-private val Oscuro = Color(0xFF1F2937)
+private val Verde = Color(0xFF087F6D)
+private val Fondo = Color(0xFFFAFBF9)
+private val Oscuro = Color(0xFF172B3A)
 private val Gris = Color(0xFF808B96)
 private val Borde = Color(0xFFDFE8E3)
 
@@ -67,14 +69,24 @@ fun FormularioMascotaScreen(
             sexo = it.sexo
         }
     }
+    var mostrarGuardado by remember { mutableStateOf(false) }
     LaunchedEffect(vm) {
-        vm.guardado.collect { onGuardado() }
+        vm.guardado.collect { mostrarGuardado = true }
+    }
+    if (mostrarGuardado) {
+        DialogoExitoAnimado(
+            titulo = if (editando) "¡Mascota actualizada!" else "¡Mascota registrada!",
+            descripcion = "Los datos de tu mascota se guardaron correctamente en HuellitasVet.",
+            detalle = nombre.ifBlank { null },
+            boton = "Continuar",
+            onContinuar = { mostrarGuardado = false; onGuardado() }
+        )
     }
 
     // Separación adaptable sin cortar formularios en pantallas pequeñas.
-    val gapPantalla = ((LocalConfiguration.current.screenHeightDp - 650) / 11).coerceIn(11, 24).dp
+    val gapPantalla = ((LocalConfiguration.current.screenHeightDp - 650) / 11).coerceIn(12, 18).dp
 
-    Scaffold(containerColor = Fondo, topBar = {
+    Scaffold(containerColor = MaterialTheme.colorScheme.background, topBar = {
         BarraSuperiorMascota(if (editando) "Editar mascota" else "Nueva mascota", onVolver)
     }) { padding ->
         Column(
@@ -105,7 +117,7 @@ fun FormularioMascotaScreen(
                 etiqueta = "Nombre", valor = nombre, placeholder = "Nombre de la mascota",
                 onCambio = { nombre = it; vm.limpiarErrores() }, error = errores["nombre"]
             )
-            Text("Especie", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Oscuro)
+            Text("Especie", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                 listOf("PERRO" to "Perro", "GATO" to "Gato", "OTRO" to "Otro").forEach { (valor, titulo) ->
                     ChipMascota(
@@ -131,7 +143,7 @@ fun FormularioMascotaScreen(
                         errores["peso"], KeyboardType.Decimal)
                 }
             }
-            Text("Sexo", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Oscuro)
+            Text("Sexo", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("MACHO" to "Macho", "HEMBRA" to "Hembra").forEach { (valor, titulo) ->
                     ChipMascota(
@@ -185,8 +197,8 @@ internal fun BarraSuperiorMascota(titulo: String, onVolver: () -> Unit) {
             Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Volver",
                 modifier = Modifier.size(17.dp), tint = Oscuro)
         }
-        Text(titulo, modifier = Modifier.align(Alignment.Center), fontSize = 15.sp,
-            fontWeight = FontWeight.Bold, color = Oscuro)
+        Text(titulo, modifier = Modifier.align(Alignment.Center), fontSize = 16.sp,
+            fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
     }
 }
 
@@ -209,17 +221,17 @@ private fun CampoMascota(
                 .padding(horizontal = 12.dp, vertical = 5.dp)
         ) {
             Column(verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
-                Text(etiqueta, color = Gris, fontSize = 12.sp)
+                Text(etiqueta, color = Gris, fontSize = 13.sp)
                 BasicTextField(
                     value = valor,
                     onValueChange = onCambio,
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = teclado),
-                    textStyle = TextStyle(color = Oscuro, fontSize = 13.sp),
+                    textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp),
                     modifier = Modifier.fillMaxWidth().padding(top = 1.dp),
                     decorationBox = { campo ->
                         Box {
-                            if (valor.isEmpty()) Text(placeholder, color = Gris, fontSize = 13.sp)
+                            if (valor.isEmpty()) Text(placeholder, color = Gris, fontSize = 14.sp)
                             campo()
                         }
                     }
@@ -239,7 +251,7 @@ private fun ChipMascota(
     resaltadoSuave: Boolean = false
 ) {
     val relleno = when {
-        seleccionado && resaltadoSuave -> Color(0xFFD1FAE5)
+        seleccionado && resaltadoSuave -> Color(0xFFDDF7EF)
         seleccionado -> Verde
         else -> Color.White
     }
@@ -252,7 +264,7 @@ private fun ChipMascota(
             if (seleccionado && resaltadoSuave) Verde else if (seleccionado) Verde else Borde)
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Text(titulo, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+            Text(titulo, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
                 color = if (seleccionado && !resaltadoSuave) Color.White else if (seleccionado) Verde else Gris)
         }
     }
@@ -260,5 +272,5 @@ private fun ChipMascota(
 
 @Composable
 private fun TextoError(mensaje: String) {
-    Text(mensaje, color = Color(0xFFDC2626), fontSize = 12.sp)
+    Text(mensaje, color = Color(0xFFDC2626), fontSize = 13.sp)
 }

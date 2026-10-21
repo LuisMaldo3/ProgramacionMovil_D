@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import com.tecsup.huellitasvet.model.EstadoCita
 import com.tecsup.huellitasvet.ui.theme.*
 
@@ -22,6 +24,8 @@ fun EstadoCitaChip(estado: EstadoCita) {
     Text(
         text = estado.name.lowercase().replaceFirstChar { it.uppercase() },
         color = color,
-        modifier = Modifier.background(color.copy(alpha = 0.12f), RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 6.dp)
+        fontSize = 13.sp,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.background(color.copy(alpha = 0.12f), RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 8.dp)
     )
 }

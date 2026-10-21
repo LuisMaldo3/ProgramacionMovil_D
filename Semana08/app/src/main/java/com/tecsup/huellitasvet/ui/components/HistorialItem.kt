@@ -1,84 +1,94 @@
 package com.tecsup.huellitasvet.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.Healing
+import androidx.compose.material.icons.filled.MonitorWeight
+import androidx.compose.material.icons.filled.MedicalServices
+import androidx.compose.material.icons.filled.Vaccines
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-/** Paso 8: tarjeta compacta del historial, con la firma entregada en el laboratorio. */
+/** Resumen clínico completo: sin recortar diagnóstico ni tratamiento. Mantiene su API anterior. */
 @Composable
 fun HistorialItem(
     fecha: String,
     servicio: String,
     diagnostico: String,
-    peso: Double?
+    peso: Double?,
+    tratamiento: String? = null
 ) {
-    val fechaCorta = runCatching {
-        LocalDate.parse(fecha)
-            .format(DateTimeFormatter.ofPattern("dd MMM", Locale("es", "PE")))
-            .replace(".", "")
-            .lowercase(Locale("es", "PE"))
+    val fechaLegible = runCatching {
+        LocalDate.parse(fecha).format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale("es", "PE")))
+            .replaceFirstChar { it.uppercaseChar() }
     }.getOrDefault(fecha)
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(7.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = servicio,
-                color = Color(0xFF1F2937),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = fechaCorta,
-                color = Color(0xFF059669),
-                fontSize = 10.sp,
-                fontWeight = FontWeight.SemiBold
-            )
+    val verde = MaterialTheme.colorScheme.primary
+    val subtitulo = MaterialTheme.colorScheme.onSurfaceVariant
+    val icono = when {
+        servicio.contains("vacun", ignoreCase = true) -> Icons.Filled.Vaccines
+        servicio.contains("bañ", ignoreCase = true) || servicio.contains("corte", ignoreCase = true) -> Icons.Filled.ContentCut
+        servicio.contains("desparasit", ignoreCase = true) -> Icons.Filled.Healing
+        else -> Icons.Filled.MedicalServices
+    }
+    Column(Modifier.fillMaxWidth().padding(15.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(11.dp)) {
+            Surface(color = verde.copy(alpha = .11f), shape = RoundedCornerShape(13.dp)) {
+                Icon(icono, null, tint = verde,
+                    modifier = Modifier.padding(11.dp).size(25.dp))
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(servicio, style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurface)
+                Text(fechaLegible, fontSize = 13.sp, color = subtitulo)
+            }
+            Surface(color = Color(0xFFDCFCE7), shape = RoundedCornerShape(50.dp)) {
+                Text("ATENDIDA", modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp),
+                    fontSize = 11.sp, color = Color(0xFF047857), fontWeight = FontWeight.Bold)
+            }
         }
-        Text(
-            text = diagnostico.ifBlank { "Atención registrada" },
-            color = Color(0xFF87929E),
-            fontSize = 11.sp,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha=.55f))
+        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Text("DIAGNÓSTICO", fontSize = 12.sp, color = subtitulo,
+                fontWeight = FontWeight.Bold, letterSpacing = .7.sp)
+            Text(diagnostico.ifBlank { "Atención registrada sin diagnóstico." },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface, lineHeight = 22.sp)
+        }
+        if (!tratamiento.isNullOrBlank()) {
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text("TRATAMIENTO", fontSize = 12.sp, color = subtitulo,
+                    fontWeight = FontWeight.Bold, letterSpacing = .7.sp)
+                Text(tratamiento, style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface, lineHeight = 22.sp)
+            }
+        }
         if (peso != null) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Filled.Favorite,
-                    contentDescription = null,
-                    tint = Color(0xFFF43F65),
-                    modifier = Modifier.size(12.dp)
-                )
-                Spacer(Modifier.width(4.dp))
-                Text(
-                    text = "Peso: ${"%.1f".format(Locale.US, peso)} kg",
-                    color = Color(0xFF64748B),
-                    fontSize = 11.sp
-                )
+            Surface(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha=.50f),
+                shape = RoundedCornerShape(12.dp)) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 13.dp, vertical = 11.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(Icons.Filled.MonitorWeight, "Peso registrado", tint = verde,
+                        modifier = Modifier.size(22.dp))
+                    Text("Peso en esta atención", fontSize = 13.sp, color = subtitulo,
+                        modifier = Modifier.weight(1f))
+                    Text("${"%.1f".format(Locale.US, peso)} kg", fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold, color = verde)
+                }
             }
         }
     }

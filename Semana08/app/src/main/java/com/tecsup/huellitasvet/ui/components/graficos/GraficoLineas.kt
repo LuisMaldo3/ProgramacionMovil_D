@@ -95,6 +95,38 @@ fun GraficoLineas(
                 }
             }
 
+            if (puntos.size >= 2) {
+                val primero = puntos.first().peso
+                val ultimo = puntos.last().peso
+                val cambio = ultimo - primero
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .5f)
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("Primera medición", style = MaterialTheme.typography.labelMedium,
+                                color = colorSecundario)
+                            Text("${"%.1f".format(Locale.US, primero)} kg",
+                                style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
+                                color = colorTexto)
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text("Cambio registrado", style = MaterialTheme.typography.labelMedium,
+                                color = colorSecundario)
+                            val prefijo = if (cambio > 0) "+" else ""
+                            Text("$prefijo${"%.1f".format(Locale.US, cambio)} kg",
+                                style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
+                                color = colorPrimario)
+                        }
+                    }
+                }
+            }
+
             if (puntos.isEmpty()) {
                 Box(
                     modifier = Modifier
@@ -103,7 +135,7 @@ fun GraficoLineas(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Todavía no hay registros de peso.",
+                        text = "Todavía no hay registros de peso.\nLas mediciones aparecerán después de cada atención.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = colorSecundario,
                         textAlign = TextAlign.Center
@@ -113,7 +145,7 @@ fun GraficoLineas(
                 Canvas(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(180.dp)
+                        .height(250.dp)
                 ) {
                     val paddingLeft = 48.dp.toPx()
                     val paddingRight = 24.dp.toPx()
@@ -142,7 +174,7 @@ fun GraficoLineas(
                         val pesoText = "${"%.1f".format(Locale.US, p.peso)} kg"
                         val pesoLayout = textMeasurer.measure(
                             text = AnnotatedString(pesoText),
-                            style = TextStyle(color = colorTexto, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            style = TextStyle(color = colorTexto, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         )
                         drawText(
                             textLayoutResult = pesoLayout,
@@ -152,7 +184,7 @@ fun GraficoLineas(
                         val fechaCorta = formatoFecha(p.fecha)
                         val fechaLayout = textMeasurer.measure(
                             text = AnnotatedString(fechaCorta),
-                            style = TextStyle(color = colorSecundario, fontSize = 11.sp)
+                            style = TextStyle(color = colorSecundario, fontSize = 13.sp)
                         )
                         drawText(
                             textLayoutResult = fechaLayout,
@@ -183,7 +215,7 @@ fun GraficoLineas(
                             val yText = "%.1f".format(Locale.US, valor)
                             val yLayout = textMeasurer.measure(
                                 text = AnnotatedString(yText),
-                                style = TextStyle(color = colorSecundario, fontSize = 10.sp)
+                                style = TextStyle(color = colorSecundario, fontSize = 13.sp)
                             )
                             drawText(
                                 textLayoutResult = yLayout,
@@ -236,27 +268,33 @@ fun GraficoLineas(
                             drawCircle(color = colorPrimario, radius = 6.dp.toPx(), center = offset)
                             drawCircle(color = Color.White, radius = 3.dp.toPx(), center = offset)
 
-                            // Weight value label above point
+                            // Evita superposición en series extensas y prioriza la última medición.
+                            val mostrarEtiqueta = puntos.size <= 5 || i == puntos.lastIndex
+                            if (mostrarEtiqueta) {
                             val valText = "%.1f".format(Locale.US, p.peso)
                             val valLayout = textMeasurer.measure(
                                 text = AnnotatedString(valText),
-                                style = TextStyle(color = colorTexto, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                style = TextStyle(color = colorTexto, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                             )
                             drawText(
                                 textLayoutResult = valLayout,
                                 topLeft = Offset(offset.x - valLayout.size.width / 2f, offset.y - 18.dp.toPx())
                             )
 
-                            // Date label below X-axis
+                            }
+                            // Muestra un número legible de fechas, incluso con muchos registros.
+                            val salto = ((puntos.size + 2) / 4).coerceAtLeast(1)
+                            if (i == 0 || i == puntos.lastIndex || i % salto == 0) {
                             val fechaCorta = formatoFecha(p.fecha)
                             val fechaLayout = textMeasurer.measure(
                                 text = AnnotatedString(fechaCorta),
-                                style = TextStyle(color = colorSecundario, fontSize = 10.sp)
+                                style = TextStyle(color = colorSecundario, fontSize = 13.sp)
                             )
                             drawText(
                                 textLayoutResult = fechaLayout,
                                 topLeft = Offset(offset.x - fechaLayout.size.width / 2f, size.height - paddingBottom + 8.dp.toPx())
                             )
+                            }
                         }
                     }
                 }

@@ -27,9 +27,9 @@ import com.tecsup.huellitasvet.ui.components.CitaCard
 import com.tecsup.huellitasvet.ui.navigation.Rutas
 import com.tecsup.huellitasvet.viewmodel.MisCitasViewModel
 
-private val VerdeCitas = Color(0xFF059669)
-private val FondoCitas = Color(0xFFF6FDF9)
-private val TextoCitas = Color(0xFF1F2937)
+private val VerdeCitas = Color(0xFF087F6D)
+private val FondoCitas = Color(0xFFFAFBF9)
+private val TextoCitas = Color(0xFF172B3A)
 private val GrisCitas = Color(0xFF7C8795)
 
 @Composable
@@ -67,7 +67,7 @@ fun MisCitasScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = FondoCitas,
+        containerColor = MaterialTheme.colorScheme.background,
 
         // ENCABEZADO
         topBar = {
@@ -100,7 +100,7 @@ fun MisCitasScreen(
 
                     Text(
                         text = "Mis citas",
-                        fontSize = 18.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextoCitas
                     )
@@ -207,7 +207,7 @@ fun MisCitasScreen(
 
                                 Text(
                                     text = nombre,
-                                    fontSize = 14.sp,
+                                    fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = if (activo) {
                                         VerdeCitas
@@ -262,7 +262,7 @@ fun MisCitasScreen(
                             } else {
                                 "Todavía no hay citas en el historial"
                             },
-                            fontSize = 15.sp,
+                            fontSize = 16.sp,
                             color = GrisCitas,
                             textAlign = TextAlign.Center
                         )
@@ -329,7 +329,7 @@ fun MisCitasScreen(
                             Text(
                                 text = "Puedes cancelar hasta 2 horas antes",
                                 color = Color(0xFF92541A),
-                                fontSize = 12.sp
+                                fontSize = 13.sp
                             )
                         }
                     }

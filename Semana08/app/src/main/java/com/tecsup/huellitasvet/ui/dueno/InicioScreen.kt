@@ -1,5 +1,10 @@
 package com.tecsup.huellitasvet.ui.dueno
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.Brush
+import com.tecsup.huellitasvet.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,11 +48,11 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val Verde = Color(0xFF059669)
-private val Fondo = Color(0xFFF6FDF9)
+private val Verde = Color(0xFF087F6D)
+private val Fondo = Color(0xFFFAFBF9)
 private val Mint = Color(0xFFECFDF5)
 private val Borde = Color(0xFFDAE8E3)
-private val Oscuro = Color(0xFF1F2937)
+private val Oscuro = Color(0xFF172B3A)
 private val Gris = Color(0xFF929AA6)
 private val Amarillo = Color(0xFFFFF2C6)
 
@@ -66,7 +71,7 @@ fun InicioScreen(
     val cita by vm.proximaCita.collectAsState()
 
     Scaffold(
-        containerColor = Fondo,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             BarraNavegacionDueno(
                 seleccionado = Rutas.INICIO,
@@ -102,14 +107,14 @@ fun InicioScreen(
                             text = "Hola, ${nombreDueno.ifBlank { "bienvenido" }}",
                             fontSize = 23.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Oscuro,
+                            color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Spacer(Modifier.height(2.dp))
                         Text(
                             "¿Cómo están tus mascotas hoy?",
-                            fontSize = 13.sp,
+                            fontSize = 14.sp,
                             color = Gris
                         )
                     }
@@ -123,7 +128,36 @@ fun InicioScreen(
                     }
                 }
 
-                Spacer(Modifier.height(separacion))
+                Spacer(Modifier.height(14.dp))
+                Surface(
+                    onClick = onPedirCita,
+                    modifier = Modifier.fillMaxWidth().height(134.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    shadowElevation = 2.dp,
+                    color = Color(0xFFE4F7F1)
+                ) {
+                    Box {
+                        Image(painter = painterResource(R.drawable.inicio_banner),
+                            contentDescription = "Perro y gato de HuellitasVet",
+                            modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                        Box(Modifier.fillMaxSize().background(
+                            Brush.horizontalGradient(listOf(Color(0xFFEDFCF7).copy(alpha = .93f),
+                                Color(0xFFEDFCF7).copy(alpha = .60f), Color.Transparent))))
+                        Column(Modifier.align(Alignment.CenterStart).padding(start = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Text(
+                                text = "Su bienestar,\nnuestra prioridad",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color(0xFF085E51),
+                                lineHeight = 20.sp
+                            )
+                            Text("Reserva su próxima visita", color = Color(0xFF375D56), fontSize = 13.sp)
+                            Text("Pedir cita  →", color = Verde, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(14.dp))
                 TarjetaCitaFiel(cita)
                 Spacer(Modifier.height(separacion))
 
@@ -133,9 +167,9 @@ fun InicioScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Mis mascotas", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Oscuro)
+                    Text("Mis mascotas", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                     Text(
-                        "Ver todas", fontSize = 12.sp,
+                        "Ver todas", fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold, color = Verde,
                         modifier = Modifier.clickable(onClick = onVerMascotas)
                     )
@@ -169,13 +203,13 @@ fun InicioScreen(
                         ) {
                             Icon(Icons.Filled.Add, "Agregar mascota", tint = Verde, modifier = Modifier.size(26.dp))
                             Spacer(Modifier.height(10.dp))
-                            Text("Agregar", color = Verde, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("Agregar", color = Verde, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
 
                 Spacer(Modifier.height(separacion))
-                Text("Servicios", fontSize = 15.sp, color = Oscuro, fontWeight = FontWeight.Bold)
+                Text("Servicios", fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(11.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -201,9 +235,9 @@ fun InicioScreen(
                             tint = Color(0xFFD97706), modifier = Modifier.size(19.dp))
                         Spacer(Modifier.width(12.dp))
                         Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                            Text("Recordatorio", fontSize = 12.sp,
+                            Text("Recordatorio", fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
-                            Text("Max: refuerzo de vacuna en 5 días", fontSize = 12.sp,
+                            Text("Consulta el historial y los próximos controles", fontSize = 13.sp,
                                 color = Color(0xFF97501F), maxLines = 1,
                                 overflow = TextOverflow.Ellipsis)
                         }
@@ -217,7 +251,7 @@ fun InicioScreen(
                     shape = RoundedCornerShape(11.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Verde, contentColor = Color.White)
                 ) {
-                    Text("Pedir una cita", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text("Pedir una cita", fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -236,18 +270,18 @@ private fun TarjetaCitaFiel(detalle: CitaConDetalle?) {
             verticalAlignment = Alignment.Top
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Próxima cita", color = Color(0xFFD3F4E8), fontSize = 12.sp)
+                Text("Próxima cita", color = Color(0xFFD3F4E8), fontSize = 13.sp)
                 Spacer(Modifier.height(5.dp))
                 if (detalle == null) {
                     Text("Aún no tienes citas", color = Color.White,
-                        fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Spacer(Modifier.height(7.dp))
                     Text("Reserva una consulta para tu mascota", color = Color.White,
-                        fontSize = 12.sp, maxLines = 2)
+                        fontSize = 13.sp, maxLines = 2)
                 } else {
                     val c = detalle.cita
                     Text("${detalle.mascota.mascota.nombre} · ${detalle.servicio.nombre}",
-                        fontWeight = FontWeight.Bold, color = Color.White, fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold, color = Color.White, fontSize = 16.sp,
                         maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Spacer(Modifier.height(5.dp))
                     val fecha = runCatching {
@@ -259,13 +293,13 @@ private fun TarjetaCitaFiel(detalle: CitaConDetalle?) {
                         Icon(Icons.Filled.Schedule, null, tint = Color.White,
                             modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(5.dp))
-                        Text("$fecha · ${c.hora}", fontSize = 12.sp,
+                        Text("$fecha · ${c.hora}", fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold, color = Color.White)
                     }
                     Spacer(Modifier.height(4.dp))
-                    Surface(color = Color.White, shape = RoundedCornerShape(50.dp)) {
+                    Surface(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(50.dp)) {
                         Text(if (c.estado == "CONFIRMADA") "Confirmada" else "Pendiente",
-                            color = Verde, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+                            color = Verde, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.padding(horizontal = 15.dp, vertical = 2.dp))
                     }
                 }
@@ -306,9 +340,9 @@ private fun TarjetaMascotaFiel(mascota: Mascota, modifier: Modifier, onClick: ()
         ) {
             MascotaAvatar(especieDe(mascota.especie), tamano = 55.dp)
             Spacer(Modifier.height(3.dp))
-            Text(mascota.nombre, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Oscuro,
+            Text(mascota.nombre, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text("Ver ficha", fontSize = 12.sp, color = Gris)
+            Text("Ver ficha", fontSize = 13.sp, color = Gris)
         }
     }
 }
@@ -320,7 +354,7 @@ private fun ServicioFiel(titulo: String, icono: ImageVector, modifier: Modifier,
         modifier = modifier.height(70.dp),
         color = Mint,
         shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, Color(0xFFD1FAE5))
+        border = BorderStroke(1.dp, Color(0xFFDDF7EF))
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -328,7 +362,7 @@ private fun ServicioFiel(titulo: String, icono: ImageVector, modifier: Modifier,
         ) {
             Icon(icono, contentDescription = titulo, tint = Verde, modifier = Modifier.size(24.dp))
             Spacer(Modifier.height(7.dp))
-            Text(titulo, fontSize = 12.sp, color = Oscuro, fontWeight = FontWeight.SemiBold)
+            Text(titulo, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -364,7 +398,7 @@ fun BarraNavegacionDueno(seleccionado: String, onSeleccionar: (String) -> Unit) 
                     Icon(icono, contentDescription = etiqueta, modifier = Modifier.size(22.dp),
                         tint = if (activo) Verde else Color(0xFF9CA3AF))
                     Spacer(Modifier.height(4.dp))
-                    Text(etiqueta, fontSize = 12.sp,
+                    Text(etiqueta, fontSize = 13.sp,
                         fontWeight = if (activo) FontWeight.Bold else FontWeight.Normal,
                         color = if (activo) Verde else Color(0xFF9CA3AF),
                         textAlign = TextAlign.Center)

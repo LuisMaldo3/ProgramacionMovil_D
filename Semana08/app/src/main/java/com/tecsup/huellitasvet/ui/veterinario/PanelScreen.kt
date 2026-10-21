@@ -1,5 +1,10 @@
 package com.tecsup.huellitasvet.ui.veterinario
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.Brush
+import com.tecsup.huellitasvet.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,9 +43,9 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val Azul = Color(0xFF1D4ED8)
-private val FondoVet = Color(0xFFF7F9FF)
-private val TextoVet = Color(0xFF1F2937)
+private val Azul = Color(0xFF2458DE)
+private val FondoVet = Color(0xFFF7FAFF)
+private val TextoVet = Color(0xFF172B3A)
 private val GrisVet = Color(0xFF8792A4)
 private val AmarilloVet = Color(0xFFFFF2C6)
 private val BordeVet = Color(0xFFE2E8F0)
@@ -60,14 +65,14 @@ fun PanelScreen(
     val porConfirmar by vm.porConfirmarHoyManana.collectAsState()
     val formato = rememberFormatoMoneda(ingresosMes)
     val altoDp = LocalConfiguration.current.screenHeightDp
-    val espacio = ((altoDp - 660) / 12).coerceIn(12, 26).dp
+    val espacio = ((altoDp - 660) / 12).coerceIn(13, 19).dp
     val hoy = LocalDate.now().format(
         DateTimeFormatter.ofPattern("EEE d MMM", Locale("es", "PE"))
     ).replaceFirstChar { it.uppercase() }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = FondoVet,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             BarraNavegacionVeterinario(Rutas.PANEL, onSeleccionarTab)
         }
@@ -81,8 +86,8 @@ fun PanelScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text("Panel de la clínica", fontWeight = FontWeight.Bold,
-                        color = TextoVet, fontSize = 22.sp)
-                    Text("Hoy · $hoy", fontSize = 12.sp, color = GrisVet)
+                        color = MaterialTheme.colorScheme.onSurface, fontSize = 22.sp)
+                    Text("Hoy · $hoy", fontSize = 13.sp, color = GrisVet)
                 }
                 IconButton(onClick = onVerAgenda) {
                     Icon(Icons.Filled.Notifications, "Ver agenda", tint = TextoVet)
@@ -104,17 +109,38 @@ fun PanelScreen(
                     verticalAlignment = Alignment.Bottom
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text("Ingresos del mes", color = Color.White.copy(alpha = .75f), fontSize = 12.sp)
+                        Text("Ingresos del mes", color = Color.White.copy(alpha = .75f), fontSize = 13.sp)
                         Text(formato, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp)
                     }
-                    Text("$atendidas atenciones", color = Color.White, fontSize = 12.sp,
+                    Text("$atendidas atenciones", color = Color.White, fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 5.dp))
                 }
             }
 
-            Text("Citas por estado", color = TextoVet, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Surface(
-                color = Color.White, shape = RoundedCornerShape(15.dp),
+                modifier = Modifier.fillMaxWidth().height(100.dp),
+                shape = RoundedCornerShape(17.dp),
+                color = Color(0xFFEDF3FF)
+            ) {
+                Box {
+                    Image(painter = painterResource(R.drawable.veterinario_banner),
+                        contentDescription = "Imagen de la clínica veterinaria",
+                        contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                    Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(listOf(
+                        Color(0xFFDBEAFE).copy(alpha = .94f),
+                        Color(0xFFDBEAFE).copy(alpha = .58f), Color.Transparent))))
+                    Column(Modifier.align(Alignment.CenterStart).padding(16.dp)) {
+                        Text("Cada atención importa", fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold, color = Color(0xFF12387B))
+                        Text("Gestiona tu clínica en un solo lugar", fontSize = 13.sp,
+                            color = Color(0xFF315B92))
+                    }
+                }
+            }
+
+            Text("Citas por estado", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Surface(
+                color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(15.dp),
                 border = BorderStroke(1.dp, BordeVet), modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
@@ -126,8 +152,8 @@ fun PanelScreen(
                         GraficoDona(porEstado, Modifier.size(99.dp))
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(porEstado.sumOf { it.valor.toInt() }.toString(),
-                                fontWeight = FontWeight.Bold, fontSize = 20.sp, color = TextoVet)
-                            Text("citas", fontSize = 11.sp, color = GrisVet)
+                                fontWeight = FontWeight.Bold, fontSize = 22.sp, color = MaterialTheme.colorScheme.onSurface)
+                            Text("citas", fontSize = 13.sp, color = GrisVet)
                         }
                     }
                     Column(
@@ -142,19 +168,19 @@ fun PanelScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(Modifier.size(11.dp).background(colores[i % colores.size], RoundedCornerShape(2.dp)))
                                 Spacer(Modifier.width(7.dp))
-                                Text(item.etiqueta, fontSize = 12.sp, modifier = Modifier.weight(1f),
-                                    color = TextoVet, maxLines = 1)
-                                Text(item.valor.toInt().toString(), fontSize = 12.sp,
-                                    color = TextoVet, fontWeight = FontWeight.Bold)
+                                Text(item.etiqueta, fontSize = 13.sp, modifier = Modifier.weight(1f),
+                                    color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
+                                Text(item.valor.toInt().toString(), fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
                 }
             }
 
-            Text("Citas por servicio", color = TextoVet, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text("Citas por servicio", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             Surface(
-                color = Color.White, shape = RoundedCornerShape(15.dp),
+                color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(15.dp),
                 border = BorderStroke(1.dp, BordeVet), modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -162,7 +188,7 @@ fun PanelScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     if (porServicio.isEmpty()) {
-                        Text("Todavía no hay citas", color = GrisVet, fontSize = 12.sp)
+                        Text("Todavía no hay citas", color = GrisVet, fontSize = 13.sp)
                     } else {
                         // Se reutiliza el Canvas que trae el proyecto base.
                         GraficoBarras(porServicio, Modifier.height(95.dp))
@@ -170,9 +196,9 @@ fun PanelScreen(
                         Row(Modifier.fillMaxWidth()) {
                             porServicio.forEach { servicio ->
                                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(servicio.valor.toInt().toString(), fontSize = 12.sp,
+                                    Text(servicio.valor.toInt().toString(), fontSize = 13.sp,
                                         fontWeight = FontWeight.Bold, color = Azul)
-                                    Text(servicio.etiqueta.substringBefore(' '), fontSize = 11.sp,
+                                    Text(servicio.etiqueta.substringBefore(' '), fontSize = 13.sp,
                                         color = GrisVet, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 }
                             }
@@ -190,16 +216,16 @@ fun PanelScreen(
                         Icon(Icons.Filled.WarningAmber, null, tint = Color(0xFFD97706))
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
-                            Text("$porConfirmar citas por confirmar", fontSize = 12.sp,
+                            Text("$porConfirmar citas por confirmar", fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
-                            Text("para hoy y mañana", fontSize = 12.sp, color = Color(0xFF92400E))
+                            Text("para hoy y mañana", fontSize = 13.sp, color = Color(0xFF92400E))
                         }
                         Button(
                             onClick = onVerAgenda,
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD97706)),
                             contentPadding = PaddingValues(horizontal = 18.dp),
                             modifier = Modifier.height(35.dp)
-                        ) { Text("Ver", fontSize = 12.sp) }
+                        ) { Text("Ver", fontSize = 13.sp) }
                     }
                 }
             }
@@ -224,7 +250,7 @@ private fun ContadorVet(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(valor.toString(), color = textoColor, fontWeight = FontWeight.Bold, fontSize = 26.sp)
-            Text(titulo, color = textoColor, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Text(titulo, color = textoColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -240,7 +266,7 @@ fun BarraNavegacionVeterinario(
         Triple(Rutas.SERVICIOS, "Servicios", Icons.Filled.LocalOffer),
         Triple(Rutas.AJUSTES, "Ajustes", Icons.Filled.Settings)
     )
-    Surface(color = Color.White, tonalElevation = 0.dp, shadowElevation = 2.dp) {
+    Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp, shadowElevation = 2.dp) {
         Row(
             Modifier.fillMaxWidth().navigationBarsPadding().height(63.dp)
                 .padding(horizontal = 6.dp),
@@ -256,7 +282,7 @@ fun BarraNavegacionVeterinario(
                     Icon(icono, nombre, tint = if (activo) Azul else Color(0xFF98A2B3),
                         modifier = Modifier.size(23.dp))
                     Spacer(Modifier.height(4.dp))
-                    Text(nombre, fontSize = 12.sp, color = if (activo) Azul else Color(0xFF98A2B3),
+                    Text(nombre, fontSize = 13.sp, color = if (activo) Azul else Color(0xFF98A2B3),
                         fontWeight = if (activo) FontWeight.Bold else FontWeight.Normal)
                 }
             }

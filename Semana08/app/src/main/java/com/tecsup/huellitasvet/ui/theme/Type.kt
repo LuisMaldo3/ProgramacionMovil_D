@@ -15,7 +15,7 @@ val VetTypography = Typography(
     titleSmall = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.SemiBold, fontSize = 15.sp),
     bodyLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 17.sp),
     bodyMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 15.sp),
-    bodySmall = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 13.sp),
-    labelMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Medium, fontSize = 13.sp),
-    labelSmall = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Medium, fontSize = 12.sp)
+    bodySmall = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 14.sp),
+    labelMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Medium, fontSize = 14.sp),
+    labelSmall = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Medium, fontSize = 13.sp)
 )

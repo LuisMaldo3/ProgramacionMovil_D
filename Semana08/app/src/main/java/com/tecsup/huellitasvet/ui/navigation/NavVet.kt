@@ -42,6 +42,7 @@ import com.tecsup.huellitasvet.ui.veterinario.PacientesScreen
 import com.tecsup.huellitasvet.ui.veterinario.FichaPacienteScreen
 import com.tecsup.huellitasvet.ui.veterinario.BarraNavegacionVeterinario
 import com.tecsup.huellitasvet.viewmodel.InicioViewModel
+import com.tecsup.huellitasvet.viewmodel.PerfilViewModel
 import com.tecsup.huellitasvet.viewmodel.PanelViewModel
 import com.tecsup.huellitasvet.viewmodel.AgendaViewModel
 import com.tecsup.huellitasvet.viewmodel.AtenderCitaViewModel
@@ -412,11 +413,24 @@ fun NavVet(app: VetApp) {
         composable(Rutas.PERFIL) {
             VetTheme(rol = Rol.CLIENTE, oscuro = oscuro) {
                 if (idDueno > 0) {
+                    val perfilVm: PerfilViewModel = viewModel(
+                        key = "perfil_dueno_$idDueno",
+                        factory = remember(app, idDueno) {
+                            object : ViewModelProvider.Factory {
+                                @Suppress("UNCHECKED_CAST")
+                                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                    if (modelClass.isAssignableFrom(PerfilViewModel::class.java)) {
+                                        return PerfilViewModel(app.repository, idDueno) as T
+                                    }
+                                    throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
+                                }
+                            }
+                        }
+                    )
                     PerfilScreen(
-                        duenoId = idDueno,
+                        vm = perfilVm,
                         nombre = usuarioActual?.nombre ?: nombreGuardado,
                         correo = usuarioActual?.correo ?: correoGuardado,
-                        repo = app.repository,
                         preferencias = preferencias,
                         onCambiarPerfil = { cambiarPerfil(Rol.ADMIN) },
                         onCerrarSesion = { salir() },

@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.sp
 import com.tecsup.huellitasvet.model.Especie
 import com.tecsup.huellitasvet.ui.components.HistorialItem
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
 import com.tecsup.huellitasvet.ui.components.MascotaAvatar
 import com.tecsup.huellitasvet.ui.navigation.Rutas
 import com.tecsup.huellitasvet.viewmodel.PacienteResumen
@@ -33,9 +32,9 @@ import java.time.Year
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val Azul = Color(0xFF1D4ED8)
-private val Fondo = Color(0xFFF7F9FF)
-private val Texto = Color(0xFF1F2937)
+private val Azul = Color(0xFF2458DE)
+private val Fondo = Color(0xFFF7FAFF)
+private val Texto = Color(0xFF172B3A)
 private val Gris = Color(0xFF8A94A2)
 private val Borde = Color(0xFFE2E8F0)
 
@@ -51,18 +50,18 @@ fun PacientesScreen(
     val pacientes by vm.pacientes.collectAsState()
 
     Scaffold(
-        containerColor = Fondo,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = { CabeceraPacientes("Pacientes", onVolver) },
         bottomBar = { BarraNavegacionVeterinario(Rutas.PACIENTES, onSeleccionarTab) }
     ) { inner ->
         Column(Modifier.fillMaxSize().padding(inner)) {
             OutlinedTextField(
                 value = texto, onValueChange = vm::buscar,
-                placeholder = { Text("Buscar mascota o dueño...", color = Gris, fontSize = 13.sp) },
+                placeholder = { Text("Buscar mascota o dueño...", color = Gris, fontSize = 14.sp) },
                 leadingIcon = { Icon(Icons.Filled.Search, null, tint = Gris) },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp).height(55.dp),
-                shape = RoundedCornerShape(15.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp).heightIn(min = 58.dp),
+                shape = RoundedCornerShape(19.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
@@ -86,7 +85,7 @@ fun PacientesScreen(
                             border = if (activo) null else BorderStroke(1.dp, Borde)
                         ) {
                             Text(
-                                titulo, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                                titulo, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp)
                             )
                         }
@@ -94,7 +93,15 @@ fun PacientesScreen(
             }
             if (pacientes.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No se encontraron pacientes", color = Gris)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Icon(Icons.Filled.Search, contentDescription = null,
+                            tint = Azul, modifier = Modifier.size(39.dp))
+                        Text("No se encontraron pacientes", color = Texto,
+                            fontWeight = FontWeight.SemiBold)
+                        Text("Prueba otro nombre o filtro de especie", color = Gris,
+                            fontSize = 13.sp)
+                    }
                 }
             } else {
                 LazyColumn(
@@ -124,7 +131,7 @@ private fun TarjetaPaciente(paciente: PacienteResumen, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         color = Color.White,
-        shape = RoundedCornerShape(15.dp),
+        shape = RoundedCornerShape(19.dp),
         border = BorderStroke(1.dp, Borde),
         modifier = Modifier.fillMaxWidth().heightIn(min = 91.dp)
     ) {
@@ -135,12 +142,12 @@ private fun TarjetaPaciente(paciente: PacienteResumen, onClick: () -> Unit) {
             MascotaAvatar(especie = especie, tamano = 56.dp)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(mascota.nombre, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Texto)
-                Text("${mascota.raza} · $edad años", fontSize = 12.sp, color = Gris,
+                Text(mascota.nombre, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Texto)
+                Text("${mascota.raza} · $edad años", fontSize = 14.sp, color = Gris,
                     maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("Dueño: $nombreBreve", fontSize = 12.sp, color = Gris)
+                Text("Responsable: $nombreBreve", fontSize = 14.sp, color = Gris)
                 Text(if (paciente.ultimaVisita != null) "Última visita: $fecha" else fecha,
-                    fontSize = 12.sp, color = Gris)
+                    fontSize = 14.sp, color = Gris)
             }
             Icon(Icons.Filled.ChevronRight, "Ver ficha", tint = Gris, modifier = Modifier.size(22.dp))
         }
@@ -155,7 +162,7 @@ fun FichaPacienteScreen(vm: PacientesViewModel, mascotaId: Int, onVolver: () -> 
     val fuente = remember(vm, mascotaId) { vm.historial(mascotaId) }
     val historial by fuente.collectAsState(initial = emptyList())
 
-    Scaffold(containerColor = Fondo, topBar = { CabeceraPacientes("Ficha del paciente", onVolver) }) { inner ->
+    Scaffold(containerColor = MaterialTheme.colorScheme.background, topBar = { CabeceraPacientes("Ficha del paciente", onVolver) }) { inner ->
         Column(
             Modifier.fillMaxSize().padding(inner).verticalScroll(rememberScrollState())
                 .padding(horizontal = 22.dp, vertical = 12.dp),
@@ -168,40 +175,38 @@ fun FichaPacienteScreen(vm: PacientesViewModel, mascotaId: Int, onVolver: () -> 
                 val dueno = paciente.datos.dueno
                 val especie = runCatching { Especie.valueOf(mascota.especie) }.getOrDefault(Especie.OTRO)
                 val edad = (Year.now().value - mascota.anioNacimiento).coerceAtLeast(0)
-                Surface(color = Color.White, border = BorderStroke(1.dp, Borde), shape = RoundedCornerShape(16.dp)) {
+                Surface(color = MaterialTheme.colorScheme.surface, border = BorderStroke(1.dp, Borde), shape = RoundedCornerShape(16.dp)) {
                     Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
                         MascotaAvatar(especie = especie, tamano = 70.dp)
                         Spacer(Modifier.width(12.dp))
                         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                            Text(mascota.nombre, fontWeight = FontWeight.Bold, color = Texto, fontSize = 19.sp)
-                            Text("${mascota.raza} · $edad años", color = Gris, fontSize = 13.sp)
-                            Text("Dueño: ${dueno.nombre}", color = Gris, fontSize = 13.sp)
+                            Text(mascota.nombre, fontWeight = FontWeight.Bold, color = Texto, fontSize = 21.sp)
+                            Text("${mascota.raza} · $edad años", color = Gris, fontSize = 14.sp)
+                            Text("Responsable: ${dueno.nombre}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 15.sp)
                             Text("Peso actual: ${"%.1f".format(Locale.US, mascota.peso)} kg", color = Azul,
-                                fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                                fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                         }
                     }
                 }
-                Text("Historial clínico", color = Texto, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                Text("Historial clínico", color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.ExtraBold, fontSize = 21.sp)
+                Text("${historial.size} atenciones registradas", fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (historial.isEmpty()) {
-                    Text("Aún no tiene atenciones", color = Gris, fontSize = 14.sp)
+                    Text("Aún no tiene atenciones", color = Gris, fontSize = 15.sp)
                 } else {
                     historial.forEach { detalle ->
                         Surface(
                             modifier = Modifier.fillMaxWidth(), color = Color.White,
-                            shape = RoundedCornerShape(15.dp), border = BorderStroke(1.dp, Borde)
+                            shape = RoundedCornerShape(19.dp), border = BorderStroke(1.dp, Borde)
                         ) {
-                            Column(Modifier.padding(15.dp)) {
-                                HistorialItem(
-                                    fecha = detalle.cita.fecha,
-                                    servicio = detalle.servicio.nombre,
-                                    diagnostico = detalle.cita.diagnostico.orEmpty(),
-                                    peso = detalle.cita.pesoRegistrado
-                                )
-                                if (!detalle.cita.tratamiento.isNullOrBlank()) {
-                                    Spacer(Modifier.height(8.dp))
-                                    Text("Tratamiento: ${detalle.cita.tratamiento}", fontSize = 12.sp, color = Gris)
-                                }
-                            }
+                            HistorialItem(
+                                fecha = detalle.cita.fecha,
+                                servicio = detalle.servicio.nombre,
+                                diagnostico = detalle.cita.diagnostico.orEmpty(),
+                                peso = detalle.cita.pesoRegistrado,
+                                tratamiento = detalle.cita.tratamiento
+                            )
                         }
                     }
                 }
@@ -220,7 +225,7 @@ private fun CabeceraPacientes(titulo: String, onVolver: () -> Unit) {
             Icon(Icons.Filled.ArrowBack, "Volver", tint = Texto)
         }
         Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-            Text(titulo, color = Texto, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(titulo, color = Texto, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.width(48.dp))
     }

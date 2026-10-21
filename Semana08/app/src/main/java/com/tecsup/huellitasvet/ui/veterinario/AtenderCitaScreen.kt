@@ -25,15 +25,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.huellitasvet.model.Especie
 import com.tecsup.huellitasvet.ui.components.MascotaAvatar
+import com.tecsup.huellitasvet.ui.components.DialogoExitoAnimado
 import com.tecsup.huellitasvet.viewmodel.AtenderCitaViewModel
 import java.time.Year
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val Azul = Color(0xFF1D4ED8)
-private val Fondo = Color(0xFFF7F9FF)
-private val Texto = Color(0xFF1F2937)
+private val Azul = Color(0xFF2458DE)
+private val Fondo = Color(0xFFF7FAFF)
+private val Texto = Color(0xFF172B3A)
 private val Gris = Color(0xFF8792A4)
 
 @Composable
@@ -53,9 +54,18 @@ fun AtenderCitaScreen(
     var diagnostico by rememberSaveable { mutableStateOf("") }
     var tratamiento by rememberSaveable { mutableStateOf("") }
     var pedirCancelar by remember { mutableStateOf(false) }
+    var fueCancelacion by remember { mutableStateOf(false) }
+    var mostrarResultado by remember { mutableStateOf(false) }
 
-    LaunchedEffect(finalizada) {
-        if (finalizada) onFinalizada()
+    LaunchedEffect(finalizada) { if (finalizada) mostrarResultado = true }
+    if (mostrarResultado) {
+        DialogoExitoAnimado(
+            titulo = if (fueCancelacion) "Cita cancelada" else "¡Atención registrada!",
+            descripcion = if (fueCancelacion) "El estado de la cita se actualizó en la agenda."
+                else "Diagnóstico, tratamiento y peso registrados correctamente en el historial clínico.",
+            boton = "Volver a la agenda",
+            onContinuar = { mostrarResultado = false; onFinalizada() }
+        )
     }
 
     // Separación adaptable sin cortar formularios en pantallas pequeñas.
@@ -63,7 +73,7 @@ fun AtenderCitaScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = Fondo,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Row(
                 modifier = Modifier.fillMaxWidth().height(60.dp).padding(horizontal = 10.dp),
@@ -73,7 +83,7 @@ fun AtenderCitaScreen(
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Volver", tint = Texto)
                 }
                 Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    Text("Atender cita", color = Texto, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                    Text("Atender cita", color = Texto, fontSize = 21.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.width(48.dp))
             }
@@ -119,8 +129,9 @@ fun AtenderCitaScreen(
                 verticalArrangement = Arrangement.spacedBy(gapPantalla)
             ) {
                 Surface(
-                    shape = RoundedCornerShape(17.dp), color = Color.White,
-                    border = BorderStroke(1.dp, Color(0xFFE2E8F0))
+                    shape = RoundedCornerShape(22.dp), color = MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                    shadowElevation = 3.dp
                 ) {
                     Row(
                         Modifier.fillMaxWidth().padding(14.dp),
@@ -130,20 +141,21 @@ fun AtenderCitaScreen(
                         Spacer(Modifier.width(12.dp))
                         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                             Text("${mascota.nombre} · ${mascota.raza}", fontWeight = FontWeight.Bold,
-                                color = Texto, fontSize = 16.sp)
+                                color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp)
                             Text("$edad años · $sexo · $etiquetaDueno: $nombreCorto",
-                                color = Gris, fontSize = 12.sp)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Filled.Vaccines, null, tint = Azul, modifier = Modifier.size(17.dp))
                                 Spacer(Modifier.width(5.dp))
                                 Text("${actual.servicio.nombre} · $fechaLegible · ${actual.cita.hora}",
-                                    color = Azul, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                    color = Azul, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                             }
                         }
                     }
                 }
 
-                Text("Registro clínico", fontSize = 17.sp, color = Texto, fontWeight = FontWeight.Bold)
+                Text("Registro clínico", fontSize = 22.sp,
+                    color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.ExtraBold)
 
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(
@@ -156,7 +168,7 @@ fun AtenderCitaScreen(
                     )
                     Surface(
                         modifier = Modifier.weight(1f).height(65.dp),
-                        color = Color(0xFFEEF5FF), shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .48f), shape = RoundedCornerShape(16.dp),
                         border = BorderStroke(1.dp, Color(0xFFD8E7FF))
                     ) {
                         Column(Modifier.padding(11.dp), verticalArrangement = Arrangement.Center) {
@@ -164,15 +176,15 @@ fun AtenderCitaScreen(
                                 Icon(Icons.Filled.Favorite, null, tint = Color(0xFFEF476F),
                                     modifier = Modifier.size(17.dp))
                                 Spacer(Modifier.width(5.dp))
-                                Text("Peso anterior", fontSize = 12.sp, color = Gris)
+                                Text("Peso anterior", fontSize = 13.sp, color = Gris)
                             }
-                            Text("${"%.1f".format(Locale.US, mascota.peso)} kg", fontSize = 16.sp,
+                            Text("${"%.1f".format(Locale.US, mascota.peso)} kg", fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold, color = Texto)
                         }
                     }
                 }
                 if (errorPeso != null) {
-                    Text(errorPeso.orEmpty(), fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
+                    Text(errorPeso.orEmpty(), fontSize = 13.sp, color = MaterialTheme.colorScheme.error)
                 }
 
                 OutlinedTextField(
@@ -184,7 +196,7 @@ fun AtenderCitaScreen(
                     shape = RoundedCornerShape(14.dp)
                 )
                 if (errorDiagnostico != null) {
-                    Text(errorDiagnostico.orEmpty(), fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
+                    Text(errorDiagnostico.orEmpty(), fontSize = 13.sp, color = MaterialTheme.colorScheme.error)
                 }
 
                 OutlinedTextField(
@@ -203,23 +215,23 @@ fun AtenderCitaScreen(
                             if (pesoNuevo != null && pesoNuevo > 0.0)
                                 "Se actualizará el peso de ${mascota.nombre} a ${"%.1f".format(Locale.US, pesoNuevo)} kg"
                             else "Al registrar se actualizará el peso de ${mascota.nombre}",
-                            fontSize = 12.sp, color = Gris
+                            fontSize = 13.sp, color = Gris
                         )
                     }
                 }
 
                 if (!disponible) {
-                    Text("La cita ya está ${actual.cita.estado.lowercase()}.", color = Gris, fontSize = 14.sp)
+                    Text("La cita ya está ${actual.cita.estado.lowercase()}.", color = Gris, fontSize = 15.sp)
                 }
 
                 Button(
-                    onClick = { vm.registrar(diagnostico, tratamiento, peso) },
+                    onClick = { fueCancelacion = false; vm.registrar(diagnostico, tratamiento, peso) },
                     enabled = disponible && !procesando,
-                    modifier = Modifier.fillMaxWidth().height(53.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Azul),
                     shape = RoundedCornerShape(13.dp)
                 ) {
-                    Text("Registrar atención", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Registrar atención", fontSize = 17.sp, fontWeight = FontWeight.Bold)
                 }
 
                 OutlinedButton(
@@ -230,7 +242,7 @@ fun AtenderCitaScreen(
                     shape = RoundedCornerShape(13.dp)
                 ) {
                     Text("Cancelar cita", fontWeight = FontWeight.Bold,
-                        color = Color(0xFFDC2626), fontSize = 15.sp)
+                        color = Color(0xFFDC2626), fontSize = 16.sp)
                 }
                 Spacer(Modifier.height(12.dp))
             }
@@ -243,7 +255,7 @@ fun AtenderCitaScreen(
             title = { Text("Cancelar cita") },
             text = { Text("¿Seguro que deseas cancelar esta cita?") },
             confirmButton = {
-                TextButton(onClick = { pedirCancelar = false; vm.cancelar() }) {
+                TextButton(onClick = { pedirCancelar = false; fueCancelacion = true; vm.cancelar() }) {
                     Text("Sí, cancelar", color = Color(0xFFDC2626))
                 }
             },

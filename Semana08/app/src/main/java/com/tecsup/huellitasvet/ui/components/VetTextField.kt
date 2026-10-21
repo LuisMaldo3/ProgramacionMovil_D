@@ -62,7 +62,7 @@ fun VetTextField(
             keyboardType = tipoTeclado
         ),
 
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(15.dp),
 
         modifier = modifier.fillMaxWidth(),
 

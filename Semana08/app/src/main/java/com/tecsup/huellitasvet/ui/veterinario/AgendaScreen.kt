@@ -29,9 +29,9 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val AzulAgenda = Color(0xFF1D4ED8)
-private val FondoAgenda = Color(0xFFF7F9FF)
-private val TextoAgenda = Color(0xFF1F2937)
+private val AzulAgenda = Color(0xFF2458DE)
+private val FondoAgenda = Color(0xFFF7FAFF)
+private val TextoAgenda = Color(0xFF172B3A)
 private val GrisAgenda = Color(0xFF8390A0)
 
 @Composable
@@ -67,7 +67,7 @@ fun AgendaScreen(
                     Icon(Icons.Filled.ArrowBack, contentDescription = "Volver", tint = TextoAgenda)
                 }
                 Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                    Text("Agenda", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextoAgenda)
+                    Text("Agenda", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextoAgenda)
                 }
                 Spacer(Modifier.width(48.dp))
             }
@@ -92,7 +92,7 @@ fun AgendaScreen(
                         border = if (activo) null else BorderStroke(1.dp, Color(0xFFE2E8F0)),
                         shape = RoundedCornerShape(30.dp)
                     ) {
-                        Text(etiqueta, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+                        Text(etiqueta, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.padding(horizontal = 15.dp, vertical = 10.dp))
                     }
                 }
@@ -100,7 +100,7 @@ fun AgendaScreen(
 
             if (citas.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No hay citas para esta fecha", color = GrisAgenda, fontSize = 14.sp)
+                    Text("No hay citas para esta fecha", color = GrisAgenda, fontSize = 15.sp)
                 }
             } else {
                 LazyColumn(
@@ -155,7 +155,7 @@ private fun FilaAgenda(
             Modifier.width(65.dp).height(108.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            Text(cita.hora, color = AzulAgenda, fontSize = 12.sp,
+            Text(cita.hora, color = AzulAgenda, fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 12.dp))
             Spacer(Modifier.height(9.dp))
             Box(Modifier.padding(start = 51.dp).width(2.dp).height(72.dp)
@@ -164,7 +164,7 @@ private fun FilaAgenda(
         Spacer(Modifier.width(5.dp))
         Surface(
             modifier = Modifier.weight(1f).heightIn(min = 108.dp),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp),
             border = BorderStroke(1.dp, Color(0xFFE2E8F0))
         ) {
@@ -178,12 +178,12 @@ private fun FilaAgenda(
                     Column(Modifier.weight(1f)) {
                         Text("${item.mascota.mascota.nombre} · ${item.servicio.nombre}",
                             maxLines = 2, overflow = TextOverflow.Ellipsis,
-                            fontWeight = FontWeight.Bold, fontSize = 12.sp, color = TextoAgenda)
+                            fontWeight = FontWeight.Bold, fontSize = 13.sp, color = TextoAgenda)
                         Spacer(Modifier.height(4.dp))
                         val duenio = item.mascota.dueno.nombre.trim().split(" ")
                         val nombreBreve = duenio.firstOrNull().orEmpty() + " " +
                             (duenio.getOrNull(1)?.firstOrNull()?.let { "$it." } ?: "")
-                        Text("Dueño: $nombreBreve", fontSize = 12.sp, color = GrisAgenda,
+                        Text("Dueño: $nombreBreve", fontSize = 13.sp, color = GrisAgenda,
                             maxLines = 1)
                     }
                     if (estado == "PENDIENTE" || estado == "CONFIRMADA") {
@@ -211,7 +211,7 @@ private fun FilaAgenda(
                         else -> Triple("Cancelada", Color(0xFFFEE2E2), Color(0xFFDC2626))
                     }
                     Surface(color = fondo, shape = RoundedCornerShape(30.dp)) {
-                        Text(titulo, fontSize = 12.sp, color = letra,
+                        Text(titulo, fontSize = 13.sp, color = letra,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
                     }
@@ -225,7 +225,7 @@ private fun FilaAgenda(
                             contentPadding = PaddingValues(horizontal = 15.dp),
                             shape = RoundedCornerShape(30.dp)
                         ) {
-                            Text(if (estado == "PENDIENTE") "Confirmar" else "Atender", fontSize = 12.sp)
+                            Text(if (estado == "PENDIENTE") "Confirmar" else "Atender", fontSize = 13.sp)
                         }
                     }
                 }
