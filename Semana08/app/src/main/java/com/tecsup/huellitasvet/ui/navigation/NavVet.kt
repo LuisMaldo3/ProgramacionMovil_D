@@ -25,6 +25,7 @@ import com.tecsup.huellitasvet.ui.dueno.FichaMascotaScreen
 import com.tecsup.huellitasvet.ui.dueno.FormularioMascotaScreen
 import com.tecsup.huellitasvet.ui.dueno.InicioScreen
 import com.tecsup.huellitasvet.ui.dueno.LoginScreen
+import com.tecsup.huellitasvet.ui.dueno.ReprogramarCitaScreen
 import com.tecsup.huellitasvet.ui.dueno.MisCitasScreen
 import com.tecsup.huellitasvet.ui.dueno.PerfilScreen
 import com.tecsup.huellitasvet.ui.dueno.PedirCitaScreen
@@ -46,6 +47,7 @@ import com.tecsup.huellitasvet.viewmodel.AgendaViewModel
 import com.tecsup.huellitasvet.viewmodel.AtenderCitaViewModel
 import com.tecsup.huellitasvet.viewmodel.PacientesViewModel
 import com.tecsup.huellitasvet.viewmodel.MascotaViewModel
+import com.tecsup.huellitasvet.viewmodel.ReprogramarCitaViewModel
 import com.tecsup.huellitasvet.viewmodel.MisCitasViewModel
 import com.tecsup.huellitasvet.viewmodel.PedirCitaViewModel
 import com.tecsup.huellitasvet.viewmodel.ServiciosViewModel
@@ -56,6 +58,7 @@ import kotlinx.coroutines.launch
 private const val FICHA_RUTA = "ficha_mascota/{mascotaId}"
 private const val FORMULARIO_RUTA = "formulario_mascota"
 private const val EDITAR_RUTA = "editar_mascota/{mascotaId}"
+private const val REPROGRAMAR_CITA_RUTA = "reprogramar_cita/{citaId}"
 private const val PEDIR_CITA_RUTA = "pedir_cita?mascotaId={mascotaId}"
 private const val ATENDER_RUTA = "atender_cita/{citaId}"
 private const val FICHA_PACIENTE_RUTA = "ficha_paciente/{mascotaId}"
@@ -367,11 +370,42 @@ fun NavVet(app: VetApp) {
                             if (!navController.popBackStack()) irTab(Rutas.INICIO)
                         },
                         onPedirCita = { navController.navigate(Rutas.PEDIR_CITA) },
-                        onSeleccionarTab = { irTab(it) }
+                        onSeleccionarTab = { irTab(it) },
+                        onReprogramar = { citaId -> navController.navigate("reprogramar_cita/$citaId") }
                     )
                 } else {
                     EsperandoSesion()
                 }
+            }
+        }
+        // FASE 2 - reprogramacion: nuevo destino, preservando ID, precio y estado de la cita.
+        composable(
+            route = REPROGRAMAR_CITA_RUTA,
+            arguments = listOf(navArgument("citaId") { type = NavType.IntType })
+        ) { entry ->
+            VetTheme(rol = Rol.CLIENTE, oscuro = oscuro) {
+                val citaId = entry.arguments?.getInt("citaId") ?: 0
+                if (idDueno > 0 && citaId > 0) {
+                    val vm: ReprogramarCitaViewModel = viewModel(
+                        key = "reprogramar_${idDueno}_$citaId",
+                        factory = remember(app, idDueno, citaId) {
+                            object : ViewModelProvider.Factory {
+                                @Suppress("UNCHECKED_CAST")
+                                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                    if (modelClass.isAssignableFrom(ReprogramarCitaViewModel::class.java)) {
+                                        return ReprogramarCitaViewModel(app.repository, idDueno, citaId) as T
+                                    }
+                                    throw IllegalArgumentException("ViewModel desconocido")
+                                }
+                            }
+                        }
+                    )
+                    ReprogramarCitaScreen(
+                        vm = vm,
+                        onVolver = { navController.popBackStack() },
+                        onGuardada = { navController.popBackStack() }
+                    )
+                } else EsperandoSesion()
             }
         }
         // PASO 13: perfil y preferencias del dueño.

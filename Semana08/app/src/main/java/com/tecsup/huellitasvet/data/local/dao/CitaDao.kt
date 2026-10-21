@@ -74,6 +74,25 @@ interface CitaDao {
     ): Flow<List<String>>
 
 
+    @Query("""
+        SELECT c.id AS citaId, c.hora AS hora, s.duracionMin AS duracionMin
+        FROM citas c INNER JOIN servicios s ON s.id = c.servicioId
+        WHERE c.fecha = :fecha AND c.estado != 'CANCELADA'
+        ORDER BY c.hora
+    """)
+    fun observarHorariosConDuracion(fecha: String): Flow<List<com.tecsup.huellitasvet.model.HorarioOcupado>>
+
+    @Query("""
+        SELECT c.id AS citaId, c.hora AS hora, s.duracionMin AS duracionMin
+        FROM citas c INNER JOIN servicios s ON s.id = c.servicioId
+        WHERE c.fecha = :fecha AND c.estado != 'CANCELADA'
+        ORDER BY c.hora
+    """)
+    suspend fun obtenerHorariosConDuracion(fecha: String): List<com.tecsup.huellitasvet.model.HorarioOcupado>
+
+    @Query("UPDATE citas SET fecha = :fecha, hora = :hora WHERE id = :id")
+    suspend fun actualizarHorario(id: Int, fecha: String, hora: String)
+
     // CONSULTAS DE CITAS
 
     @Transaction

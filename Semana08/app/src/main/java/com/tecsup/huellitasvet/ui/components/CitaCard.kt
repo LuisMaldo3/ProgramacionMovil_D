@@ -61,7 +61,9 @@ fun CitaCard(
     mostrarCancelar: Boolean,
     cancelando: Boolean,
     onCancelar: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    mostrarReprogramar: Boolean = false,
+    onReprogramar: () -> Unit = {}
 ) {
     val verde = Color(0xFF059669)
     val texto = Color(0xFF1F2937)
@@ -182,33 +184,27 @@ fun CitaCard(
             }
 
             // Cancelar
-            if (mostrarCancelar) {
-
-                TextButton(
-                    onClick = onCancelar,
-                    enabled = !cancelando,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(
-                            end = 8.dp,
-                            bottom = 5.dp
-                        ),
-                    contentPadding = PaddingValues(
-                        horizontal = 8.dp,
-                        vertical = 3.dp
-                    )
+            if (mostrarCancelar || mostrarReprogramar) {
+                Row(
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(end = 8.dp, bottom = 5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-
-                    Text(
-                        text = if (cancelando) {
-                            "Cancelando..."
-                        } else {
-                            "Cancelar"
-                        },
-                        color = Color(0xFFDC2626),
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 12.sp
-                    )
+                    if (mostrarReprogramar) {
+                        TextButton(onClick = onReprogramar, enabled = !cancelando) {
+                            Text("Reprogramar", color = verde, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                        }
+                    }
+                    if (mostrarCancelar) {
+                        TextButton(onClick = onCancelar, enabled = !cancelando) {
+                            Text(
+                                if (cancelando) "Cancelando..." else "Cancelar",
+                                color = Color(0xFFDC2626),
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
                 }
             }
         }

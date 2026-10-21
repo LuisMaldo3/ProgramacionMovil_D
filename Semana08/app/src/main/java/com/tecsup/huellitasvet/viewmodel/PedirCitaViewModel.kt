@@ -7,6 +7,8 @@ import com.tecsup.huellitasvet.data.local.entity.Servicio
 import com.tecsup.huellitasvet.data.prefs.PreferenciasStore
 import com.tecsup.huellitasvet.data.repository.VetRepository
 import com.tecsup.huellitasvet.model.Horarios
+import com.tecsup.huellitasvet.model.HorarioOcupado
+import com.tecsup.huellitasvet.model.DisponibilidadCitas
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -92,6 +94,7 @@ class PedirCitaViewModel(
     fun elegirServicio(id: Int) {
         if (servicios.value.any { it.id == id && it.activo }) {
             _servicioId.value = id
+            _hora.value = null
             _error.value = null
         }
     }
@@ -104,14 +107,16 @@ class PedirCitaViewModel(
         _error.value = null
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val ocupacionDetallada: StateFlow<List<HorarioOcupado>> = _fecha
+        .flatMapLatest { dia -> repo.observarHorariosConDuracion(dia.toString()) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     fun horaDeshabilitada(turno: String): Boolean {
-        if (turno in horasOcupadas.value) return true
-        return try {
-            !LocalDateTime.of(_fecha.value, LocalTime.parse(turno))
-                .isAfter(LocalDateTime.now())
-        } catch (_: Exception) {
-            true
-        }
+        val duracion = servicios.value.firstOrNull { it.id == _servicioId.value }?.duracionMin
+            ?: return true
+        return !DisponibilidadCitas.permitido(_fecha.value, turno, duracion) ||
+            !DisponibilidadCitas.libre(turno, duracion, ocupacionDetallada.value)
     }
 
     fun elegirHora(turno: String) {

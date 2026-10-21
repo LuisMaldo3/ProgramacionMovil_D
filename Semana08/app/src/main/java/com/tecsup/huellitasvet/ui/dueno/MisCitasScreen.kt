@@ -37,7 +37,8 @@ fun MisCitasScreen(
     vm: MisCitasViewModel,
     onVolver: () -> Unit,
     onPedirCita: () -> Unit,
-    onSeleccionarTab: (String) -> Unit
+    onSeleccionarTab: (String) -> Unit,
+    onReprogramar: (Int) -> Unit
 ) {
 
     val proximas by vm.proximas.collectAsState()
@@ -284,7 +285,9 @@ fun MisCitasScreen(
                             cancelandoId == detalle.cita.id,
                         onCancelar = {
                             confirmar = detalle
-                        }
+                        },
+                        mostrarReprogramar = pestana == 0 && vm.puedeCancelar(detalle),
+                        onReprogramar = { onReprogramar(detalle.cita.id) }
                     )
                 }
             }

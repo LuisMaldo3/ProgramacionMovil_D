@@ -12,6 +12,12 @@ import com.tecsup.huellitasvet.data.local.relation.CitaConDetalle
 import com.tecsup.huellitasvet.data.local.relation.MascotaConDueno
 import com.tecsup.huellitasvet.model.ConteoServicio
 import com.tecsup.huellitasvet.model.EstadoCita
+import com.tecsup.huellitasvet.model.DisponibilidadCitas
+import com.tecsup.huellitasvet.model.HorarioOcupado
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.Duration
 
 import kotlinx.coroutines.flow.Flow
 
@@ -134,12 +140,14 @@ class VetRepositoryRoom(
                 "El servicio no está disponible"
             }
 
-            val ocupadas = citaDao.contarOcupadas(
-                fecha,
-                hora
-            )
-
-            require(ocupadas == 0) {
+            val dia = runCatching { LocalDate.parse(fecha) }.getOrNull()
+                ?: throw IllegalArgumentException("La fecha es inválida")
+            require(DisponibilidadCitas.permitido(dia, hora, servicio.duracionMin)) {
+                "La fecha o el horario no están disponibles"
+            }
+            require(DisponibilidadCitas.libre(
+                hora, servicio.duracionMin, citaDao.obtenerHorariosConDuracion(fecha)
+            )) {
                 "El horario seleccionado ya está ocupado"
             }
 
@@ -194,6 +202,44 @@ class VetRepositoryRoom(
         mascotaId: Int
     ): Flow<List<com.tecsup.huellitasvet.model.PuntoPeso>> {
         return citaDao.observarHistorialPeso(mascotaId)
+    }
+
+    // FASE 2 - Reprogramación segura: propiedad, estado, plazo y conflictos dentro de una transacción.
+    override fun observarHorariosConDuracion(fecha: String): Flow<List<HorarioOcupado>> =
+        citaDao.observarHorariosConDuracion(fecha)
+
+    override suspend fun reprogramarCita(citaId: Int, duenoId: Int, fecha: String, hora: String) {
+        db.withTransaction {
+            val cita = citaDao.obtener(citaId)
+                ?: throw IllegalArgumentException("La cita no existe")
+            require(mascotaDao.obtenerDuenoId(cita.mascotaId) == duenoId) {
+                "Esta cita no pertenece a tu cuenta"
+            }
+            require(cita.estado in setOf("PENDIENTE", "CONFIRMADA")) {
+                "Solo puedes reprogramar citas pendientes o confirmadas"
+            }
+            val fechaOriginal = runCatching {
+                LocalDateTime.of(LocalDate.parse(cita.fecha), LocalTime.parse(cita.hora))
+            }.getOrNull() ?: throw IllegalArgumentException("La fecha original no es válida")
+            require(Duration.between(LocalDateTime.now(), fechaOriginal) > Duration.ofHours(2)) {
+                "No puedes reprogramar una cita a 2 horas o menos"
+            }
+            require(fecha != cita.fecha || hora != cita.hora) {
+                "Selecciona una fecha u hora diferente"
+            }
+            val nuevaFecha = runCatching { LocalDate.parse(fecha) }.getOrNull()
+                ?: throw IllegalArgumentException("La fecha seleccionada no es válida")
+            val servicio = servicioDao.obtener(cita.servicioId)
+                ?: throw IllegalArgumentException("No se encontró el servicio")
+            require(DisponibilidadCitas.permitido(nuevaFecha, hora, servicio.duracionMin)) {
+                "Selecciona un día y horario disponibles dentro de los próximos 7 días"
+            }
+            val ocupados = citaDao.obtenerHorariosConDuracion(fecha)
+            require(DisponibilidadCitas.libre(hora, servicio.duracionMin, ocupados, citaId)) {
+                "Ese horario ya está ocupado. Selecciona otro"
+            }
+            citaDao.actualizarHorario(citaId, fecha, hora)
+        }
     }
 
     // CAMBIAR ESTADO

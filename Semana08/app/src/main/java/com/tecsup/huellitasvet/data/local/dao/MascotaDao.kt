@@ -57,6 +57,9 @@ interface MascotaDao {
     """)
     fun observarTodas(): Flow<List<MascotaConDueno>>
 
+    @Query("SELECT duenoId FROM mascotas WHERE id = :mascotaId")
+    suspend fun obtenerDuenoId(mascotaId: Int): Int?
+
     @Query("""
         SELECT COUNT(*) FROM citas
         WHERE mascotaId = :mascotaId

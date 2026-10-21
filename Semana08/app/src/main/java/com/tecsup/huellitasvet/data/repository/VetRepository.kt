@@ -31,6 +31,8 @@ interface VetRepository {
     fun observarCita(id: Int): Flow<CitaConDetalle?>
     fun observarHistorial(mascotaId: Int): Flow<List<CitaConDetalle>>
     fun observarHistorialPeso(mascotaId: Int): Flow<List<com.tecsup.huellitasvet.model.PuntoPeso>>
+    fun observarHorariosConDuracion(fecha: String): Flow<List<com.tecsup.huellitasvet.model.HorarioOcupado>>
+    suspend fun reprogramarCita(citaId: Int, duenoId: Int, fecha: String, hora: String)
     suspend fun cambiarEstadoCita(id: Int, estado: EstadoCita)
     suspend fun registrarAtencion(citaId: Int, diagnostico: String, tratamiento: String, peso: Double)
 
