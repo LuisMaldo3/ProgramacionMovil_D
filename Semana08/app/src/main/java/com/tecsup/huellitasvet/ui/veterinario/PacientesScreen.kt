@@ -1,15 +1,16 @@
 package com.tecsup.huellitasvet.ui.veterinario
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,12 +20,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.tecsup.huellitasvet.model.Especie
+import com.tecsup.huellitasvet.ui.components.AppTopBar
 import com.tecsup.huellitasvet.ui.components.HistorialItem
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
 import com.tecsup.huellitasvet.ui.components.MascotaAvatar
+import com.tecsup.huellitasvet.ui.components.VetEmptyState
 import com.tecsup.huellitasvet.ui.navigation.Rutas
 import com.tecsup.huellitasvet.viewmodel.PacienteResumen
 import com.tecsup.huellitasvet.viewmodel.PacientesViewModel
@@ -32,12 +32,6 @@ import java.time.LocalDate
 import java.time.Year
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-
-private val Azul = Color(0xFF1D4ED8)
-private val Fondo = Color(0xFFF7F9FF)
-private val Texto = Color(0xFF1F2937)
-private val Gris = Color(0xFF8A94A2)
-private val Borde = Color(0xFFE2E8F0)
 
 @Composable
 fun PacientesScreen(
@@ -51,56 +45,65 @@ fun PacientesScreen(
     val pacientes by vm.pacientes.collectAsState()
 
     Scaffold(
-        containerColor = Fondo,
-        topBar = { CabeceraPacientes("Pacientes", onVolver) },
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            AppTopBar(
+                titulo = "Pacientes",
+                onVolver = onVolver
+            )
+        },
         bottomBar = { BarraNavegacionVeterinario(Rutas.PACIENTES, onSeleccionarTab) }
     ) { inner ->
-        Column(Modifier.fillMaxSize().padding(inner)) {
-            OutlinedTextField(
-                value = texto, onValueChange = vm::buscar,
-                placeholder = { Text("Buscar mascota o dueño...", color = Gris, fontSize = 13.sp) },
-                leadingIcon = { Icon(Icons.Filled.Search, null, tint = Gris) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp).height(55.dp),
-                shape = RoundedCornerShape(15.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedBorderColor = Azul,
-                    unfocusedBorderColor = Borde
-                )
-            )
-            Row(
-                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
-                    .padding(horizontal = 22.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(inner)
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                listOf("TODOS" to "Todos", "PERRO" to "Perros", "GATO" to "Gatos", "OTRO" to "Otros")
-                    .forEach { (valor, titulo) ->
-                        val activo = filtro == valor
-                        Surface(
-                            onClick = { vm.filtrarPorEspecie(valor) },
-                            color = if (activo) Azul else Color.White,
-                            contentColor = if (activo) Color.White else Texto,
-                            shape = RoundedCornerShape(25.dp),
-                            border = if (activo) null else BorderStroke(1.dp, Borde)
-                        ) {
-                            Text(
-                                titulo, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp)
+                OutlinedTextField(
+                    value = texto,
+                    onValueChange = vm::buscar,
+                    placeholder = { Text("Buscar mascota o dueño...") },
+                    leadingIcon = { Icon(Icons.Filled.Search, null) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf("TODOS" to "Todos", "PERRO" to "Perros", "GATO" to "Gatos", "OTRO" to "Otros")
+                        .forEach { (valor, titulo) ->
+                            val activo = filtro == valor
+                            FilterChip(
+                                selected = activo,
+                                onClick = { vm.filtrarPorEspecie(valor) },
+                                label = { Text(titulo, fontWeight = FontWeight.SemiBold) },
+                                shape = RoundedCornerShape(20.dp)
                             )
                         }
-                    }
-            }
-            if (pacientes.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No se encontraron pacientes", color = Gris)
                 }
+            }
+
+            if (pacientes.isEmpty()) {
+                VetEmptyState(
+                    titulo = "No se encontraron pacientes",
+                    descripcion = "Prueba realizando una búsqueda por otro nombre o cambiando el filtro de especie.",
+                    icono = Icons.Default.Groups,
+                    modifier = Modifier.padding(top = 30.dp)
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 22.dp, end = 22.dp, top = 3.dp, bottom = 20.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(pacientes, key = { it.datos.mascota.id }) { paciente ->
                         TarjetaPaciente(paciente) { onPaciente(paciente.datos.mascota.id) }
@@ -115,39 +118,64 @@ fun PacientesScreen(
 private fun TarjetaPaciente(paciente: PacienteResumen, onClick: () -> Unit) {
     val mascota = paciente.datos.mascota
     val dueno = paciente.datos.dueno
-    val especie = runCatching { Especie.valueOf(mascota.especie) }.getOrDefault(Especie.OTRO)
+    val especie = runCatching { Especie.valueOf(mascota.especie.uppercase()) }.getOrDefault(Especie.OTRO)
     val edad = (Year.now().value - mascota.anioNacimiento).coerceAtLeast(0)
-    val nombreBreve = dueno.nombre.trim().split(" ").let { partes ->
-        partes.firstOrNull().orEmpty() + (partes.getOrNull(1)?.firstOrNull()?.let { " $it." } ?: "")
-    }
     val fecha = paciente.ultimaVisita?.let { fechaBreve(it) } ?: "Sin visitas"
-    Surface(
+
+    ElevatedCard(
         onClick = onClick,
-        color = Color.White,
-        shape = RoundedCornerShape(15.dp),
-        border = BorderStroke(1.dp, Borde),
-        modifier = Modifier.fillMaxWidth().heightIn(min = 91.dp)
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            MascotaAvatar(especie = especie, tamano = 56.dp)
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(mascota.nombre, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Texto)
-                Text("${mascota.raza} · $edad años", fontSize = 12.sp, color = Gris,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("Dueño: $nombreBreve", fontSize = 12.sp, color = Gris)
-                Text(if (paciente.ultimaVisita != null) "Última visita: $fecha" else fecha,
-                    fontSize = 12.sp, color = Gris)
+            MascotaAvatar(especie = especie, tamano = 60.dp)
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = mascota.nombre,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "${mascota.raza} · $edad años",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Dueño: ${dueno.nombre}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Última visita: $fecha",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
             }
-            Icon(Icons.Filled.ChevronRight, "Ver ficha", tint = Gris, modifier = Modifier.size(22.dp))
+
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = "Ver ficha",
+                tint = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
 
-// Ficha clínica de solo lectura para el veterinario. No permite editar ni borrar mascotas.
 @Composable
 fun FichaPacienteScreen(vm: PacientesViewModel, mascotaId: Int, onVolver: () -> Unit) {
     val pacientes by vm.todos.collectAsState()
@@ -155,42 +183,100 @@ fun FichaPacienteScreen(vm: PacientesViewModel, mascotaId: Int, onVolver: () -> 
     val fuente = remember(vm, mascotaId) { vm.historial(mascotaId) }
     val historial by fuente.collectAsState(initial = emptyList())
 
-    Scaffold(containerColor = Fondo, topBar = { CabeceraPacientes("Ficha del paciente", onVolver) }) { inner ->
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            AppTopBar(
+                titulo = "Ficha clínica del paciente",
+                onVolver = onVolver
+            )
+        }
+    ) { inner ->
         Column(
-            Modifier.fillMaxSize().padding(inner).verticalScroll(rememberScrollState())
-                .padding(horizontal = 22.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(inner)
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             if (paciente == null) {
-                Text("Cargando paciente...", color = Gris)
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
             } else {
                 val mascota = paciente.datos.mascota
                 val dueno = paciente.datos.dueno
-                val especie = runCatching { Especie.valueOf(mascota.especie) }.getOrDefault(Especie.OTRO)
+                val especie = runCatching { Especie.valueOf(mascota.especie.uppercase()) }.getOrDefault(Especie.OTRO)
                 val edad = (Year.now().value - mascota.anioNacimiento).coerceAtLeast(0)
-                Surface(color = Color.White, border = BorderStroke(1.dp, Borde), shape = RoundedCornerShape(16.dp)) {
-                    Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
-                        MascotaAvatar(especie = especie, tamano = 70.dp)
-                        Spacer(Modifier.width(12.dp))
-                        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                            Text(mascota.nombre, fontWeight = FontWeight.Bold, color = Texto, fontSize = 19.sp)
-                            Text("${mascota.raza} · $edad años", color = Gris, fontSize = 13.sp)
-                            Text("Dueño: ${dueno.nombre}", color = Gris, fontSize = 13.sp)
-                            Text("Peso actual: ${"%.1f".format(Locale.US, mascota.peso)} kg", color = Azul,
-                                fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(22.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(18.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        MascotaAvatar(especie = especie, tamano = 72.dp)
+
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = mascota.nombre,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "${mascota.raza} · $edad años",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "Dueño: ${dueno.nombre}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "Peso registrado: ${"%.1f".format(Locale.US, mascota.peso)} kg",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
-                Text("Historial clínico", color = Texto, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+
+                Text(
+                    text = "Historial clínico",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
                 if (historial.isEmpty()) {
-                    Text("Aún no tiene atenciones", color = Gris, fontSize = 14.sp)
+                    VetEmptyState(
+                        titulo = "Sin atenciones registradas",
+                        descripcion = "Este paciente aún no registra historial de consultas completadas.",
+                        modifier = Modifier.padding(top = 10.dp)
+                    )
                 } else {
                     historial.forEach { detalle ->
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(), color = Color.White,
-                            shape = RoundedCornerShape(15.dp), border = BorderStroke(1.dp, Borde)
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(18.dp),
+                            colors = CardDefaults.elevatedCardColors(
+                                containerColor = MaterialTheme.colorScheme.surface
+                            )
                         ) {
-                            Column(Modifier.padding(15.dp)) {
+                            Column(Modifier.padding(16.dp)) {
                                 HistorialItem(
                                     fecha = detalle.cita.fecha,
                                     servicio = detalle.servicio.nombre,
@@ -199,7 +285,11 @@ fun FichaPacienteScreen(vm: PacientesViewModel, mascotaId: Int, onVolver: () -> 
                                 )
                                 if (!detalle.cita.tratamiento.isNullOrBlank()) {
                                     Spacer(Modifier.height(8.dp))
-                                    Text("Tratamiento: ${detalle.cita.tratamiento}", fontSize = 12.sp, color = Gris)
+                                    Text(
+                                        text = "Tratamiento: ${detalle.cita.tratamiento}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
                             }
                         }
@@ -207,22 +297,6 @@ fun FichaPacienteScreen(vm: PacientesViewModel, mascotaId: Int, onVolver: () -> 
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun CabeceraPacientes(titulo: String, onVolver: () -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().height(61.dp).padding(horizontal = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onVolver) {
-            Icon(Icons.Filled.ArrowBack, "Volver", tint = Texto)
-        }
-        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
-            Text(titulo, color = Texto, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        }
-        Spacer(Modifier.width(48.dp))
     }
 }
 

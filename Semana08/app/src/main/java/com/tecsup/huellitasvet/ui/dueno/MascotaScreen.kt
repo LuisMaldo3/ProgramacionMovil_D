@@ -16,8 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.tecsup.huellitasvet.ui.components.MascotaAvatar
+import com.tecsup.huellitasvet.ui.components.VetEmptyState
 import com.tecsup.huellitasvet.ui.navigation.Rutas
 import com.tecsup.huellitasvet.viewmodel.InicioViewModel
 import java.time.LocalDate
@@ -30,72 +30,114 @@ fun MascotasScreen(
     onSeleccionarTab: (String) -> Unit
 ) {
     val mascotas by vm.mascotas.collectAsState()
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = { BarraNavegacionDueno(Rutas.MASCOTAS, onSeleccionarTab) },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAgregarMascota, containerColor = MaterialTheme.colorScheme.primary) {
-                Icon(Icons.Default.Add, contentDescription = "Agregar mascota",
-                    tint = MaterialTheme.colorScheme.onPrimary)
+            FloatingActionButton(
+                onClick = onAgregarMascota,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Agregar mascota"
+                )
             }
         }
     ) { inner ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(inner),
-            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(inner),
+            contentPadding = PaddingValues(18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Mis mascotas", style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold)
-                    Text("Tus mejores amigos en un solo lugar",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text = "Mis mascotas",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        text = "Tus mejores amigos registrados en HuellitasVet",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
+
             if (mascotas.isEmpty()) {
                 item {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(top = 65.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Icon(Icons.Default.Pets, null, modifier = Modifier.size(50.dp),
-                            tint = MaterialTheme.colorScheme.primary)
-                        Text("Todavía no has registrado mascotas")
-                        Button(onClick = onAgregarMascota) { Text("Agregar mascota") }
-                    }
+                    VetEmptyState(
+                        titulo = "No tienes mascotas registradas",
+                        descripcion = "Agrega a tu mascota para solicitar citas, ver su historial clínico y llevar un control de su salud.",
+                        icono = Icons.Default.Pets,
+                        accionTexto = "Agregar mascota",
+                        onAccion = onAgregarMascota,
+                        modifier = Modifier.padding(top = 40.dp)
+                    )
                 }
             } else {
                 items(mascotas, key = { it.id }) { mascota ->
                     ElevatedCard(
                         onClick = { onMascota(mascota.id) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(15.dp)
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(15.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(13.dp)
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            MascotaAvatar(especieDe(mascota.especie), tamano = 64.dp)
-                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                Text(mascota.nombre, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                                Text("${mascota.especie.lowercase().replaceFirstChar { it.uppercase() }} · ${mascota.raza}",
-                                    style = MaterialTheme.typography.bodySmall)
+                            MascotaAvatar(especieDe(mascota.especie), tamano = 68.dp)
+
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = mascota.nombre,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+
+                                Text(
+                                    text = "${mascota.especie.lowercase().replaceFirstChar { it.uppercase() }} · ${mascota.raza}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+
                                 val edad = (LocalDate.now().year - mascota.anioNacimiento).coerceAtLeast(0)
-                                Text("$edad ${if (edad == 1) "año" else "años"}",
+                                Text(
+                                    text = "$edad ${if (edad == 1) "año" else "años"} · ${mascota.peso} kg",
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.SemiBold
+                                )
                             }
-                            Icon(Icons.Default.ChevronRight, "Ver mascota",
-                                tint = MaterialTheme.colorScheme.primary)
+
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = "Ver detalles",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
                 }
             }
-            item { Spacer(Modifier.height(55.dp)) }
+
+            item { Spacer(Modifier.height(60.dp)) }
         }
     }
 }

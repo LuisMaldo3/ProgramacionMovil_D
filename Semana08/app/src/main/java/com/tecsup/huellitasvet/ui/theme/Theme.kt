@@ -14,39 +14,48 @@ import com.tecsup.huellitasvet.model.Rol
 @Suppress("DEPRECATION")
 @Composable
 fun VetTheme(rol: Rol = Rol.CLIENTE, oscuro: Boolean = false, content: @Composable () -> Unit) {
-    val primario = if (rol == Rol.CLIENTE) VerdeDueno else AzulVeterinario
-    val contenedor = if (rol == Rol.CLIENTE) VerdeContenedor else AzulContenedor
-    val fondo = if (rol == Rol.CLIENTE) FondoDueno else FondoVeterinario
+    val primario = if (rol == Rol.CLIENTE) VerdePetroleo else AzulProfesional
+    val secundario = if (rol == Rol.CLIENTE) Turquesa else Color(0xFF3B82F6)
+    val contenedor = if (rol == Rol.CLIENTE) VerdeSuave else AzulClaro
+    val fondo = if (rol == Rol.CLIENTE) BlancoCalido else FondoVeterinario
+
     val colores = if (oscuro) darkColorScheme(
-        primary = if (rol == Rol.CLIENTE) Color(0xFF6EE7B7) else Color(0xFF93C5FD),
+        primary = if (rol == Rol.CLIENTE) Turquesa else Color(0xFF60A5FA),
+        secondary = secundario,
         primaryContainer = primario,
-        background = Color(0xFF101827),
-        surface = Color(0xFF162131)
+        secondaryContainer = Color(0xFF1E293B),
+        background = Color(0xFF0F172A),
+        surface = Color(0xFF1E293B),
+        surfaceVariant = Color(0xFF334155),
+        onSurface = Color(0xFFF8FAFC),
+        onBackground = Color(0xFFF8FAFC),
+        onPrimary = Color.White
     ) else lightColorScheme(
         primary = primario,
+        secondary = secundario,
         primaryContainer = contenedor,
+        secondaryContainer = Color(0xFFF1F5F9),
         background = fondo,
         surface = Color.White,
+        surfaceVariant = Color(0xFFF1F5F9),
         onSurface = TextoPrincipal,
-        onBackground = TextoPrincipal
+        onBackground = TextoPrincipal,
+        onPrimary = Color.White
     )
-    // Igualamos barras del sistema con el perfil y el modo oscuro.
-    // No se fija la barra de estado en verde cuando el veterinario está activo.
+
     val activity = LocalContext.current as? Activity
     SideEffect {
         activity?.window?.let { window ->
-            window.statusBarColor = if (oscuro) {
-                android.graphics.Color.rgb(16, 24, 39)
+            val colorBarra = if (oscuro) {
+                android.graphics.Color.rgb(15, 23, 42)
             } else if (rol == Rol.CLIENTE) {
-                android.graphics.Color.rgb(246, 253, 249)
+                android.graphics.Color.rgb(250, 251, 249)
             } else {
-                android.graphics.Color.rgb(247, 249, 255)
+                android.graphics.Color.rgb(248, 250, 252)
             }
-            window.navigationBarColor = if (oscuro) {
-                android.graphics.Color.rgb(16, 24, 39)
-            } else {
-                android.graphics.Color.BLACK
-            }
+            window.statusBarColor = colorBarra
+            window.navigationBarColor = colorBarra
+
             val indicadores = window.decorView.systemUiVisibility
             window.decorView.systemUiVisibility = if (oscuro) {
                 indicadores and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()

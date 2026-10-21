@@ -1,6 +1,7 @@
 package com.tecsup.huellitasvet.ui.veterinario
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,23 +13,23 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Pets
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tecsup.huellitasvet.model.DatoGrafico
+import com.tecsup.huellitasvet.R
 import com.tecsup.huellitasvet.ui.components.graficos.GraficoBarras
 import com.tecsup.huellitasvet.ui.components.graficos.GraficoDona
 import com.tecsup.huellitasvet.ui.navigation.Rutas
@@ -37,13 +38,6 @@ import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-
-private val Azul = Color(0xFF1D4ED8)
-private val FondoVet = Color(0xFFF7F9FF)
-private val TextoVet = Color(0xFF1F2937)
-private val GrisVet = Color(0xFF8792A4)
-private val AmarilloVet = Color(0xFFFFF2C6)
-private val BordeVet = Color(0xFFE2E8F0)
 
 @Composable
 fun PanelScreen(
@@ -59,121 +53,208 @@ fun PanelScreen(
     val porServicio by vm.porServicio.collectAsState()
     val porConfirmar by vm.porConfirmarHoyManana.collectAsState()
     val formato = rememberFormatoMoneda(ingresosMes)
-    val altoDp = LocalConfiguration.current.screenHeightDp
-    val espacio = ((altoDp - 660) / 12).coerceIn(12, 26).dp
+
     val hoy = LocalDate.now().format(
         DateTimeFormatter.ofPattern("EEE d MMM", Locale("es", "PE"))
     ).replaceFirstChar { it.uppercase() }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = FondoVet,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             BarraNavegacionVeterinario(Rutas.PANEL, onSeleccionarTab)
         }
     ) { insets ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(insets)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(insets)
                 .verticalScroll(rememberScrollState())
-                .padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(espacio)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text("Panel de la clínica", fontWeight = FontWeight.Bold,
-                        color = TextoVet, fontSize = 22.sp)
-                    Text("Hoy · $hoy", fontSize = 12.sp, color = GrisVet)
-                }
-                IconButton(onClick = onVerAgenda) {
-                    Icon(Icons.Filled.Notifications, "Ver agenda", tint = TextoVet)
-                }
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                ContadorVet("Citas hoy", citasHoy, Color(0xFFDCEAFE), Azul, Modifier.weight(1f))
-                ContadorVet("Pendientes", pendientes, Color(0xFFFFF2C6), Color(0xFFD97706), Modifier.weight(1f))
-                ContadorVet("Atendidas", atendidas, Color(0xFFE2E8F0), Color(0xFF475569), Modifier.weight(1f))
-            }
-
-            Surface(
-                color = Azul, shape = RoundedCornerShape(17.dp),
-                modifier = Modifier.fillMaxWidth().height(70.dp)
+            // HEADER & BANNER
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             ) {
-                Row(
-                    Modifier.padding(horizontal = 17.dp, vertical = 11.dp),
-                    verticalAlignment = Alignment.Bottom
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text("Ingresos del mes", color = Color.White.copy(alpha = .75f), fontSize = 12.sp)
-                        Text(formato, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp)
-                    }
-                    Text("$atendidas atenciones", color = Color.White, fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 5.dp))
-                }
-            }
+                Column {
+                    Image(
+                        painter = painterResource(id = R.drawable.veterinario_banner),
+                        contentDescription = "Panel Veterinario",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(110.dp)
+                            .clip(RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp))
+                    )
 
-            Text("Citas por estado", color = TextoVet, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-            Surface(
-                color = Color.White, shape = RoundedCornerShape(15.dp),
-                border = BorderStroke(1.dp, BordeVet), modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    Modifier.padding(12.dp).height(102.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(17.dp)
-                ) {
-                    Box(Modifier.size(102.dp), contentAlignment = Alignment.Center) {
-                        GraficoDona(porEstado, Modifier.size(99.dp))
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(porEstado.sumOf { it.valor.toInt() }.toString(),
-                                fontWeight = FontWeight.Bold, fontSize = 20.sp, color = TextoVet)
-                            Text("citas", fontSize = 11.sp, color = GrisVet)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Panel de la clínica",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Hoy · $hoy",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        IconButton(
+                            onClick = onVerAgenda,
+                            modifier = Modifier
+                                .background(
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Notifications,
+                                contentDescription = "Ver agenda",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
-                    Column(
-                        Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        val colores = listOf(
-                            Color(0xFFD97706), Color(0xFF16A34A),
-                            Color(0xFF475569), Color(0xFFDC2626)
+                }
+            }
+
+            // STATS COUNTERS
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                ContadorVetCard("Citas hoy", citasHoy, MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+                ContadorVetCard("Pendientes", pendientes, Color(0xFFFFF7ED), Color(0xFFC2410C), Modifier.weight(1f))
+                ContadorVetCard("Atendidas", atendidas, Color(0xFFEFF6FF), Color(0xFF1D4ED8), Modifier.weight(1f))
+            }
+
+            // MONTHLY REVENUE CARD
+            Surface(
+                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(
+                            text = "Ingresos del mes",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontWeight = FontWeight.Bold
                         )
-                        porEstado.forEachIndexed { i, item ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(Modifier.size(11.dp).background(colores[i % colores.size], RoundedCornerShape(2.dp)))
-                                Spacer(Modifier.width(7.dp))
-                                Text(item.etiqueta, fontSize = 12.sp, modifier = Modifier.weight(1f),
-                                    color = TextoVet, maxLines = 1)
-                                Text(item.valor.toInt().toString(), fontSize = 12.sp,
-                                    color = TextoVet, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = formato,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Surface(
+                        color = Color.White.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = "$atendidas atenciones",
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+            }
+
+            // APPOINTMENTS BY STATUS (DONUT CHART)
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    text = "Citas por estado",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .height(110.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.size(100.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            GraficoDona(porEstado, Modifier.size(96.dp))
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = porEstado.sumOf { it.valor.toInt() }.toString(),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "citas",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
-                    }
-                }
-            }
 
-            Text("Citas por servicio", color = TextoVet, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-            Surface(
-                color = Color.White, shape = RoundedCornerShape(15.dp),
-                border = BorderStroke(1.dp, BordeVet), modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 15.dp, vertical = 12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    if (porServicio.isEmpty()) {
-                        Text("Todavía no hay citas", color = GrisVet, fontSize = 12.sp)
-                    } else {
-                        // Se reutiliza el Canvas que trae el proyecto base.
-                        GraficoBarras(porServicio, Modifier.height(95.dp))
-                        Spacer(Modifier.height(5.dp))
-                        Row(Modifier.fillMaxWidth()) {
-                            porServicio.forEach { servicio ->
-                                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(servicio.valor.toInt().toString(), fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold, color = Azul)
-                                    Text(servicio.etiqueta.substringBefore(' '), fontSize = 11.sp,
-                                        color = GrisVet, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            val colores = listOf(
+                                Color(0xFFF59E0B), Color(0xFF10B981),
+                                Color(0xFF64748B), Color(0xFFEF6461)
+                            )
+                            porEstado.forEachIndexed { i, item ->
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(10.dp)
+                                            .background(colores[i % colores.size], RoundedCornerShape(3.dp))
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        text = item.etiqueta,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.weight(1f),
+                                        maxLines = 1
+                                    )
+                                    Text(
+                                        text = item.valor.toInt().toString(),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
                                 }
                             }
                         }
@@ -181,25 +262,109 @@ fun PanelScreen(
                 }
             }
 
+            // APPOINTMENTS BY SERVICE (BAR CHART)
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    text = "Citas por servicio",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (porServicio.isEmpty()) {
+                            Text(
+                                text = "Aún no hay citas registradas.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        } else {
+                            GraficoBarras(porServicio, Modifier.height(100.dp))
+                            Spacer(Modifier.height(8.dp))
+                            Row(Modifier.fillMaxWidth()) {
+                                porServicio.forEach { servicio ->
+                                    Column(
+                                        modifier = Modifier.weight(1f),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            text = servicio.valor.toInt().toString(),
+                                            style = MaterialTheme.typography.labelLarge,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                        Text(
+                                            text = servicio.etiqueta.substringBefore(' '),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // WARNING ALERT FOR PENDING CONFIRMATIONS
             if (porConfirmar > 0) {
                 Surface(
-                    color = AmarilloVet, shape = RoundedCornerShape(15.dp),
+                    color = Color(0xFFFFF7ED),
+                    shape = RoundedCornerShape(18.dp),
+                    border = BorderStroke(1.dp, Color(0xFFFFEDD5)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(Modifier.padding(13.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.WarningAmber, null, tint = Color(0xFFD97706))
-                        Spacer(Modifier.width(10.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text("$porConfirmar citas por confirmar", fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
-                            Text("para hoy y mañana", fontSize = 12.sp, color = Color(0xFF92400E))
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            color = Color(0xFFFFE4E6),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Filled.Notifications,
+                                    contentDescription = null,
+                                    tint = Color(0xFFC2410C),
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "$porConfirmar citas por confirmar",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF9A3412)
+                            )
+                            Text(
+                                text = "Revisiones para hoy y mañana",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFFC2410C)
+                            )
                         }
                         Button(
                             onClick = onVerAgenda,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD97706)),
-                            contentPadding = PaddingValues(horizontal = 18.dp),
-                            modifier = Modifier.height(35.dp)
-                        ) { Text("Ver", fontSize = 12.sp) }
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC2410C)),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Ver agenda", style = MaterialTheme.typography.labelMedium)
+                        }
                     }
                 }
             }
@@ -215,49 +380,93 @@ private fun rememberFormatoMoneda(ingresos: Double): String {
 }
 
 @Composable
-private fun ContadorVet(
-    titulo: String, valor: Int, fondo: Color, textoColor: Color, modifier: Modifier = Modifier
+private fun ContadorVetCard(
+    titulo: String,
+    valor: Int,
+    containerColor: Color,
+    contentColor: Color,
+    modifier: Modifier = Modifier
 ) {
-    Surface(modifier = modifier.height(75.dp), color = fondo, shape = RoundedCornerShape(16.dp)) {
+    Surface(
+        modifier = modifier.height(82.dp),
+        color = containerColor,
+        shape = RoundedCornerShape(18.dp)
+    ) {
         Column(
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text(valor.toString(), color = textoColor, fontWeight = FontWeight.Bold, fontSize = 26.sp)
-            Text(titulo, color = textoColor, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                text = valor.toString(),
+                color = contentColor,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleLarge
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = titulo,
+                color = contentColor,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }
 
 @Composable
 fun BarraNavegacionVeterinario(
-    seleccionada: String, onSeleccionar: (String) -> Unit
+    seleccionada: String,
+    onSeleccionar: (String) -> Unit
 ) {
     val pestañas = listOf(
         Triple(Rutas.PANEL, "Panel", Icons.Filled.BarChart),
         Triple(Rutas.AGENDA, "Agenda", Icons.Filled.CalendarMonth),
         Triple(Rutas.PACIENTES, "Pacientes", Icons.Filled.Pets),
         Triple(Rutas.SERVICIOS, "Servicios", Icons.Filled.LocalOffer),
-        Triple(Rutas.AJUSTES, "Ajustes", Icons.Filled.Settings)
+        Triple(Rutas.AJUSTES, "Ajustes", Icons.Filled.Person)
     )
-    Surface(color = Color.White, tonalElevation = 0.dp, shadowElevation = 2.dp) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .navigationBarsPadding()
+    ) {
+        HorizontalDivider(
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        )
         Row(
-            Modifier.fillMaxWidth().navigationBarsPadding().height(63.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
                 .padding(horizontal = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             pestañas.forEach { (ruta, nombre, icono) ->
                 val activo = ruta == seleccionada
                 Column(
-                    Modifier.weight(1f).fillMaxHeight().clickable { onSeleccionar(ruta) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { onSeleccionar(ruta) },
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(icono, nombre, tint = if (activo) Azul else Color(0xFF98A2B3),
-                        modifier = Modifier.size(23.dp))
+                    Icon(
+                        imageVector = icono,
+                        contentDescription = nombre,
+                        tint = if (activo) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(22.dp)
+                    )
                     Spacer(Modifier.height(4.dp))
-                    Text(nombre, fontSize = 12.sp, color = if (activo) Azul else Color(0xFF98A2B3),
-                        fontWeight = if (activo) FontWeight.Bold else FontWeight.Normal)
+                    Text(
+                        text = nombre,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (activo) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = if (activo) FontWeight.Bold else FontWeight.Medium
+                    )
                 }
             }
         }
