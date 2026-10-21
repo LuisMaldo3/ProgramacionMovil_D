@@ -82,7 +82,7 @@ fun InicioScreen(
             // En teléfonos más altos, repartimos el espacio para evitar
             // el hueco enorme bajo «Pedir una cita».
             val separacion = ((maxHeight - 538.dp) / 6f)
-                .coerceIn(11.dp, 27.dp)
+                .coerceIn(10.dp, 62.dp)
 
             Column(
                 modifier = Modifier
@@ -109,7 +109,7 @@ fun InicioScreen(
                         Spacer(Modifier.height(2.dp))
                         Text(
                             "¿Cómo están tus mascotas hoy?",
-                            fontSize = 12.sp,
+                            fontSize = 13.sp,
                             color = Gris
                         )
                     }
@@ -135,7 +135,7 @@ fun InicioScreen(
                 ) {
                     Text("Mis mascotas", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Oscuro)
                     Text(
-                        "Ver todas", fontSize = 11.sp,
+                        "Ver todas", fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold, color = Verde,
                         modifier = Modifier.clickable(onClick = onVerMascotas)
                     )
@@ -169,7 +169,7 @@ fun InicioScreen(
                         ) {
                             Icon(Icons.Filled.Add, "Agregar mascota", tint = Verde, modifier = Modifier.size(26.dp))
                             Spacer(Modifier.height(10.dp))
-                            Text("Agregar", color = Verde, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text("Agregar", color = Verde, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -201,9 +201,9 @@ fun InicioScreen(
                             tint = Color(0xFFD97706), modifier = Modifier.size(19.dp))
                         Spacer(Modifier.width(12.dp))
                         Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                            Text("Recordatorio", fontSize = 11.sp,
+                            Text("Recordatorio", fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
-                            Text("Max: refuerzo de vacuna en 5 días", fontSize = 10.sp,
+                            Text("Max: refuerzo de vacuna en 5 días", fontSize = 12.sp,
                                 color = Color(0xFF97501F), maxLines = 1,
                                 overflow = TextOverflow.Ellipsis)
                         }
@@ -236,14 +236,14 @@ private fun TarjetaCitaFiel(detalle: CitaConDetalle?) {
             verticalAlignment = Alignment.Top
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Próxima cita", color = Color(0xFFD3F4E8), fontSize = 11.sp)
+                Text("Próxima cita", color = Color(0xFFD3F4E8), fontSize = 12.sp)
                 Spacer(Modifier.height(5.dp))
                 if (detalle == null) {
                     Text("Aún no tienes citas", color = Color.White,
                         fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     Spacer(Modifier.height(7.dp))
                     Text("Reserva una consulta para tu mascota", color = Color.White,
-                        fontSize = 10.sp, maxLines = 2)
+                        fontSize = 12.sp, maxLines = 2)
                 } else {
                     val c = detalle.cita
                     Text("${detalle.mascota.mascota.nombre} · ${detalle.servicio.nombre}",
@@ -259,13 +259,13 @@ private fun TarjetaCitaFiel(detalle: CitaConDetalle?) {
                         Icon(Icons.Filled.Schedule, null, tint = Color.White,
                             modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(5.dp))
-                        Text("$fecha · ${c.hora}", fontSize = 11.sp,
+                        Text("$fecha · ${c.hora}", fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold, color = Color.White)
                     }
                     Spacer(Modifier.height(4.dp))
                     Surface(color = Color.White, shape = RoundedCornerShape(50.dp)) {
                         Text(if (c.estado == "CONFIRMADA") "Confirmada" else "Pendiente",
-                            color = Verde, fontSize = 10.sp, fontWeight = FontWeight.SemiBold,
+                            color = Verde, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.padding(horizontal = 15.dp, vertical = 2.dp))
                     }
                 }
@@ -306,9 +306,9 @@ private fun TarjetaMascotaFiel(mascota: Mascota, modifier: Modifier, onClick: ()
         ) {
             MascotaAvatar(especieDe(mascota.especie), tamano = 55.dp)
             Spacer(Modifier.height(3.dp))
-            Text(mascota.nombre, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Oscuro,
+            Text(mascota.nombre, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Oscuro,
                 maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text("Ver ficha", fontSize = 10.sp, color = Gris)
+            Text("Ver ficha", fontSize = 12.sp, color = Gris)
         }
     }
 }
@@ -328,7 +328,7 @@ private fun ServicioFiel(titulo: String, icono: ImageVector, modifier: Modifier,
         ) {
             Icon(icono, contentDescription = titulo, tint = Verde, modifier = Modifier.size(24.dp))
             Spacer(Modifier.height(7.dp))
-            Text(titulo, fontSize = 11.sp, color = Oscuro, fontWeight = FontWeight.SemiBold)
+            Text(titulo, fontSize = 12.sp, color = Oscuro, fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -364,7 +364,7 @@ fun BarraNavegacionDueno(seleccionado: String, onSeleccionar: (String) -> Unit) 
                     Icon(icono, contentDescription = etiqueta, modifier = Modifier.size(22.dp),
                         tint = if (activo) Verde else Color(0xFF9CA3AF))
                     Spacer(Modifier.height(4.dp))
-                    Text(etiqueta, fontSize = 9.sp,
+                    Text(etiqueta, fontSize = 12.sp,
                         fontWeight = if (activo) FontWeight.Bold else FontWeight.Normal,
                         color = if (activo) Verde else Color(0xFF9CA3AF),
                         textAlign = TextAlign.Center)

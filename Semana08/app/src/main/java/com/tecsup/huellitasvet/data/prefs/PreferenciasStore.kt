@@ -16,6 +16,7 @@ class PreferenciasStore(private val context: Context) {
         private val PERFIL_ACTIVO = stringPreferencesKey("perfilActivo")
         private val USUARIO_ID = intPreferencesKey("usuarioId")
         private val NOMBRE_USUARIO = stringPreferencesKey("nombreUsuario")
+        private val CORREO_USUARIO = stringPreferencesKey("correoUsuario")
         private val MODO_OSCURO = booleanPreferencesKey("modoOscuro")
         private val NOTIFICACIONES = booleanPreferencesKey("notificaciones")
         private val ACEPTAR_CITAS = booleanPreferencesKey("aceptarCitas")
@@ -24,17 +25,19 @@ class PreferenciasStore(private val context: Context) {
     val perfilActivo: Flow<String> = context.dataStore.data.map { it[PERFIL_ACTIVO] ?: "" }
     val usuarioId: Flow<Int> = context.dataStore.data.map { it[USUARIO_ID] ?: 0 }
     val nombreUsuario: Flow<String> = context.dataStore.data.map { it[NOMBRE_USUARIO] ?: "" }
+    val correoUsuario: Flow<String> = context.dataStore.data.map { it[CORREO_USUARIO] ?: "" }
     val modoOscuro: Flow<Boolean> = context.dataStore.data.map { it[MODO_OSCURO] ?: false }
     val notificaciones: Flow<Boolean> = context.dataStore.data.map { it[NOTIFICACIONES] ?: true }
     val aceptarCitas: Flow<Boolean> = context.dataStore.data.map { it[ACEPTAR_CITAS] ?: true }
 
-    suspend fun guardarSesion(rol: String, usuarioId: Int, nombre: String = "") {
+    suspend fun guardarSesion(rol: String, usuarioId: Int, nombre: String = "", correo: String = "") {
         require(rol == "CLIENTE" || rol == "ADMIN") { "Rol no válido" }
         require(usuarioId > 0) { "Usuario no válido" }
         context.dataStore.edit { p ->
             p[PERFIL_ACTIVO] = rol
             p[USUARIO_ID] = usuarioId
             p[NOMBRE_USUARIO] = nombre
+            p[CORREO_USUARIO] = correo
         }
     }
 
@@ -52,6 +55,7 @@ class PreferenciasStore(private val context: Context) {
             p[PERFIL_ACTIVO] = ""
             p[USUARIO_ID] = 0
             p[NOMBRE_USUARIO] = ""
+            p[CORREO_USUARIO] = ""
         }
     }
 }

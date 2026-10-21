@@ -183,7 +183,7 @@ private fun FilaAgenda(
                         val duenio = item.mascota.dueno.nombre.trim().split(" ")
                         val nombreBreve = duenio.firstOrNull().orEmpty() + " " +
                             (duenio.getOrNull(1)?.firstOrNull()?.let { "$it." } ?: "")
-                        Text("Dueño: $nombreBreve", fontSize = 11.sp, color = GrisAgenda,
+                        Text("Dueño: $nombreBreve", fontSize = 12.sp, color = GrisAgenda,
                             maxLines = 1)
                     }
                     if (estado == "PENDIENTE" || estado == "CONFIRMADA") {
@@ -211,7 +211,7 @@ private fun FilaAgenda(
                         else -> Triple("Cancelada", Color(0xFFFEE2E2), Color(0xFFDC2626))
                     }
                     Surface(color = fondo, shape = RoundedCornerShape(30.dp)) {
-                        Text(titulo, fontSize = 10.sp, color = letra,
+                        Text(titulo, fontSize = 12.sp, color = letra,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
                     }
@@ -225,7 +225,7 @@ private fun FilaAgenda(
                             contentPadding = PaddingValues(horizontal = 15.dp),
                             shape = RoundedCornerShape(30.dp)
                         ) {
-                            Text(if (estado == "PENDIENTE") "Confirmar" else "Atender", fontSize = 11.sp)
+                            Text(if (estado == "PENDIENTE") "Confirmar" else "Atender", fontSize = 12.sp)
                         }
                     }
                 }

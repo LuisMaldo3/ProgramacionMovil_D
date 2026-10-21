@@ -26,11 +26,14 @@ import com.tecsup.huellitasvet.ui.dueno.FormularioMascotaScreen
 import com.tecsup.huellitasvet.ui.dueno.InicioScreen
 import com.tecsup.huellitasvet.ui.dueno.LoginScreen
 import com.tecsup.huellitasvet.ui.dueno.MisCitasScreen
+import com.tecsup.huellitasvet.ui.dueno.PerfilScreen
 import com.tecsup.huellitasvet.ui.dueno.PedirCitaScreen
 import com.tecsup.huellitasvet.ui.dueno.MascotasScreen
 import com.tecsup.huellitasvet.ui.dueno.SplashScreen
 import com.tecsup.huellitasvet.ui.theme.VetTheme
 import com.tecsup.huellitasvet.ui.veterinario.ServiciosScreen
+import com.tecsup.huellitasvet.ui.veterinario.FormularioServicioScreen
+import com.tecsup.huellitasvet.ui.veterinario.AjustesScreen
 import com.tecsup.huellitasvet.ui.veterinario.PanelScreen
 import com.tecsup.huellitasvet.ui.veterinario.AgendaScreen
 import com.tecsup.huellitasvet.ui.veterinario.AtenderCitaScreen
@@ -56,6 +59,8 @@ private const val EDITAR_RUTA = "editar_mascota/{mascotaId}"
 private const val PEDIR_CITA_RUTA = "pedir_cita?mascotaId={mascotaId}"
 private const val ATENDER_RUTA = "atender_cita/{citaId}"
 private const val FICHA_PACIENTE_RUTA = "ficha_paciente/{mascotaId}"
+private const val EDITAR_SERVICIO_RUTA = "editar_servicio/{servicioId}"
+private const val NUEVO_SERVICIO_RUTA = "nuevo_servicio"
 
 @Composable
 fun NavVet(app: VetApp) {
@@ -78,6 +83,9 @@ fun NavVet(app: VetApp) {
     val usuarioActual by sesionVm.usuarioActual.collectAsState()
     val usuarioGuardado by preferencias.usuarioId.collectAsState(initial = 0)
     val nombreGuardado by preferencias.nombreUsuario.collectAsState(initial = "")
+    val correoGuardado by preferencias.correoUsuario.collectAsState(initial = "")
+    val oscuro by preferencias.modoOscuro.collectAsState(initial = false)
+    var errorCambioPerfil by remember { mutableStateOf<String?>(null) }
     val idDueno = usuarioActual?.id ?: usuarioGuardado
 
     fun rutaPerfil(rol: Rol): String =
@@ -141,9 +149,23 @@ fun NavVet(app: VetApp) {
         }
     }
 
+    // Cambio directo solo en el modo práctica: usa las cuentas ficticias del PDF.
+    fun cambiarPerfil(destino: Rol) {
+        scope.launch {
+            if (sesionVm.cambiarPerfilPractica(destino)) {
+                navController.navigate(rutaPerfil(destino)) {
+                    popUpTo(navController.graph.id) { inclusive = false }
+                    launchSingleTop = true
+                }
+            } else {
+                errorCambioPerfil = sesionVm.error.value ?: "No se pudo cambiar el perfil"
+            }
+        }
+    }
+
     NavHost(navController = navController, startDestination = Rutas.SPLASH, modifier = Modifier.fillMaxSize()) {
         composable(Rutas.SPLASH) {
-            VetTheme(rol = Rol.CLIENTE) {
+            VetTheme(rol = Rol.CLIENTE, oscuro = oscuro) {
                 SplashScreen(onContinuar = {
                     scope.launch {
                         val guardado = sesionVm.recuperarRolGuardado()
@@ -164,7 +186,7 @@ fun NavVet(app: VetApp) {
             })
         }
         composable(Rutas.INICIO) {
-            VetTheme(rol = Rol.CLIENTE) {
+            VetTheme(rol = Rol.CLIENTE, oscuro = oscuro) {
                 if (idDueno > 0) {
                     val inicioVm: InicioViewModel = viewModel(
                         key = "inicio_dueno_$idDueno",
@@ -186,7 +208,7 @@ fun NavVet(app: VetApp) {
             }
         }
         composable(Rutas.MASCOTAS) {
-            VetTheme(rol = Rol.CLIENTE) {
+            VetTheme(rol = Rol.CLIENTE, oscuro = oscuro) {
                 if (idDueno > 0) {
                     val vm: InicioViewModel = viewModel(
                         key = "mascotas_dueno_$idDueno",
@@ -209,7 +231,7 @@ fun NavVet(app: VetApp) {
             route = FICHA_RUTA,
             arguments = listOf(navArgument("mascotaId") { type = NavType.IntType })
         ) { entry ->
-            VetTheme(rol = Rol.CLIENTE) {
+            VetTheme(rol = Rol.CLIENTE, oscuro = oscuro) {
                 val mascotaId = entry.arguments?.getInt("mascotaId") ?: 0
                 if (idDueno > 0 && mascotaId > 0) {
                     val vm: MascotaViewModel = viewModel(
@@ -235,7 +257,7 @@ fun NavVet(app: VetApp) {
 
         // Paso 8: formulario REAL para crear una mascota.
         composable(FORMULARIO_RUTA) {
-            VetTheme(rol = Rol.CLIENTE) {
+            VetTheme(rol = Rol.CLIENTE, oscuro = oscuro) {
                 if (idDueno > 0) {
                     val vm: MascotaViewModel = viewModel(
                         key = "nueva_mascota_$idDueno",
@@ -257,7 +279,7 @@ fun NavVet(app: VetApp) {
             route = EDITAR_RUTA,
             arguments = listOf(navArgument("mascotaId") { type = NavType.IntType })
         ) { entry ->
-            VetTheme(rol = Rol.CLIENTE) {
+            VetTheme(rol = Rol.CLIENTE, oscuro = oscuro) {
                 val mascotaId = entry.arguments?.getInt("mascotaId") ?: 0
                 if (idDueno > 0 && mascotaId > 0) {
                     val vm: MascotaViewModel = viewModel(
@@ -286,7 +308,7 @@ fun NavVet(app: VetApp) {
                 defaultValue = -1
             })
         ) { entry ->
-            VetTheme(rol = Rol.CLIENTE) {
+            VetTheme(rol = Rol.CLIENTE, oscuro = oscuro) {
                 if (idDueno > 0) {
                     val inicialId = entry.arguments?.getInt("mascotaId")
                         ?.takeIf { it > 0 }
@@ -298,7 +320,7 @@ fun NavVet(app: VetApp) {
                                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
                                     if (modelClass.isAssignableFrom(PedirCitaViewModel::class.java)) {
                                         return PedirCitaViewModel(
-                                            app.repository, idDueno, inicialId
+                                            app.repository, idDueno, inicialId, preferencias
                                         ) as T
                                     }
                                     throw IllegalArgumentException("ViewModel desconocido")
@@ -323,7 +345,7 @@ fun NavVet(app: VetApp) {
         }
         // PASO 10: Mis citas reales, historial y cancelacion con regla de 2 horas.
         composable(Rutas.MIS_CITAS) {
-            VetTheme(rol = Rol.CLIENTE) {
+            VetTheme(rol = Rol.CLIENTE, oscuro = oscuro) {
                 if (idDueno > 0) {
                     val vm: MisCitasViewModel = viewModel(
                         key = "mis_citas_dueno_$idDueno",
@@ -352,15 +374,27 @@ fun NavVet(app: VetApp) {
                 }
             }
         }
+        // PASO 13: perfil y preferencias del dueño.
         composable(Rutas.PERFIL) {
-            VetTheme(rol = Rol.CLIENTE) {
-                PantallaProximoPaso("Mi perfil", "Se completará en el Paso 13",
-                    onVolver = { navController.popBackStack() }, onCerrarSesion = { salir() })
+            VetTheme(rol = Rol.CLIENTE, oscuro = oscuro) {
+                if (idDueno > 0) {
+                    PerfilScreen(
+                        duenoId = idDueno,
+                        nombre = usuarioActual?.nombre ?: nombreGuardado,
+                        correo = usuarioActual?.correo ?: correoGuardado,
+                        repo = app.repository,
+                        preferencias = preferencias,
+                        onCambiarPerfil = { cambiarPerfil(Rol.ADMIN) },
+                        onCerrarSesion = { salir() },
+                        onVolver = { if (!navController.popBackStack()) irTab(Rutas.INICIO) },
+                        onSeleccionarTab = { irTab(it) }
+                    )
+                } else EsperandoSesion()
             }
         }
         // PASO 11 - PANEL ADMINISTRADOR
         composable(Rutas.PANEL) {
-            VetTheme(rol = Rol.ADMIN) {
+            VetTheme(rol = Rol.ADMIN, oscuro = oscuro) {
                 val vm: PanelViewModel = viewModel(
                     factory = remember(app) {
                         object : ViewModelProvider.Factory {
@@ -380,7 +414,7 @@ fun NavVet(app: VetApp) {
         }
         // PASO 11 - AGENDA VETERINARIO
         composable(Rutas.AGENDA) {
-            VetTheme(rol = Rol.ADMIN) {
+            VetTheme(rol = Rol.ADMIN, oscuro = oscuro) {
                 val vm: AgendaViewModel = viewModel(
                     factory = remember(app) {
                         object : ViewModelProvider.Factory {
@@ -404,7 +438,7 @@ fun NavVet(app: VetApp) {
             route = ATENDER_RUTA,
             arguments = listOf(navArgument("citaId") { type = NavType.IntType })
         ) { entry ->
-            VetTheme(rol = Rol.ADMIN) {
+            VetTheme(rol = Rol.ADMIN, oscuro = oscuro) {
                 val citaId = entry.arguments?.getInt("citaId") ?: 0
                 if (citaId > 0) {
                     val vm: AtenderCitaViewModel = viewModel(
@@ -439,7 +473,7 @@ fun NavVet(app: VetApp) {
 
         // PASO 12: listado de pacientes con búsqueda y filtros.
         composable(Rutas.PACIENTES) {
-            VetTheme(rol = Rol.ADMIN) {
+            VetTheme(rol = Rol.ADMIN, oscuro = oscuro) {
                 val vm: PacientesViewModel = viewModel(
                     key = "pacientes_veterinario",
                     factory = remember(app) {
@@ -470,7 +504,7 @@ fun NavVet(app: VetApp) {
             route = FICHA_PACIENTE_RUTA,
             arguments = listOf(navArgument("mascotaId") { type = NavType.IntType })
         ) { entry ->
-            VetTheme(rol = Rol.ADMIN) {
+            VetTheme(rol = Rol.ADMIN, oscuro = oscuro) {
                 val mascotaId = entry.arguments?.getInt("mascotaId") ?: 0
                 val vm: PacientesViewModel = viewModel(
                     key = "ficha_paciente_vet_$mascotaId",
@@ -493,30 +527,71 @@ fun NavVet(app: VetApp) {
                 )
             }
         }
+        // PASO 13: ajustes del veterinario.
         composable(Rutas.AJUSTES) {
-            VetTheme(rol = Rol.ADMIN) {
-                Scaffold(bottomBar = {
-                    BarraNavegacionVeterinario(Rutas.AJUSTES) { irTabVet(it) }
-                }) { padding ->
-                    Column(Modifier.fillMaxSize().padding(padding).padding(24.dp)) {
-                        Text("Ajustes se completará en el Paso 13")
-                        TextButton(onClick = { salir() }) { Text("Cerrar sesión") }
-                    }
-                }
+            VetTheme(rol = Rol.ADMIN, oscuro = oscuro) {
+                AjustesScreen(
+                    nombre = usuarioActual?.nombre ?: nombreGuardado,
+                    correo = usuarioActual?.correo ?: correoGuardado,
+                    preferencias = preferencias,
+                    onCambiarPerfil = { cambiarPerfil(Rol.CLIENTE) },
+                    onCerrarSesion = { salir() },
+                    onVolver = { if (!navController.popBackStack()) irTabVet(Rutas.PANEL) },
+                    onSeleccionarTab = { irTabVet(it) }
+                )
             }
         }
+        // PASO 13: listado de servicios con agregar y editar.
         composable(Rutas.SERVICIOS) {
-            VetTheme(rol = Rol.ADMIN) {
+            VetTheme(rol = Rol.ADMIN, oscuro = oscuro) {
                 val vm: ServiciosViewModel = viewModel(factory = VetViewModelFactory(app.repository))
-                Scaffold(bottomBar = {
-                    BarraNavegacionVeterinario(Rutas.SERVICIOS) { irTabVet(it) }
-                }) { padding ->
-                    Box(Modifier.fillMaxSize().padding(padding)) {
-                        ServiciosScreen(vm = vm, onEditar = { /* Paso 13 */ })
-                    }
-                }
+                ServiciosScreen(
+                    vm = vm,
+                    onEditar = { id -> navController.navigate("editar_servicio/$id") },
+                    onAgregar = { navController.navigate(NUEVO_SERVICIO_RUTA) },
+                    onVolver = { if (!navController.popBackStack()) irTabVet(Rutas.PANEL) },
+                    onSeleccionarTab = { irTabVet(it) }
+                )
             }
         }
+
+        composable(NUEVO_SERVICIO_RUTA) {
+            VetTheme(rol = Rol.ADMIN, oscuro = oscuro) {
+                val vm: ServiciosViewModel = viewModel(factory = VetViewModelFactory(app.repository))
+                FormularioServicioScreen(
+                    vm = vm,
+                    servicioId = null,
+                    onVolver = { navController.popBackStack() },
+                    onGuardado = { navController.popBackStack() }
+                )
+            }
+        }
+        composable(
+            route = EDITAR_SERVICIO_RUTA,
+            arguments = listOf(navArgument("servicioId") { type = NavType.IntType })
+        ) { entry ->
+            VetTheme(rol = Rol.ADMIN, oscuro = oscuro) {
+                val servicioId = entry.arguments?.getInt("servicioId") ?: 0
+                val vm: ServiciosViewModel = viewModel(factory = VetViewModelFactory(app.repository))
+                FormularioServicioScreen(
+                    vm = vm,
+                    servicioId = servicioId,
+                    onVolver = { navController.popBackStack() },
+                    onGuardado = { navController.popBackStack() }
+                )
+            }
+        }
+
+    }
+    errorCambioPerfil?.let { aviso ->
+        AlertDialog(
+            onDismissRequest = { errorCambioPerfil = null },
+            title = { Text("Cambiar de perfil") },
+            text = { Text(aviso) },
+            confirmButton = {
+                TextButton(onClick = { errorCambioPerfil = null }) { Text("Entendido") }
+            }
+        )
     }
 }
 

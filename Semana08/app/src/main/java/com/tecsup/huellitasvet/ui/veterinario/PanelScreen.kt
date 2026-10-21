@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.huellitasvet.model.DatoGrafico
@@ -58,6 +59,8 @@ fun PanelScreen(
     val porServicio by vm.porServicio.collectAsState()
     val porConfirmar by vm.porConfirmarHoyManana.collectAsState()
     val formato = rememberFormatoMoneda(ingresosMes)
+    val altoDp = LocalConfiguration.current.screenHeightDp
+    val espacio = ((altoDp - 660) / 12).coerceIn(12, 26).dp
     val hoy = LocalDate.now().format(
         DateTimeFormatter.ofPattern("EEE d MMM", Locale("es", "PE"))
     ).replaceFirstChar { it.uppercase() }
@@ -73,7 +76,7 @@ fun PanelScreen(
             modifier = Modifier.fillMaxSize().padding(insets)
                 .verticalScroll(rememberScrollState())
                 .padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(13.dp)
+            verticalArrangement = Arrangement.spacedBy(espacio)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
@@ -104,7 +107,7 @@ fun PanelScreen(
                         Text("Ingresos del mes", color = Color.White.copy(alpha = .75f), fontSize = 12.sp)
                         Text(formato, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp)
                     }
-                    Text("$atendidas atenciones", color = Color.White, fontSize = 11.sp,
+                    Text("$atendidas atenciones", color = Color.White, fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 5.dp))
                 }
             }
@@ -124,7 +127,7 @@ fun PanelScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(porEstado.sumOf { it.valor.toInt() }.toString(),
                                 fontWeight = FontWeight.Bold, fontSize = 20.sp, color = TextoVet)
-                            Text("citas", fontSize = 10.sp, color = GrisVet)
+                            Text("citas", fontSize = 11.sp, color = GrisVet)
                         }
                     }
                     Column(
@@ -139,9 +142,9 @@ fun PanelScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(Modifier.size(11.dp).background(colores[i % colores.size], RoundedCornerShape(2.dp)))
                                 Spacer(Modifier.width(7.dp))
-                                Text(item.etiqueta, fontSize = 11.sp, modifier = Modifier.weight(1f),
+                                Text(item.etiqueta, fontSize = 12.sp, modifier = Modifier.weight(1f),
                                     color = TextoVet, maxLines = 1)
-                                Text(item.valor.toInt().toString(), fontSize = 11.sp,
+                                Text(item.valor.toInt().toString(), fontSize = 12.sp,
                                     color = TextoVet, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -167,9 +170,9 @@ fun PanelScreen(
                         Row(Modifier.fillMaxWidth()) {
                             porServicio.forEach { servicio ->
                                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(servicio.valor.toInt().toString(), fontSize = 11.sp,
+                                    Text(servicio.valor.toInt().toString(), fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold, color = Azul)
-                                    Text(servicio.etiqueta.substringBefore(' '), fontSize = 10.sp,
+                                    Text(servicio.etiqueta.substringBefore(' '), fontSize = 11.sp,
                                         color = GrisVet, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 }
                             }
@@ -189,7 +192,7 @@ fun PanelScreen(
                         Column(Modifier.weight(1f)) {
                             Text("$porConfirmar citas por confirmar", fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
-                            Text("para hoy y mañana", fontSize = 11.sp, color = Color(0xFF92400E))
+                            Text("para hoy y mañana", fontSize = 12.sp, color = Color(0xFF92400E))
                         }
                         Button(
                             onClick = onVerAgenda,
@@ -221,7 +224,7 @@ private fun ContadorVet(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(valor.toString(), color = textoColor, fontWeight = FontWeight.Bold, fontSize = 26.sp)
-            Text(titulo, color = textoColor, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+            Text(titulo, color = textoColor, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -253,7 +256,7 @@ fun BarraNavegacionVeterinario(
                     Icon(icono, nombre, tint = if (activo) Azul else Color(0xFF98A2B3),
                         modifier = Modifier.size(23.dp))
                     Spacer(Modifier.height(4.dp))
-                    Text(nombre, fontSize = 10.sp, color = if (activo) Azul else Color(0xFF98A2B3),
+                    Text(nombre, fontSize = 12.sp, color = if (activo) Azul else Color(0xFF98A2B3),
                         fontWeight = if (activo) FontWeight.Bold else FontWeight.Normal)
                 }
             }

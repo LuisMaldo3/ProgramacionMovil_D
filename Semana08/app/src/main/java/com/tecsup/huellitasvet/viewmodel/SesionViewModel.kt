@@ -62,7 +62,7 @@ class SesionViewModel(
                         _error.value = "Selecciona el perfil que corresponde a esta cuenta"
                     }
                     else -> {
-                        preferencias.guardarSesion(usuario.rol, usuario.id, usuario.nombre)
+                        preferencias.guardarSesion(usuario.rol, usuario.id, usuario.nombre, usuario.correo)
                         _usuarioActual.value = usuario
                     }
                 }
@@ -73,6 +73,31 @@ class SesionViewModel(
             } finally {
                 _cargando.value = false
             }
+        }
+    }
+
+    // Cambio de perfil SOLO para el modo práctica local del laboratorio.
+    // Nunca utilizar credenciales de prueba fijas en una aplicación real.
+    suspend fun cambiarPerfilPractica(destino: Rol): Boolean {
+        return try {
+            val usuario = when (destino) {
+                Rol.CLIENTE -> repo.login("ana@correo.test", "1234")
+                Rol.ADMIN -> repo.login("vet@huellitas.test", "admin")
+            }
+            if (usuario == null || usuario.rol != destino.name) {
+                _error.value = "No se encontró la cuenta de práctica del otro perfil"
+                false
+            } else {
+                preferencias.guardarSesion(usuario.rol, usuario.id, usuario.nombre, usuario.correo)
+                _usuarioActual.value = usuario
+                _error.value = null
+                true
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            _error.value = e.message ?: "No se pudo cambiar de perfil"
+            false
         }
     }
 
