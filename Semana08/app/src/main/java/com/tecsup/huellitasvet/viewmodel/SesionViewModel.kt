@@ -32,6 +32,9 @@ class SesionViewModel(
     private val _registroExitoso = MutableStateFlow(false)
     val registroExitoso: StateFlow<Boolean> = _registroExitoso.asStateFlow()
 
+    private val _ultimoCorreoRegistrado = MutableStateFlow<String?>(null)
+    val ultimoCorreoRegistrado: StateFlow<String?> = _ultimoCorreoRegistrado.asStateFlow()
+
     private val _recuperacionExitosa = MutableStateFlow(false)
     val recuperacionExitosa: StateFlow<Boolean> = _recuperacionExitosa.asStateFlow()
 
@@ -57,7 +60,7 @@ class SesionViewModel(
         clave: String,
         confirmacionClave: String,
         rolSeleccionado: Rol,
-        onExito: (Rol) -> Unit
+        onExito: () -> Unit
     ) {
         val correoLimpio = correo.trim().lowercase()
         val nombreLimpio = nombre.trim()
@@ -88,16 +91,15 @@ class SesionViewModel(
         viewModelScope.launch {
             _cargando.value = true
             try {
-                val nuevoUsuario = repo.registrarUsuario(
+                repo.registrarUsuario(
                     nombre = nombreLimpio,
                     correo = correoLimpio,
                     clave = clave,
                     rol = rolSeleccionado.name
                 )
-                preferencias.guardarSesion(nuevoUsuario.rol, nuevoUsuario.id, nuevoUsuario.nombre, nuevoUsuario.correo)
-                _usuarioActual.value = nuevoUsuario
+                _ultimoCorreoRegistrado.value = correoLimpio
                 _registroExitoso.value = true
-                onExito(rolSeleccionado)
+                onExito()
             } catch (e: IllegalArgumentException) {
                 _error.value = e.message
             } catch (e: CancellationException) {

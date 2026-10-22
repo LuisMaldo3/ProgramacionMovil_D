@@ -51,6 +51,14 @@ fun LoginScreen(
     val error by vm.error.collectAsState()
     val cargando by vm.cargando.collectAsState()
     val oscuro by vm.modoOscuro.collectAsState()
+    val ultimoCorreo by vm.ultimoCorreoRegistrado.collectAsState()
+
+    LaunchedEffect(ultimoCorreo) {
+        if (!ultimoCorreo.isNullOrBlank()) {
+            correo = ultimoCorreo.orEmpty()
+            clave = ""
+        }
+    }
 
     LaunchedEffect(usuario?.id) {
         val sesionRol = usuario?.rol?.let { valor -> Rol.entries.firstOrNull { it.name == valor } }

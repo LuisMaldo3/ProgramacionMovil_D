@@ -231,11 +231,8 @@ fun NavVet(app: VetApp) {
                 onVolverLogin = {
                     navController.popBackStack()
                 },
-                onRegistroExitoso = { rol ->
-                    navController.navigate(rutaPerfil(rol)) {
-                        popUpTo(Rutas.LOGIN) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                onRegistroExitoso = {
+                    navController.popBackStack()
                 }
             )
         }

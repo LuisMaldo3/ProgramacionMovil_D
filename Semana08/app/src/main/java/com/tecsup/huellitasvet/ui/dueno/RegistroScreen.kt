@@ -45,7 +45,7 @@ import com.tecsup.huellitasvet.viewmodel.SesionViewModel
 fun RegistroScreen(
     vm: SesionViewModel,
     onVolverLogin: () -> Unit,
-    onRegistroExitoso: (Rol) -> Unit
+    onRegistroExitoso: () -> Unit = onVolverLogin
 ) {
     var rolNombre by rememberSaveable { mutableStateOf(Rol.CLIENTE.name) }
     val rol = Rol.valueOf(rolNombre)
@@ -320,8 +320,8 @@ fun RegistroScreen(
                                     clave = clave,
                                     confirmacionClave = confirmacionClave,
                                     rolSeleccionado = rol,
-                                    onExito = { rolCreado ->
-                                        onRegistroExitoso(rolCreado)
+                                    onExito = {
+                                        // Éxito registrado en ViewModel
                                     }
                                 )
                             },
@@ -383,18 +383,18 @@ fun RegistroScreen(
                     },
                     text = {
                         Text(
-                            "Tu cuenta para $nombre ha sido creada correctamente. ¡Bienvenido a HuellitasVet!",
+                            "Tu cuenta para $nombre ha sido creada correctamente. Ahora puedes iniciar sesión con tu correo y contraseña.",
                             fontSize = 14.sp
                         )
                     },
                     confirmButton = {
                         Button(
                             onClick = {
-                                onRegistroExitoso(rol)
+                                onRegistroExitoso()
                             },
                             shape = RoundedCornerShape(10.dp)
                         ) {
-                            Text("Ir a mi panel")
+                            Text("Ir a Iniciar Sesión")
                         }
                     }
                 )
