@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.huellitasvet.data.local.relation.CitaConDetalle
 import com.tecsup.huellitasvet.model.EstadoCita
+import com.tecsup.huellitasvet.model.Especie
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -64,13 +65,24 @@ fun CitaCard(
         colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(13.dp)) {
-                Surface(shape = RoundedCornerShape(15.dp), color = verde.copy(alpha=.11f)) {
-                    Icon(icono, null, tint = verde, modifier = Modifier.padding(13.dp).size(25.dp))
+                val especie = runCatching {
+                    Especie.valueOf(cita.mascota.mascota.especie)
+                }.getOrDefault(Especie.OTRO)
+                Box {
+                    MascotaAvatar(especie = especie, tamano = 54.dp)
+                    Surface(
+                        modifier = Modifier.align(Alignment.BottomEnd).size(23.dp),
+                        shape = RoundedCornerShape(8.dp), color = verde,
+                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.surface)
+                    ) {
+                        Icon(icono, null, tint = Color.White,
+                            modifier = Modifier.padding(4.dp).size(14.dp))
+                    }
                 }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text(servicio, style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurface)
-                    Text("Mascota: ${cita.mascota.mascota.nombre}", style = MaterialTheme.typography.bodyMedium,
+                    Text("Para ${cita.mascota.mascota.nombre}", style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         Icon(Icons.Filled.Schedule, null, tint = verde, modifier = Modifier.size(17.dp))

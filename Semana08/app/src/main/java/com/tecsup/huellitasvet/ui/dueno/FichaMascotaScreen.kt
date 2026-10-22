@@ -39,7 +39,7 @@ import java.time.LocalDate
 import java.util.Locale
 
 private val VerdeFicha = Color(0xFF087F6D)
-private val FondoFicha = Color(0xFFFAFBF9)
+private val FondoFicha = Color(0xFFF4F8F6)
 private val OscuroFicha = Color(0xFF172B3A)
 private val GrisFicha = Color(0xFF87929E)
 private val BordeFicha = Color(0xFFE1E9E4)

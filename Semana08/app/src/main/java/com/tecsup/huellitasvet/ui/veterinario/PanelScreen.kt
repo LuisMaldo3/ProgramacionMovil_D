@@ -1,5 +1,9 @@
 package com.tecsup.huellitasvet.ui.veterinario
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -15,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Pets
@@ -44,7 +49,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 private val Azul = Color(0xFF2458DE)
-private val FondoVet = Color(0xFFF7FAFF)
+private val FondoVet = Color(0xFFF3F6FC)
 private val TextoVet = Color(0xFF172B3A)
 private val GrisVet = Color(0xFF8792A4)
 private val AmarilloVet = Color(0xFFFFF2C6)
@@ -85,55 +90,81 @@ fun PanelScreen(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("Panel de la clínica", fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface, fontSize = 22.sp)
-                    Text("Hoy · $hoy", fontSize = 13.sp, color = GrisVet)
+                    Surface(color = Color(0xFFDDE8FF), shape = RoundedCornerShape(50.dp)) {
+                        Text("  ✦  RESUMEN DE HOY  ", fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFF284DA5), fontSize = 9.sp,
+                            letterSpacing = 1.sp, modifier = Modifier.padding(vertical = 5.dp))
+                    }
+                    Spacer(Modifier.height(5.dp))
+                    Text("Panel de la clínica", fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurface, fontSize = 23.sp)
+                    Text(hoy, fontSize = 13.sp, color = GrisVet)
                 }
-                IconButton(onClick = onVerAgenda) {
-                    Icon(Icons.Filled.Notifications, "Ver agenda", tint = TextoVet)
+                Surface(onClick = onVerAgenda, shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFF2458DE)) {
+                    Box(Modifier.size(46.dp), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Filled.Notifications, "Ver agenda", tint = Color.White)
+                    }
                 }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                ContadorVet("Citas hoy", citasHoy, Color(0xFFDCEAFE), Azul, Modifier.weight(1f))
-                ContadorVet("Pendientes", pendientes, Color(0xFFFFF2C6), Color(0xFFD97706), Modifier.weight(1f))
-                ContadorVet("Atendidas", atendidas, Color(0xFFE2E8F0), Color(0xFF475569), Modifier.weight(1f))
+                ContadorVet("Citas hoy", citasHoy, Color(0xFFDCE8FF), Azul,
+                    Icons.Filled.CalendarMonth, Modifier.weight(1f))
+                ContadorVet("Pendientes", pendientes, Color(0xFFFFE7C2), Color(0xFFAD5D00),
+                    Icons.Filled.WarningAmber, Modifier.weight(1f))
+                ContadorVet("Atendidas", atendidas, Color(0xFFDDF3E9), Color(0xFF137451),
+                    Icons.Filled.CheckCircle, Modifier.weight(1f))
             }
 
             Surface(
-                color = Azul, shape = RoundedCornerShape(17.dp),
-                modifier = Modifier.fillMaxWidth().height(70.dp)
+                color = Color.Transparent, shape = RoundedCornerShape(22.dp),
+                modifier = Modifier.fillMaxWidth().height(88.dp), shadowElevation = 5.dp
             ) {
                 Row(
-                    Modifier.padding(horizontal = 17.dp, vertical = 11.dp),
-                    verticalAlignment = Alignment.Bottom
+                    Modifier.fillMaxSize()
+                        .background(Brush.linearGradient(listOf(Color(0xFF173A9B), Color(0xFF3978E8))))
+                        .padding(horizontal = 17.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text("Ingresos del mes", color = Color.White.copy(alpha = .75f), fontSize = 13.sp)
-                        Text(formato, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                        Text("INGRESOS DEL MES", color = Color.White.copy(alpha = .78f),
+                            fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.1.sp)
+                        Text(formato, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 24.sp)
                     }
-                    Text("$atendidas atenciones", color = Color.White, fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 5.dp))
+                    Surface(color = Color.White.copy(alpha = .15f), shape = RoundedCornerShape(14.dp)) {
+                        Column(Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(atendidas.toString(), color = Color.White,
+                                fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                            Text("atenciones", color = Color.White.copy(alpha = .85f), fontSize = 9.sp)
+                        }
+                    }
                 }
             }
 
             Surface(
-                modifier = Modifier.fillMaxWidth().height(100.dp),
-                shape = RoundedCornerShape(17.dp),
-                color = Color(0xFFEDF3FF)
+                modifier = Modifier.fillMaxWidth().height(132.dp),
+                shape = RoundedCornerShape(22.dp),
+                color = Color(0xFF214EAE), shadowElevation = 4.dp
             ) {
                 Box {
                     Image(painter = painterResource(R.drawable.veterinario_banner),
                         contentDescription = "Imagen de la clínica veterinaria",
                         contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                     Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(listOf(
-                        Color(0xFFDBEAFE).copy(alpha = .94f),
-                        Color(0xFFDBEAFE).copy(alpha = .58f), Color.Transparent))))
+                        Color(0xFF153A86).copy(alpha = .97f),
+                        Color(0xFF153A86).copy(alpha = .75f), Color.Transparent))))
                     Column(Modifier.align(Alignment.CenterStart).padding(16.dp)) {
-                        Text("Cada atención importa", fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold, color = Color(0xFF12387B))
-                        Text("Gestiona tu clínica en un solo lugar", fontSize = 13.sp,
-                            color = Color(0xFF315B92))
+                        Text("CLÍNICA HUELLITASVET", fontSize = 9.sp,
+                            fontWeight = FontWeight.ExtraBold, letterSpacing = 1.2.sp,
+                            color = Color(0xFFBFD3FF))
+                        Spacer(Modifier.height(5.dp))
+                        Text("Cada atención\ncuenta", fontSize = 20.sp,
+                            lineHeight = 21.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                        Spacer(Modifier.height(4.dp))
+                        Text("Tu equipo, tus pacientes, en un solo lugar.", fontSize = 11.sp,
+                            color = Color.White.copy(alpha = .85f))
                     }
                 }
             }
@@ -242,15 +273,35 @@ private fun rememberFormatoMoneda(ingresos: Double): String {
 
 @Composable
 private fun ContadorVet(
-    titulo: String, valor: Int, fondo: Color, textoColor: Color, modifier: Modifier = Modifier
+    titulo: String,
+    valor: Int,
+    fondo: Color,
+    textoColor: Color,
+    icono: ImageVector,
+    modifier: Modifier = Modifier
 ) {
-    Surface(modifier = modifier.height(75.dp), color = fondo, shape = RoundedCornerShape(16.dp)) {
+    val valorVisible by animateIntAsState(
+        targetValue = valor, animationSpec = tween(700), label = "contador_$titulo"
+    )
+    Surface(
+        modifier = modifier.height(88.dp), color = fondo,
+        shape = RoundedCornerShape(19.dp), shadowElevation = 2.dp
+    ) {
         Column(
+            modifier = Modifier.fillMaxSize().padding(vertical = 7.dp, horizontal = 3.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(valor.toString(), color = textoColor, fontWeight = FontWeight.Bold, fontSize = 26.sp)
-            Text(titulo, color = textoColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center) {
+                Icon(icono, null, tint = textoColor, modifier = Modifier.size(17.dp))
+                Spacer(Modifier.width(5.dp))
+                Text(valorVisible.toString(), color = textoColor,
+                    fontWeight = FontWeight.ExtraBold, fontSize = 23.sp)
+            }
+            Spacer(Modifier.height(2.dp))
+            Text(titulo, color = textoColor, fontSize = 10.sp,
+                fontWeight = FontWeight.Bold, maxLines = 1)
         }
     }
 }
@@ -266,24 +317,52 @@ fun BarraNavegacionVeterinario(
         Triple(Rutas.SERVICIOS, "Servicios", Icons.Filled.LocalOffer),
         Triple(Rutas.AJUSTES, "Ajustes", Icons.Filled.Settings)
     )
-    Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp, shadowElevation = 2.dp) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 2.dp,
+        shadowElevation = 8.dp
+    ) {
         Row(
-            Modifier.fillMaxWidth().navigationBarsPadding().height(63.dp)
-                .padding(horizontal = 6.dp),
+            Modifier.fillMaxWidth().navigationBarsPadding().height(66.dp)
+                .padding(horizontal = 4.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             pestañas.forEach { (ruta, nombre, icono) ->
                 val activo = ruta == seleccionada
+                val colorActivo by animateColorAsState(
+                    targetValue = if (activo) MaterialTheme.colorScheme.primary else Color(0xFF8A96A6),
+                    animationSpec = tween(180), label = "color_tab_$ruta"
+                )
+                val fondoActivo by animateColorAsState(
+                    targetValue = if (activo) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                    animationSpec = tween(180), label = "fondo_tab_$ruta"
+                )
+                val tamanoIcono by animateDpAsState(
+                    targetValue = if (activo) 22.dp else 19.dp,
+                    animationSpec = tween(180), label = "icono_tab_$ruta"
+                )
                 Column(
                     Modifier.weight(1f).fillMaxHeight().clickable { onSeleccionar(ruta) },
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(icono, nombre, tint = if (activo) Azul else Color(0xFF98A2B3),
-                        modifier = Modifier.size(23.dp))
-                    Spacer(Modifier.height(4.dp))
-                    Text(nombre, fontSize = 13.sp, color = if (activo) Azul else Color(0xFF98A2B3),
-                        fontWeight = if (activo) FontWeight.Bold else FontWeight.Normal)
+                    Box(
+                        modifier = Modifier.size(width = 36.dp, height = 29.dp)
+                            .background(
+                                fondoActivo,
+                                RoundedCornerShape(10.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(icono, nombre, tint = colorActivo,
+                            modifier = Modifier.size(tamanoIcono))
+                    }
+                    Spacer(Modifier.height(2.dp))
+                    Text(nombre, fontSize = 10.sp,
+                        color = colorActivo,
+                        fontWeight = if (activo) FontWeight.Bold else FontWeight.Medium,
+                        maxLines = 1)
                 }
             }
         }

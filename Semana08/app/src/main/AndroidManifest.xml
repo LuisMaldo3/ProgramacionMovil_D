@@ -4,7 +4,9 @@
     <application
         android:name=".VetApp"
         android:allowBackup="false"
+        android:icon="@mipmap/ic_huellitas"
         android:label="HuellitasVet"
+        android:roundIcon="@mipmap/ic_huellitas"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 

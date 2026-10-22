@@ -1,6 +1,7 @@
 package com.tecsup.huellitasvet.ui.veterinario
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -16,11 +17,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tecsup.huellitasvet.data.local.relation.CitaConDetalle
+import com.tecsup.huellitasvet.R
 import com.tecsup.huellitasvet.model.Especie
 import com.tecsup.huellitasvet.ui.components.MascotaAvatar
 import com.tecsup.huellitasvet.ui.navigation.Rutas
@@ -30,7 +35,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 private val AzulAgenda = Color(0xFF2458DE)
-private val FondoAgenda = Color(0xFFF7FAFF)
+private val FondoAgenda = Color(0xFFF3F6FC)
 private val TextoAgenda = Color(0xFF172B3A)
 private val GrisAgenda = Color(0xFF8390A0)
 
@@ -98,6 +103,19 @@ fun AgendaScreen(
                 }
             }
 
+            BannerAgenda()
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 18.dp),
+                horizontalArrangement = Arrangement.spacedBy(9.dp)
+            ) {
+                ResumenAgenda("Pendientes", citas.count { it.cita.estado == "PENDIENTE" },
+                    Color(0xFFFFF1D1), Color(0xFFAD6800), Modifier.weight(1f))
+                ResumenAgenda("Confirmadas", citas.count { it.cita.estado == "CONFIRMADA" },
+                    Color(0xFFE2F5EA), Color(0xFF16774F), Modifier.weight(1f))
+                ResumenAgenda("Atendidas", citas.count { it.cita.estado == "ATENDIDA" },
+                    Color(0xFFE5EDFF), Color(0xFF315CB4), Modifier.weight(1f))
+            }
+
             if (citas.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("No hay citas para esta fecha", color = GrisAgenda, fontSize = 15.sp)
@@ -137,6 +155,54 @@ fun AgendaScreen(
                 TextButton(onClick = { citaCancelar = null }) { Text("Volver") }
             }
         )
+    }
+}
+
+@Composable
+private fun BannerAgenda() {
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp).height(112.dp),
+        color = Color(0xFFE7EEFF), shape = RoundedCornerShape(23.dp), shadowElevation = 2.dp
+    ) {
+        Box(Modifier.fillMaxSize()) {
+            Image(
+                painter = painterResource(R.drawable.veterinario_banner),
+                contentDescription = "Perro acompañado por el equipo veterinario",
+                modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop
+            )
+            Box(Modifier.fillMaxSize().background(
+                Brush.horizontalGradient(
+                    0f to Color(0xFFE8EEFF).copy(alpha = .99f),
+                    .56f to Color(0xFFE8EEFF).copy(alpha = .94f),
+                    1f to Color.Transparent
+                )
+            ))
+            Column(Modifier.align(Alignment.CenterStart).fillMaxWidth(.68f).padding(start = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("PANEL CLÍNICO", color = AzulAgenda, fontSize = 10.sp,
+                    fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                Text("Agenda de hoy", color = TextoAgenda, fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
+                Text("Cada visita, una oportunidad de cuidar.", color = GrisAgenda, fontSize = 11.sp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ResumenAgenda(
+    titulo: String,
+    cantidad: Int,
+    fondo: Color,
+    acento: Color,
+    modifier: Modifier = Modifier
+) {
+    Surface(modifier = modifier.height(67.dp), color = fondo, shape = RoundedCornerShape(17.dp)) {
+        Column(Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.SpaceBetween) {
+            Text(cantidad.toString(), color = acento, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+            Text(titulo, color = acento.copy(alpha = .9f), fontSize = 10.sp, fontWeight = FontWeight.Bold,
+                maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
     }
 }
 

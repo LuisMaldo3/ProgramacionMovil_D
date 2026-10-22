@@ -2,6 +2,7 @@
 package com.tecsup.huellitasvet.ui.dueno
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,18 +18,22 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import com.tecsup.huellitasvet.data.local.relation.CitaConDetalle
+import com.tecsup.huellitasvet.R
 import com.tecsup.huellitasvet.ui.components.CitaCard
 import com.tecsup.huellitasvet.ui.navigation.Rutas
 import com.tecsup.huellitasvet.viewmodel.MisCitasViewModel
 
 private val VerdeCitas = Color(0xFF087F6D)
-private val FondoCitas = Color(0xFFFAFBF9)
+private val FondoCitas = Color(0xFFF4F8F6)
 private val TextoCitas = Color(0xFF172B3A)
 private val GrisCitas = Color(0xFF7C8795)
 
@@ -161,6 +166,10 @@ fun MisCitasScreen(
             verticalArrangement =
                 Arrangement.spacedBy(11.dp)
         ) {
+
+            item {
+                BannerMisCitas(proximas = proximas.size, historial = historial.size)
+            }
 
             // PESTAÑAS PRÓXIMAS / HISTORIAL
             item {
@@ -386,5 +395,52 @@ fun MisCitasScreen(
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun BannerMisCitas(proximas: Int, historial: Int) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().height(132.dp),
+        shape = RoundedCornerShape(24.dp),
+        color = Color(0xFFDDF3E9),
+        shadowElevation = 3.dp
+    ) {
+        Box(Modifier.fillMaxSize()) {
+            Image(
+                painter = painterResource(R.drawable.inicio_banner),
+                contentDescription = "Perro y gato listos para su próxima visita",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            Box(Modifier.fillMaxSize().background(
+                Brush.horizontalGradient(
+                    0f to Color(0xFFF4FBF7).copy(alpha = .98f),
+                    .58f to Color(0xFFF4FBF7).copy(alpha = .87f),
+                    1f to Color.Transparent
+                )
+            ))
+            Column(
+                Modifier.align(Alignment.CenterStart).fillMaxWidth(.72f).padding(start = 17.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text("SU SALUD, SIEMPRE CERCA", color = VerdeCitas,
+                    fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = .9.sp)
+                Text("Citas con mucho\ncorazón", color = TextoCitas,
+                    fontSize = 21.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 24.sp)
+                Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    MiniDatoCitas("$proximas próximas", Color(0xFF087F6D))
+                    MiniDatoCitas("$historial visitas", Color(0xFF527184))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MiniDatoCitas(texto: String, color: Color) {
+    Surface(color = Color.White.copy(alpha = .92f), shape = RoundedCornerShape(30.dp)) {
+        Text(texto, color = color, fontSize = 10.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp))
     }
 }

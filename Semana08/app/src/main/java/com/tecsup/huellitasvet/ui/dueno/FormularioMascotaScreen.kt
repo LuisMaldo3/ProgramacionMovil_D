@@ -34,7 +34,7 @@ import com.tecsup.huellitasvet.ui.components.MascotaAvatar
 import com.tecsup.huellitasvet.viewmodel.MascotaViewModel
 
 private val Verde = Color(0xFF087F6D)
-private val Fondo = Color(0xFFFAFBF9)
+private val Fondo = Color(0xFFF4F8F6)
 private val Oscuro = Color(0xFF172B3A)
 private val Gris = Color(0xFF808B96)
 private val Borde = Color(0xFFDFE8E3)

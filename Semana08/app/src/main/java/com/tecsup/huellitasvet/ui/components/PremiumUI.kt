@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -173,6 +174,7 @@ fun DialogoExitoAnimado(
     descripcion: String,
     boton: String,
     detalle: String? = null,
+    etiquetaEstado: String? = null,
     onContinuar: () -> Unit
 ) {
     var iniciado by remember { mutableStateOf(false) }
@@ -188,16 +190,26 @@ fun DialogoExitoAnimado(
             shape = RoundedCornerShape(28.dp), shadowElevation = 12.dp) {
             Column(Modifier.fillMaxWidth().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(15.dp)) {
-                Box(Modifier.size(116.dp), contentAlignment = Alignment.Center) {
-                    Surface(shape = CircleShape, color = Color(0xFFDCFCE7),
-                        modifier = Modifier.size(102.dp).graphicsLayer {
+                verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Box(Modifier.fillMaxWidth().height(128.dp).clip(RoundedCornerShape(21.dp))
+                    .background(Brush.linearGradient(listOf(Color(0xFFE3F8EE), Color(0xFFF0FAF6)))),
+                    contentAlignment = Alignment.Center) {
+                    Surface(shape = CircleShape, color = PremiumVerde.copy(alpha = .13f),
+                        modifier = Modifier.size(105.dp).graphicsLayer {
                             scaleX = escala; scaleY = escala
                         }) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(Icons.Filled.Check, contentDescription = "Operación completada",
-                                tint = Color(0xFF047857), modifier = Modifier.size(62.dp))
+                                tint = Color(0xFF047857), modifier = Modifier.size(58.dp))
                         }
+                    }
+                    Surface(
+                        modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 10.dp),
+                        shape = RoundedCornerShape(30.dp), color = Color.White.copy(alpha = .86f)
+                    ) {
+                        Text("¡Todo listo!", color = PremiumVerde, fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
                     }
                 }
                 AnimatedVisibility(visible = iniciado,
@@ -215,12 +227,25 @@ fun DialogoExitoAnimado(
                 }
                 if (!detalle.isNullOrBlank()) {
                     Surface(shape = RoundedCornerShape(15.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha=.5f)) {
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha=.55f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = .12f))) {
                         Text(detalle, modifier = Modifier.fillMaxWidth()
                             .padding(horizontal = 15.dp, vertical = 12.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
                             textAlign = TextAlign.Center)
+                    }
+                }
+                if (!etiquetaEstado.isNullOrBlank()) {
+                    Surface(shape = RoundedCornerShape(30.dp), color = Color(0xFFFFF2D2)) {
+                        Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Icon(Icons.Filled.Schedule, null, tint = Color(0xFFB66A00),
+                                modifier = Modifier.size(16.dp))
+                            Text(etiquetaEstado, color = Color(0xFF855000), fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
                 Button(onClick = onContinuar, modifier = Modifier.fillMaxWidth().height(54.dp),

@@ -1,5 +1,10 @@
 package com.tecsup.huellitasvet.ui.navigation
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -167,7 +172,27 @@ fun NavVet(app: VetApp) {
         }
     }
 
-    NavHost(navController = navController, startDestination = Rutas.SPLASH, modifier = Modifier.fillMaxSize()) {
+    NavHost(
+        navController = navController,
+        startDestination = Rutas.SPLASH,
+        modifier = Modifier.fillMaxSize(),
+        enterTransition = {
+            fadeIn(tween(260)) + slideInHorizontally(
+                initialOffsetX = { it / 14 }, animationSpec = tween(260)
+            )
+        },
+        exitTransition = { fadeOut(tween(180)) },
+        popEnterTransition = {
+            fadeIn(tween(260)) + slideInHorizontally(
+                initialOffsetX = { -it / 14 }, animationSpec = tween(260)
+            )
+        },
+        popExitTransition = {
+            fadeOut(tween(180)) + slideOutHorizontally(
+                targetOffsetX = { it / 18 }, animationSpec = tween(180)
+            )
+        }
+    ) {
         composable(Rutas.SPLASH) {
             VetTheme(rol = Rol.CLIENTE, oscuro = oscuro) {
                 SplashScreen(onContinuar = {

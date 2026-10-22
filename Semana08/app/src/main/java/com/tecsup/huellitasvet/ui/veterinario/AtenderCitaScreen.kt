@@ -33,7 +33,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 private val Azul = Color(0xFF2458DE)
-private val Fondo = Color(0xFFF7FAFF)
+private val Fondo = Color(0xFFF3F6FC)
 private val Texto = Color(0xFF172B3A)
 private val Gris = Color(0xFF8792A4)
 

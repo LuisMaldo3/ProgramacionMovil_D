@@ -32,7 +32,7 @@ import com.tecsup.huellitasvet.viewmodel.ServiciosViewModel
 import java.util.Locale
 
 private val azul = Color(0xFF2458DE)
-private val fondo = Color(0xFFF7FAFF)
+private val fondo = Color(0xFFF3F6FC)
 private val borde = Color(0xFFE2E8F0)
 
 @Composable
