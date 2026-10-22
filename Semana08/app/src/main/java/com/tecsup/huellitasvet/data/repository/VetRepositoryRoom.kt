@@ -39,6 +39,36 @@ class VetRepositoryRoom(
         return usuarioDao.login(correo, clave)
     }
 
+    override suspend fun buscarUsuarioPorCorreo(correo: String): Usuario? {
+        return usuarioDao.buscarPorCorreo(correo.trim().lowercase())
+    }
+
+    override suspend fun registrarUsuario(
+        nombre: String,
+        correo: String,
+        clave: String,
+        rol: String
+    ): Usuario {
+        val correoLimpio = correo.trim().lowercase()
+        val existente = usuarioDao.buscarPorCorreo(correoLimpio)
+        require(existente == null) { "Ya existe una cuenta registrada con el correo $correoLimpio" }
+
+        val nuevo = Usuario(
+            nombre = nombre.trim(),
+            correo = correoLimpio,
+            clave = clave,
+            rol = rol
+        )
+        val idGenerado = usuarioDao.insertar(nuevo).toInt()
+        return nuevo.copy(id = idGenerado)
+    }
+
+    override suspend fun actualizarClave(correo: String, nuevaClave: String): Boolean {
+        val correoLimpio = correo.trim().lowercase()
+        val lineasAfectadas = usuarioDao.actualizarClave(correoLimpio, nuevaClave)
+        return lineasAfectadas > 0
+    }
+
     // SERVICIOS
 
     override fun observarServicios(): Flow<List<Servicio>> {

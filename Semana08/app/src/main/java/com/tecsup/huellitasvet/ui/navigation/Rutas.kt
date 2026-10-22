@@ -4,6 +4,8 @@ package com.tecsup.huellitasvet.ui.navigation
 object Rutas {
     const val SPLASH = "splash"
     const val LOGIN = "login"
+    const val REGISTRO = "registro"
+    const val RECUPERAR_CLAVE = "recuperar_clave"
     const val INICIO = "inicio"
     const val MASCOTAS = "mascotas"
     const val PEDIR_CITA = "pedir_cita"

@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.Flow
 /** [ENTREGADO] Contrato completo del laboratorio (páginas 9 y 10). */
 interface VetRepository {
     suspend fun login(correo: String, clave: String): Usuario?
+    suspend fun buscarUsuarioPorCorreo(correo: String): Usuario?
+    suspend fun registrarUsuario(nombre: String, correo: String, clave: String, rol: String): Usuario
+    suspend fun actualizarClave(correo: String, nuevaClave: String): Boolean
 
     fun observarServicios(): Flow<List<Servicio>>
     fun observarServiciosActivos(): Flow<List<Servicio>>

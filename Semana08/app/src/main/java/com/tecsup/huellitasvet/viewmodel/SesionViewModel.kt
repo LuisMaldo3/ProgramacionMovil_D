@@ -29,6 +29,12 @@ class SesionViewModel(
     private val _cargando = MutableStateFlow(false)
     val cargando: StateFlow<Boolean> = _cargando.asStateFlow()
 
+    private val _registroExitoso = MutableStateFlow(false)
+    val registroExitoso: StateFlow<Boolean> = _registroExitoso.asStateFlow()
+
+    private val _recuperacionExitosa = MutableStateFlow(false)
+    val recuperacionExitosa: StateFlow<Boolean> = _recuperacionExitosa.asStateFlow()
+
     val modoOscuro: StateFlow<Boolean> = preferencias.modoOscuro.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
@@ -37,6 +43,151 @@ class SesionViewModel(
 
     fun limpiarError() {
         _error.value = null
+    }
+
+    fun resetearEstadosAuxiliares() {
+        _registroExitoso.value = false
+        _recuperacionExitosa.value = false
+        _error.value = null
+    }
+
+    fun registrar(
+        nombre: String,
+        correo: String,
+        clave: String,
+        confirmacionClave: String,
+        rolSeleccionado: Rol,
+        onExito: (Rol) -> Unit
+    ) {
+        val correoLimpio = correo.trim().lowercase()
+        val nombreLimpio = nombre.trim()
+        _error.value = null
+
+        if (nombreLimpio.isBlank() || correoLimpio.isBlank() || clave.isBlank() || confirmacionClave.isBlank()) {
+            _error.value = "Todos los campos son obligatorios"
+            return
+        }
+
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correoLimpio).matches()) {
+            _error.value = "Ingresa un correo electrónico válido"
+            return
+        }
+
+        if (clave.length < 4) {
+            _error.value = "La contraseña debe tener al menos 4 caracteres"
+            return
+        }
+
+        if (clave != confirmacionClave) {
+            _error.value = "Las contraseñas no coinciden"
+            return
+        }
+
+        if (_cargando.value) return
+
+        viewModelScope.launch {
+            _cargando.value = true
+            try {
+                val nuevoUsuario = repo.registrarUsuario(
+                    nombre = nombreLimpio,
+                    correo = correoLimpio,
+                    clave = clave,
+                    rol = rolSeleccionado.name
+                )
+                preferencias.guardarSesion(nuevoUsuario.rol, nuevoUsuario.id, nuevoUsuario.nombre, nuevoUsuario.correo)
+                _usuarioActual.value = nuevoUsuario
+                _registroExitoso.value = true
+                onExito(rolSeleccionado)
+            } catch (e: IllegalArgumentException) {
+                _error.value = e.message
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _error.value = "No se pudo registrar la cuenta. Inténtalo de nuevo."
+            } finally {
+                _cargando.value = false
+            }
+        }
+    }
+
+    fun verificarCorreoExiste(correo: String, onResultado: (Usuario?) -> Unit) {
+        val correoLimpio = correo.trim().lowercase()
+        _error.value = null
+
+        if (correoLimpio.isBlank()) {
+            _error.value = "Ingresa tu correo electrónico"
+            return
+        }
+
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correoLimpio).matches()) {
+            _error.value = "Ingresa un correo electrónico válido"
+            return
+        }
+
+        viewModelScope.launch {
+            _cargando.value = true
+            try {
+                val usuario = repo.buscarUsuarioPorCorreo(correoLimpio)
+                if (usuario == null) {
+                    _error.value = "No existe una cuenta registrada con este correo"
+                    onResultado(null)
+                } else {
+                    _error.value = null
+                    onResultado(usuario)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _error.value = "Error al verificar el correo"
+                onResultado(null)
+            } finally {
+                _cargando.value = false
+            }
+        }
+    }
+
+    fun cambiarContrasena(
+        correo: String,
+        nuevaClave: String,
+        confirmacion: String,
+        onExito: () -> Unit
+    ) {
+        val correoLimpio = correo.trim().lowercase()
+        _error.value = null
+
+        if (nuevaClave.isBlank() || confirmacion.isBlank()) {
+            _error.value = "Ingresa y confirma la nueva contraseña"
+            return
+        }
+
+        if (nuevaClave.length < 4) {
+            _error.value = "La contraseña debe tener al menos 4 caracteres"
+            return
+        }
+
+        if (nuevaClave != confirmacion) {
+            _error.value = "Las contraseñas no coinciden"
+            return
+        }
+
+        viewModelScope.launch {
+            _cargando.value = true
+            try {
+                val exito = repo.actualizarClave(correoLimpio, nuevaClave)
+                if (exito) {
+                    _recuperacionExitosa.value = true
+                    onExito()
+                } else {
+                    _error.value = "No se pudo actualizar la contraseña"
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _error.value = "Ocurrió un error al actualizar la contraseña"
+            } finally {
+                _cargando.value = false
+            }
+        }
     }
 
     fun login(correo: String, clave: String, rolSeleccionado: Rol) {

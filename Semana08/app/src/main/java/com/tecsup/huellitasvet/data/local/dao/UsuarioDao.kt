@@ -19,8 +19,17 @@ interface UsuarioDao {
         clave: String
     ): Usuario?
 
+    @Query("SELECT * FROM usuarios WHERE correo = :correo LIMIT 1")
+    suspend fun buscarPorCorreo(correo: String): Usuario?
+
+    @Insert
+    suspend fun insertar(usuario: Usuario): Long
+
     @Insert
     suspend fun insertarTodos(lista: List<Usuario>)
+
+    @Query("UPDATE usuarios SET clave = :nuevaClave WHERE correo = :correo")
+    suspend fun actualizarClave(correo: String, nuevaClave: String): Int
 
     @Query("SELECT COUNT(*) FROM usuarios")
     suspend fun contar(): Int

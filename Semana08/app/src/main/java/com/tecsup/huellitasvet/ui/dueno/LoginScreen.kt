@@ -35,7 +35,12 @@ import com.tecsup.huellitasvet.ui.theme.VetTheme
 import com.tecsup.huellitasvet.viewmodel.SesionViewModel
 
 @Composable
-fun LoginScreen(vm: SesionViewModel, onAcceso: (Rol) -> Unit) {
+fun LoginScreen(
+    vm: SesionViewModel,
+    onAcceso: (Rol) -> Unit,
+    onIrARegistro: () -> Unit = {},
+    onIrAOlvidoclave: () -> Unit = {}
+) {
     var rolNombre by rememberSaveable { mutableStateOf(Rol.CLIENTE.name) }
     val rol = Rol.valueOf(rolNombre)
     var correo by rememberSaveable { mutableStateOf("ana@correo.test") }
@@ -138,7 +143,7 @@ fun LoginScreen(vm: SesionViewModel, onAcceso: (Rol) -> Unit) {
                         )
                         if (!error.isNullOrBlank()) Text(error.orEmpty(), color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall)
-                        TextButton(onClick = { aviso = "La recuperación de contraseña no está incluida en este laboratorio." },
+                        TextButton(onClick = { vm.limpiarError(); onIrAOlvidoclave() },
                             modifier = Modifier.align(Alignment.End)) {
                             Text("¿Olvidaste tu contraseña?", fontSize = 13.sp)
                         }
@@ -150,7 +155,7 @@ fun LoginScreen(vm: SesionViewModel, onAcceso: (Rol) -> Unit) {
                                 color = MaterialTheme.colorScheme.onPrimary)
                             else Text("Ingresar", fontWeight = FontWeight.Bold, fontSize = 17.sp)
                         }
-                        TextButton(onClick = { aviso = "El registro de cuentas no forma parte de la práctica." },
+                        TextButton(onClick = { vm.limpiarError(); onIrARegistro() },
                             modifier = Modifier.align(Alignment.CenterHorizontally)) {
                             Text("¿No tienes cuenta? Regístrate", fontSize = 13.sp)
                         }

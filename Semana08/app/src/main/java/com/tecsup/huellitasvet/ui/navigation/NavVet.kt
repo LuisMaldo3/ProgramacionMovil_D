@@ -30,6 +30,8 @@ import com.tecsup.huellitasvet.ui.dueno.FichaMascotaScreen
 import com.tecsup.huellitasvet.ui.dueno.FormularioMascotaScreen
 import com.tecsup.huellitasvet.ui.dueno.InicioScreen
 import com.tecsup.huellitasvet.ui.dueno.LoginScreen
+import com.tecsup.huellitasvet.ui.dueno.RegistroScreen
+import com.tecsup.huellitasvet.ui.dueno.OlvidoClaveScreen
 import com.tecsup.huellitasvet.ui.dueno.ReprogramarCitaScreen
 import com.tecsup.huellitasvet.ui.dueno.MisCitasScreen
 import com.tecsup.huellitasvet.ui.dueno.PerfilScreen
@@ -207,12 +209,43 @@ fun NavVet(app: VetApp) {
             }
         }
         composable(Rutas.LOGIN) {
-            LoginScreen(vm = sesionVm, onAcceso = { rol ->
-                navController.navigate(rutaPerfil(rol)) {
-                    popUpTo(Rutas.LOGIN) { inclusive = true }
-                    launchSingleTop = true
+            LoginScreen(
+                vm = sesionVm,
+                onAcceso = { rol ->
+                    navController.navigate(rutaPerfil(rol)) {
+                        popUpTo(Rutas.LOGIN) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onIrARegistro = {
+                    navController.navigate(Rutas.REGISTRO)
+                },
+                onIrAOlvidoclave = {
+                    navController.navigate(Rutas.RECUPERAR_CLAVE)
                 }
-            })
+            )
+        }
+        composable(Rutas.REGISTRO) {
+            RegistroScreen(
+                vm = sesionVm,
+                onVolverLogin = {
+                    navController.popBackStack()
+                },
+                onRegistroExitoso = { rol ->
+                    navController.navigate(rutaPerfil(rol)) {
+                        popUpTo(Rutas.LOGIN) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+        composable(Rutas.RECUPERAR_CLAVE) {
+            OlvidoClaveScreen(
+                vm = sesionVm,
+                onVolverLogin = {
+                    navController.popBackStack()
+                }
+            )
         }
         composable(Rutas.INICIO) {
             VetTheme(rol = Rol.CLIENTE, oscuro = oscuro) {
