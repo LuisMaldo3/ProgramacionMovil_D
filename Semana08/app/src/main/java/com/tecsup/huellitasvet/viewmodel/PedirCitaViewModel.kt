@@ -48,6 +48,9 @@ class PedirCitaViewModel(
     private val _servicioId = MutableStateFlow<Int?>(null)
     val servicioId: StateFlow<Int?> = _servicioId.asStateFlow()
 
+    private val _serviciosSeleccionados = MutableStateFlow<Set<Int>>(emptySet())
+    val serviciosSeleccionados: StateFlow<Set<Int>> = _serviciosSeleccionados.asStateFlow()
+
     private val _fecha = MutableStateFlow(LocalDate.now())
     val fecha: StateFlow<LocalDate> = _fecha.asStateFlow()
 
@@ -77,10 +80,11 @@ class PedirCitaViewModel(
         }
         viewModelScope.launch {
             val lista = servicios.filter { it.isNotEmpty() }.first()
-            // Selecciona vacunacion cuando existe, igual al ejemplo del PDF.
-            _servicioId.value = lista.firstOrNull {
+            val primerId = lista.firstOrNull {
                 it.nombre.contains("vacun", ignoreCase = true)
             }?.id ?: lista.first().id
+            _servicioId.value = primerId
+            _serviciosSeleccionados.value = setOf(primerId)
         }
     }
 
@@ -92,7 +96,17 @@ class PedirCitaViewModel(
     }
 
     fun elegirServicio(id: Int) {
+        alternarServicio(id)
+    }
+
+    fun alternarServicio(id: Int) {
         if (servicios.value.any { it.id == id && it.activo }) {
+            val actual = _serviciosSeleccionados.value
+            _serviciosSeleccionados.value = if (id in actual) {
+                if (actual.size > 1) actual - id else actual
+            } else {
+                actual + id
+            }
             _servicioId.value = id
             _hora.value = null
             _error.value = null

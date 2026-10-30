@@ -15,9 +15,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -52,11 +55,15 @@ fun RegistroScreen(
 
     var nombre by rememberSaveable { mutableStateOf("") }
     var correo by rememberSaveable { mutableStateOf("") }
+    var telefono by rememberSaveable { mutableStateOf("") }
+    var distrito by rememberSaveable { mutableStateOf("") }
     var clave by rememberSaveable { mutableStateOf("") }
     var confirmacionClave by rememberSaveable { mutableStateOf("") }
+    var codigoAdmin by rememberSaveable { mutableStateOf("") }
 
     var visibleClave by rememberSaveable { mutableStateOf(false) }
     var visibleConfirmacion by rememberSaveable { mutableStateOf(false) }
+    var visibleCodigoAdmin by rememberSaveable { mutableStateOf(false) }
 
     val error by vm.error.collectAsState()
     val cargando by vm.cargando.collectAsState()
@@ -67,7 +74,7 @@ fun RegistroScreen(
         onDispose { vm.resetearEstadosAuxiliares() }
     }
 
-    VetTheme(rol = rol, oscuro = oscuro) {
+    VetTheme(rol = if (rol == Rol.CLIENTE) Rol.CLIENTE else Rol.ADMIN, oscuro = oscuro) {
         val primario = MaterialTheme.colorScheme.primary
         val fondo = MaterialTheme.colorScheme.background
         val superficie = MaterialTheme.colorScheme.surface
@@ -186,7 +193,7 @@ fun RegistroScreen(
                             fontSize = 13.sp
                         )
 
-                        // Selector de Perfil (Dueño / Veterinario)
+                        // Selector de Perfil (Dueño / Veterinario / Administrador)
                         Text(
                             "Selecciona tu perfil:",
                             fontWeight = FontWeight.SemiBold,
@@ -202,7 +209,11 @@ fun RegistroScreen(
                                 .padding(4.dp),
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            listOf(Rol.CLIENTE to "Dueño de Mascota", Rol.ADMIN to "Veterinario").forEach { (opcion, etiqueta) ->
+                            listOf(
+                                Rol.CLIENTE to "Dueño",
+                                Rol.VETERINARIO to "Vet.",
+                                Rol.ADMIN to "Admin"
+                            ).forEach { (opcion, etiqueta) ->
                                 val activo = opcion == rol
                                 Surface(
                                     onClick = {
@@ -211,16 +222,16 @@ fun RegistroScreen(
                                     },
                                     modifier = Modifier
                                         .weight(1f)
-                                        .height(43.dp),
+                                        .height(40.dp),
                                     color = if (activo) primario else Color.Transparent,
                                     contentColor = if (activo) Color.White else texto,
-                                    shape = RoundedCornerShape(12.dp)
+                                    shape = RoundedCornerShape(10.dp)
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
                                         Text(
                                             etiqueta,
                                             fontWeight = FontWeight.SemiBold,
-                                            fontSize = 13.sp
+                                            fontSize = 12.sp
                                         )
                                     }
                                 }
@@ -250,6 +261,54 @@ fun RegistroScreen(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp)
                         )
+
+                        // Campo Teléfono
+                        OutlinedTextField(
+                            value = telefono,
+                            onValueChange = { telefono = it; vm.limpiarError() },
+                            label = { Text("Teléfono de contacto") },
+                            singleLine = true,
+                            leadingIcon = { Icon(Icons.Filled.Phone, contentDescription = null) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp)
+                        )
+
+                        // Campo Distrito
+                        OutlinedTextField(
+                            value = distrito,
+                            onValueChange = { distrito = it; vm.limpiarError() },
+                            label = { Text("Distrito") },
+                            singleLine = true,
+                            leadingIcon = { Icon(Icons.Filled.LocationOn, contentDescription = null) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp)
+                        )
+
+                        // Campo Código de Autorización Administrador (si es Admin)
+                        if (rol == Rol.ADMIN) {
+                            OutlinedTextField(
+                                value = codigoAdmin,
+                                onValueChange = { codigoAdmin = it; vm.limpiarError() },
+                                label = { Text("Código de autorización de administrador") },
+                                singleLine = true,
+                                leadingIcon = { Icon(Icons.Filled.Security, contentDescription = null) },
+                                trailingIcon = {
+                                    IconButton(onClick = { visibleCodigoAdmin = !visibleCodigoAdmin }) {
+                                        Icon(
+                                            if (visibleCodigoAdmin) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                            contentDescription = null
+                                        )
+                                    }
+                                },
+                                visualTransformation = if (visibleCodigoAdmin) VisualTransformation.None else PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp),
+                                supportingText = { Text("Requerido para cuentas de Administrador") }
+                            )
+                        }
 
                         // Campo Contraseña
                         OutlinedTextField(
@@ -319,13 +378,14 @@ fun RegistroScreen(
                                     correo = correo,
                                     clave = clave,
                                     confirmacionClave = confirmacionClave,
+                                    telefono = telefono,
+                                    distrito = distrito,
                                     rolSeleccionado = rol,
-                                    onExito = {
-                                        // Éxito registrado en ViewModel
-                                    }
+                                    codigoAdmin = codigoAdmin,
+                                    onExito = { }
                                 )
                             },
-                            enabled = !cargando && nombre.isNotBlank() && correo.isNotBlank() && clave.isNotBlank() && confirmacionClave.isNotBlank(),
+                            enabled = !cargando && nombre.isNotBlank() && correo.isNotBlank() && telefono.isNotBlank() && distrito.isNotBlank() && clave.isNotBlank() && confirmacionClave.isNotBlank(),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(53.dp),

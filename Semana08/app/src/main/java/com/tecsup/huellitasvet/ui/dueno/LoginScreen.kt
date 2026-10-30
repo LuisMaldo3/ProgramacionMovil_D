@@ -110,7 +110,11 @@ fun LoginScreen(
                         Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(15.dp))
                             .background(MaterialTheme.colorScheme.surfaceVariant)
                             .padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            listOf(Rol.CLIENTE to "Dueño", Rol.ADMIN to "Veterinario").forEach { (opcion, etiqueta) ->
+                            listOf(
+                                Rol.CLIENTE to "Dueño",
+                                Rol.VETERINARIO to "Vet.",
+                                Rol.ADMIN to "Admin"
+                            ).forEach { (opcion, etiqueta) ->
                                 val activo = opcion == rol
                                 Surface(
                                     onClick = {
@@ -119,12 +123,12 @@ fun LoginScreen(
                                         clave = if (opcion == Rol.CLIENTE) "1234" else "admin"
                                         vm.limpiarError()
                                     },
-                                    modifier = Modifier.weight(1f).height(43.dp),
+                                    modifier = Modifier.weight(1f).height(40.dp),
                                     color = if (activo) primario else Color.Transparent,
                                     contentColor = if (activo) Color.White else texto,
-                                    shape = RoundedCornerShape(12.dp)
+                                    shape = RoundedCornerShape(10.dp)
                                 ) { Box(contentAlignment = Alignment.Center) {
-                                    Text(etiqueta, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                                    Text(etiqueta, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                                 } }
                             }
                         }

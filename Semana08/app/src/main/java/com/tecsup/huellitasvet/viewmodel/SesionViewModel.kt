@@ -59,20 +59,30 @@ class SesionViewModel(
         correo: String,
         clave: String,
         confirmacionClave: String,
+        telefono: String,
+        distrito: String,
         rolSeleccionado: Rol,
+        codigoAdmin: String,
         onExito: () -> Unit
     ) {
         val correoLimpio = correo.trim().lowercase()
         val nombreLimpio = nombre.trim()
+        val telLimpio = telefono.trim()
+        val distLimpio = distrito.trim()
         _error.value = null
 
-        if (nombreLimpio.isBlank() || correoLimpio.isBlank() || clave.isBlank() || confirmacionClave.isBlank()) {
-            _error.value = "Todos los campos son obligatorios"
+        if (nombreLimpio.isBlank() || correoLimpio.isBlank() || clave.isBlank() || confirmacionClave.isBlank() || telLimpio.isBlank() || distLimpio.isBlank()) {
+            _error.value = "Todos los campos (nombre, correo, contraseña, teléfono, distrito) son obligatorios"
             return
         }
 
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correoLimpio).matches()) {
             _error.value = "Ingresa un correo electrónico válido"
+            return
+        }
+
+        if (telLimpio.length < 7) {
+            _error.value = "Ingresa un número de teléfono válido"
             return
         }
 
@@ -86,6 +96,13 @@ class SesionViewModel(
             return
         }
 
+        if (rolSeleccionado == Rol.ADMIN) {
+            if (codigoAdmin.trim() != "ADMIN-HUELLITAS-2026") {
+                _error.value = "Código de autorización de administrador incorrecto o vacío"
+                return
+            }
+        }
+
         if (_cargando.value) return
 
         viewModelScope.launch {
@@ -95,7 +112,9 @@ class SesionViewModel(
                     nombre = nombreLimpio,
                     correo = correoLimpio,
                     clave = clave,
-                    rol = rolSeleccionado.name
+                    rol = rolSeleccionado.name,
+                    telefono = telLimpio,
+                    distrito = distLimpio
                 )
                 _ultimoCorreoRegistrado.value = correoLimpio
                 _registroExitoso.value = true
@@ -235,14 +254,14 @@ class SesionViewModel(
         return try {
             val usuario = when (destino) {
                 Rol.CLIENTE -> repo.login("ana@correo.test", "1234")
-                Rol.ADMIN -> repo.login("vet@huellitas.test", "admin")
+                Rol.VETERINARIO, Rol.ADMIN -> repo.login("vet@huellitas.test", "admin")
             }
-            if (usuario == null || usuario.rol != destino.name) {
+            if (usuario == null) {
                 _error.value = "No se encontró la cuenta de práctica del otro perfil"
                 false
             } else {
-                preferencias.guardarSesion(usuario.rol, usuario.id, usuario.nombre, usuario.correo)
-                _usuarioActual.value = usuario
+                preferencias.guardarSesion(destino.name, usuario.id, usuario.nombre, usuario.correo)
+                _usuarioActual.value = usuario.copy(rol = destino.name)
                 _error.value = null
                 true
             }

@@ -276,15 +276,16 @@ fun PedirCitaScreen(
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(11.dp)) {
-                EncabezadoPasoCita(2, "Escoge un servicio", "Atención pensada para su bienestar", pasoActivo >= 2)
+                EncabezadoPasoCita(2, "Escoge uno o más servicios", "Atención pensada para su bienestar (Selección múltiple)", pasoActivo >= 2)
                 if (servicios.isEmpty()) {
                     Text("No hay servicios activos disponibles.", fontSize = 14.sp, color = SecundarioCita)
                 } else {
+                    val serviciosSeleccionados by vm.serviciosSeleccionados.collectAsState()
                     servicios.forEach { s ->
                         TarjetaServicioCita(
                             servicio = s,
-                            seleccionado = servicioId == s.id,
-                            onClick = { vm.elegirServicio(s.id) }
+                            seleccionado = s.id in serviciosSeleccionados,
+                            onClick = { vm.alternarServicio(s.id) }
                         )
                     }
                 }
@@ -510,13 +511,25 @@ private fun TarjetaServicioCita(servicio: Servicio, seleccionado: Boolean, onCli
                     Icon(icono, null, tint = VerdeOscuroCita, modifier = Modifier.size(13.dp))
                 }
             }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Surface(
+                    color = VerdeCita.copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(6.dp)
+                ) {
+                    Text(
+                        servicio.tipo,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = VerdeOscuroCita,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
                 Text(servicio.nombre, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
                     color = TextoCita, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Row(verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(Icons.Filled.Schedule, null, tint = SecundarioCita, modifier = Modifier.size(14.dp))
-                    Text("${servicio.duracionMin} min", fontSize = 12.sp, color = SecundarioCita)
+                    Icon(Icons.Filled.Schedule, null, tint = SecundarioCita, modifier = Modifier.size(13.dp))
+                    Text("${servicio.duracionMin} min", fontSize = 11.sp, color = SecundarioCita)
                 }
             }
             Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(5.dp)) {

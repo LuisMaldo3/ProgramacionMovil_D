@@ -31,7 +31,7 @@ class PreferenciasStore(private val context: Context) {
     val aceptarCitas: Flow<Boolean> = context.dataStore.data.map { it[ACEPTAR_CITAS] ?: true }
 
     suspend fun guardarSesion(rol: String, usuarioId: Int, nombre: String = "", correo: String = "") {
-        require(rol == "CLIENTE" || rol == "ADMIN") { "Rol no válido" }
+        require(rol == "CLIENTE" || rol == "VETERINARIO" || rol == "ADMIN") { "Rol no válido" }
         require(usuarioId > 0) { "Usuario no válido" }
         context.dataStore.edit { p ->
             p[PERFIL_ACTIVO] = rol

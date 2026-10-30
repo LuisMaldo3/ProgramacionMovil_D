@@ -47,7 +47,9 @@ class VetRepositoryRoom(
         nombre: String,
         correo: String,
         clave: String,
-        rol: String
+        rol: String,
+        telefono: String,
+        distrito: String
     ): Usuario {
         val correoLimpio = correo.trim().lowercase()
         val existente = usuarioDao.buscarPorCorreo(correoLimpio)
@@ -57,7 +59,9 @@ class VetRepositoryRoom(
             nombre = nombre.trim(),
             correo = correoLimpio,
             clave = clave,
-            rol = rol
+            rol = rol,
+            telefono = telefono.trim(),
+            distrito = distrito.trim()
         )
         val idGenerado = usuarioDao.insertar(nuevo).toInt()
         return nuevo.copy(id = idGenerado)

@@ -1,4 +1,3 @@
-
 package com.tecsup.huellitasvet.data.local.entity
 
 import androidx.room.Entity
@@ -11,5 +10,7 @@ data class Usuario(
     val nombre: String,
     val correo: String,
     val clave: String,
-    val rol: String
+    val rol: String,
+    val telefono: String = "",
+    val distrito: String = ""
 )
