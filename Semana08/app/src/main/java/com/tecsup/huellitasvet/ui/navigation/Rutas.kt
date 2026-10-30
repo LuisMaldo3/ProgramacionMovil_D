@@ -12,6 +12,7 @@ object Rutas {
     const val MIS_CITAS = "mis_citas"
     const val PERFIL = "perfil"
     const val PANEL = "panel"
+    const val PANEL_ADMIN = "panel_admin"
     const val AGENDA = "agenda"
     const val PACIENTES = "pacientes"
     const val SERVICIOS = "servicios"

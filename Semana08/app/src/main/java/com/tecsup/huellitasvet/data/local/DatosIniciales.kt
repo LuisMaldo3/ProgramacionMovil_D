@@ -111,7 +111,15 @@ object DatosIniciales {
                     nombre = "Dra. Sofía Paredes",
                     correo = "vet@huellitas.test",
                     clave = "admin",
-                    rol = Rol.ADMIN.name
+                    rol = Rol.VETERINARIO.name
+                ),
+                Usuario(
+                    nombre = "Admin Sistema",
+                    correo = "admin@huellitas.test",
+                    clave = "admin123",
+                    rol = Rol.ADMIN.name,
+                    telefono = "999888777",
+                    distrito = "Miraflores"
                 )
             )
 

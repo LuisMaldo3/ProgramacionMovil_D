@@ -224,7 +224,12 @@ class SesionViewModel(
         viewModelScope.launch {
             _cargando.value = true
             try {
-                val usuario = repo.login(correoLimpio, clave)
+                var usuario = repo.login(correoLimpio, clave)
+
+                // Compatibilidad estricta con bases de datos antiguas donde vet@huellitas.test tenía rol ADMIN
+                if (usuario != null && correoLimpio == "vet@huellitas.test" && usuario.rol == "ADMIN" && rolSeleccionado == Rol.VETERINARIO) {
+                    usuario = usuario.copy(rol = Rol.VETERINARIO.name)
+                }
 
                 when {
                     usuario == null -> {
@@ -252,16 +257,22 @@ class SesionViewModel(
     // Nunca utilizar credenciales de prueba fijas en una aplicación real.
     suspend fun cambiarPerfilPractica(destino: Rol): Boolean {
         return try {
-            val usuario = when (destino) {
-                Rol.CLIENTE -> repo.login("ana@correo.test", "1234")
-                Rol.VETERINARIO, Rol.ADMIN -> repo.login("vet@huellitas.test", "admin")
+            val (correoPrueba, clavePrueba) = when (destino) {
+                Rol.CLIENTE -> "ana@correo.test" to "1234"
+                Rol.VETERINARIO -> "vet@huellitas.test" to "admin"
+                Rol.ADMIN -> "admin@huellitas.test" to "admin123"
+            }
+            var usuario = repo.login(correoPrueba, clavePrueba)
+            if (usuario == null && destino == Rol.ADMIN) {
+                usuario = repo.login("admin@huellitas.test", "admin123")
             }
             if (usuario == null) {
-                _error.value = "No se encontró la cuenta de práctica del otro perfil"
+                _error.value = "No se encontró la cuenta de práctica"
                 false
             } else {
-                preferencias.guardarSesion(destino.name, usuario.id, usuario.nombre, usuario.correo)
-                _usuarioActual.value = usuario.copy(rol = destino.name)
+                val rolFinal = if (correoPrueba == "vet@huellitas.test") Rol.VETERINARIO.name else destino.name
+                preferencias.guardarSesion(rolFinal, usuario.id, usuario.nombre, usuario.correo)
+                _usuarioActual.value = usuario.copy(rol = rolFinal)
                 _error.value = null
                 true
             }

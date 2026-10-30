@@ -33,4 +33,16 @@ interface UsuarioDao {
 
     @Query("SELECT COUNT(*) FROM usuarios")
     suspend fun contar(): Int
+
+    @Query("SELECT * FROM usuarios WHERE rol = 'CLIENTE' ORDER BY nombre")
+    fun observarClientes(): kotlinx.coroutines.flow.Flow<List<Usuario>>
+
+    @Query("SELECT * FROM usuarios WHERE rol = 'VETERINARIO' OR rol = 'ADMIN' ORDER BY nombre")
+    fun observarPersonal(): kotlinx.coroutines.flow.Flow<List<Usuario>>
+
+    @Query("SELECT COUNT(*) FROM usuarios WHERE rol = 'CLIENTE'")
+    suspend fun contarClientes(): Int
+
+    @Query("SELECT COUNT(*) FROM usuarios WHERE rol = 'VETERINARIO' OR rol = 'ADMIN'")
+    suspend fun contarPersonal(): Int
 }

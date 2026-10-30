@@ -43,6 +43,7 @@ import com.tecsup.huellitasvet.ui.veterinario.ServiciosScreen
 import com.tecsup.huellitasvet.ui.veterinario.FormularioServicioScreen
 import com.tecsup.huellitasvet.ui.veterinario.AjustesScreen
 import com.tecsup.huellitasvet.ui.veterinario.PanelScreen
+import com.tecsup.huellitasvet.ui.veterinario.AdminPanelScreen
 import com.tecsup.huellitasvet.ui.veterinario.AgendaScreen
 import com.tecsup.huellitasvet.ui.veterinario.AtenderCitaScreen
 import com.tecsup.huellitasvet.ui.veterinario.PacientesScreen
@@ -100,7 +101,11 @@ fun NavVet(app: VetApp) {
     val idDueno = usuarioActual?.id ?: usuarioGuardado
 
     fun rutaPerfil(rol: Rol): String =
-        if (rol == Rol.CLIENTE) Rutas.INICIO else Rutas.PANEL
+        when (rol) {
+            Rol.CLIENTE -> Rutas.INICIO
+            Rol.VETERINARIO -> Rutas.PANEL
+            Rol.ADMIN -> Rutas.PANEL_ADMIN
+        }
 
     fun crearFactoryDueno(duenoId: Int): ViewModelProvider.Factory =
         object : ViewModelProvider.Factory {
@@ -243,6 +248,17 @@ fun NavVet(app: VetApp) {
                     navController.popBackStack()
                 }
             )
+        }
+        composable(Rutas.PANEL_ADMIN) {
+            VetTheme(rol = Rol.ADMIN, oscuro = oscuro) {
+                AdminPanelScreen(
+                    nombreAdmin = usuarioActual?.nombre ?: nombreGuardado,
+                    onServicios = { irTabVet(Rutas.SERVICIOS) },
+                    onAgenda = { irTabVet(Rutas.AGENDA) },
+                    onPacientes = { irTabVet(Rutas.PACIENTES) },
+                    onSalir = { salir() }
+                )
+            }
         }
         composable(Rutas.INICIO) {
             VetTheme(rol = Rol.CLIENTE, oscuro = oscuro) {
